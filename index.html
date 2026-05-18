@@ -597,7 +597,7 @@
 
     function updateSavedPacksSelect() {
         const select = document.getElementById('saved-packs-select');
-        select.innerHTML = '<option value="">   저장된 플레이리스트 선택   </option>';
+        select.innerHTML = '<option value="">-- 저장된 플레이리스트 선택 --</option>';
         
         let savedData = localStorage.getItem('trpg_named_packs');
         if (savedData) {
