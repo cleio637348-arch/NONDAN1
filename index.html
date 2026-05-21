@@ -3,205 +3,495 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>코코포리아 로그 변환기 Pro</title>
-    <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+    <title>논단군 스크립트 정리 Pro</title>
     <style>
-        /* 변환된 로그 내역 스타일 커스텀 */
-        .log-container { font-family: 'Malgun Gothic', sans-serif; line-height: 1.6; }
-        .log-tab { font-size: 0.75rem; font-weight: bold; padding: 2px 6px; border-radius: 4px; margin-right: 6px; }
-        .tab-main { background-color: #e0f2fe; color: #0369a1; } /* 메인 탭 */
-        .tab-sub { background-color: #f3f4f6; color: #4b5563; }  /* 잡담 등 기타 탭 */
+        /* 제공된 다크 프리미엄 테마 적용 */
+        :root {
+            --bg-main: #191919;
+            --bg-surface: #202020;
+            --bg-input: #252525;
+            --border-notion: rgba(255, 255, 255, 0.07);
+            --text-main: rgba(255, 255, 255, 0.85);
+            --text-muted: rgba(255, 255, 255, 0.4);
+            
+            /* 하이라이트 컬러 */
+            --bg-kp: rgba(28, 131, 100, 0.15); 
+            --text-kp: #4ade80;
+            
+            --bg-check: rgba(239, 68, 68, 0.15); 
+            --text-check: #f87171;
+            
+            --bg-handout: rgba(234, 179, 8, 0.12); 
+            --text-handout: #fde047;
+            
+            --bg-link: rgba(59, 130, 246, 0.15); 
+            --text-link: #60a5fa;
+            
+            --bg-copied: rgba(46, 170, 220, 0.25);
+        }
+
+        body {
+            font-family: ui-sans-serif, -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 40px 16px;
+            background-color: var(--bg-main);
+            color: var(--text-main);
+            -webkit-font-smoothing: antialiased;
+            letter-spacing: -0.01em;
+        }
+
+        header {
+            margin-bottom: 30px;
+            border-bottom: 1px solid var(--border-notion);
+            padding-bottom: 20px;
+        }
+
+        header h1 {
+            font-size: 1.8rem;
+            font-weight: 700;
+            color: rgba(255, 255, 255, 0.9);
+            margin: 0 0 6px 0;
+            letter-spacing: -0.03em;
+            outline: none;
+        }
+
+        header p {
+            font-size: 0.85rem;
+            color: var(--text-muted);
+            margin: 0;
+        }
+
+        .notion-card {
+            background: var(--bg-surface);
+            border: 1px solid var(--border-notion);
+            border-radius: 6px;
+            padding: 18px;
+            margin-bottom: 20px;
+        }
+
+        .notion-label {
+            font-size: 0.75rem;
+            font-weight: 600;
+            letter-spacing: 0.05em;
+            margin-bottom: 12px;
+            color: var(--text-muted);
+            text-transform: uppercase;
+        }
+
+        .grid-config {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 14px;
+            margin-bottom: 14px;
+        }
+        @media (min-width: 600px) {
+            .grid-config { grid-template-columns: repeat(2, 1fr); }
+        }
+
+        .input-group {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+        }
+
+        .input-group span {
+            font-size: 0.75rem;
+            color: var(--text-muted);
+            font-weight: 600;
+        }
+
+        .checkbox-container {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 16px;
+            margin-top: 6px;
+        }
+
+        .translate-option-box {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 0.85rem;
+            color: var(--text-main);
+            cursor: pointer;
+            user-select: none;
+        }
+
+        .translate-option-box input[type="checkbox"] {
+            accent-color: var(--text-kp);
+            width: 15px;
+            height: 15px;
+            cursor: pointer;
+        }
+
+        input[type="text"], input[type="file"] {
+            width: 100%;
+            background-color: var(--bg-input);
+            border: 1px solid var(--border-notion);
+            border-radius: 4px;
+            color: var(--text-main);
+            font-size: 0.85rem;
+            padding: 10px 12px;
+            box-sizing: border-box;
+            outline: none;
+        }
+
+        input[type="file"] {
+            padding: 7px 12px;
+            cursor: pointer;
+        }
+
+        .btn-group {
+            display: flex;
+            gap: 8px;
+            margin-top: 14px;
+        }
+
+        .notion-btn {
+            background: none;
+            border: 1px solid var(--border-notion);
+            color: var(--text-main);
+            border-radius: 4px;
+            cursor: pointer;
+            padding: 11px 16px;
+            font-size: 0.85rem;
+            transition: background 0.1s;
+            font-weight: 600;
+        }
+
+        .btn-submit {
+            flex: 1;
+            background: rgba(255, 255, 255, 0.04);
+            border-color: rgba(255, 255, 255, 0.15);
+        }
+        .btn-submit:hover { background: rgba(255, 255, 255, 0.08); }
+
+        .btn-download {
+            flex: 1;
+            background: rgba(96, 165, 250, 0.1);
+            border-color: rgba(96, 165, 250, 0.25);
+            color: var(--text-link);
+        }
+        .btn-download:hover { background: rgba(96, 165, 250, 0.15); }
+
+        /* 출력 행 구조 (제공 사양 매칭 최적화) */
+        .notion-row {
+            display: flex;
+            align-items: flex-start;
+            gap: 8px;
+            margin-bottom: 6px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.02);
+            padding-bottom: 6px;
+        }
+
+        .notion-block {
+            flex: 1;
+            padding: 6px 10px;
+            border-radius: 4px;
+            font-size: 0.9rem;
+            line-height: 1.6;
+            word-break: break-all;
+            outline: none;
+            color: var(--text-main);
+        }
+        .notion-block:focus {
+            background: var(--bg-input);
+            box-shadow: inset 0 0 0 1px rgba(255,255,255,0.1);
+        }
+
+        /* 발화 캐릭터 이름 스타일 */
+        .char-name {
+            font-size: 0.85rem;
+            font-weight: 700;
+            margin-bottom: 2px;
+            display: block;
+        }
+
+        /* 자동 감지 특수 스타일 정의 */
+        .state-narrator { text-align: center; font-weight: bold; font-style: italic; color: rgba(255,255,255,0.7); width: 100%; margin: 12px 0; }
+        .state-system { background-color: var(--bg-surface); border-left: 3px solid var(--text-muted); opacity: 0.7; }
+        .state-dice { background-color: var(--bg-check); color: var(--text-check); border-left: 3px solid var(--text-check); font-weight: 500; }
+
+        /* 행 제어 */
+        .row-control {
+            padding: 6px 10px;
+            border: 1px solid var(--border-notion);
+            background: rgba(255,255,255,0.02);
+            color: var(--text-check);
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 0.75rem;
+            margin-top: 4px;
+        }
+        .row-control:hover { background: rgba(239, 68, 68, 0.1); }
+
+        /* 대화 전환 구분선 */
+        .character-divider {
+            border-top: 1px dashed var(--border-notion);
+            margin: 14px 0 8px 0;
+            width: 100%;
+        }
+
+        .hidden { display: none !important; }
+        .loading-text { color: var(--text-handout); font-size: 1rem; font-weight: 700; padding: 20px 0; text-align: center; animation: blinker 1.2s linear infinite; }
+        @keyframes blinker { 50% { opacity: 0.3; } }
     </style>
 </head>
-<body class="bg-slate-50 text-slate-800 min-h-screen flex flex-col items-center p-4 md:p-8">
+<body>
 
-    <div class="bg-white p-6 md:p-8 rounded-2xl shadow-xl w-full max-w-2xl border border-slate-100">
-        <header class="text-center mb-8">
-            <h1 class="text-2xl md:text-3xl font-extrabold text-indigo-600 mb-2">Ccfolia Log Converter Pro</h1>
-            <p class="text-sm text-slate-500">원본 코코포리아 HTML 로그를 분석하여 읽기 편한 고급형 HTML/TXT 파일로 가공합니다.</p>
-        </header>
+    <header>
+        <h1 id="roomTitle" contenteditable="true" spellcheck="false">논단군 스크립트 정리</h1>
+        <p>TRPG 텍스트 자동 정리 시스템 (PC / 모바일 공용)</p>
+    </header>
 
-        <div class="space-y-4">
-            <div>
-                <label class="block mb-2 text-sm font-semibold text-slate-700" for="logFile">코코포리아 로그 파일 (.html)</label>
-                <input id="logFile" type="file" accept=".html" 
-                    class="block w-full text-sm text-slate-900 border border-slate-300 rounded-xl cursor-pointer bg-slate-50 focus:outline-none p-3 file:mr-4 file:py-1 file:px-3 file:rounded-full file:border-0 file:text-xs file:font-semibold file:bg-indigo-50 file:text-indigo-700 hover:file:bg-indigo-100">
+    <div class="notion-card">
+        <div class="notion-label">설정 및 필터 제어</div>
+        
+        <div class="grid-config">
+            <div class="input-group">
+                <span>1. 로그 원본 파일 (.html)</span>
+                <input id="logFile" type="file" accept=".html">
             </div>
-
-            <div class="grid grid-cols-2 gap-4">
-                <button id="btnHtml" class="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-medium py-3 px-4 rounded-xl shadow-sm transition duration-200 cursor-pointer disabled:opacity-50">
-                    ✨ 새 HTML로 내보내기
-                </button>
-                <button id="btnTxt" class="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-medium py-3 px-4 rounded-xl shadow-sm transition duration-200 cursor-pointer disabled:opacity-50">
-                    📝 일반 TXT로 내보내기
-                </button>
+            <div class="input-group">
+                <span>2. 서술자 캐릭터 이름 지정</span>
+                <input id="narratorName" type="text" placeholder="예: GM 또는 서술자">
             </div>
         </div>
 
-        <div id="status" class="mt-4 text-sm hidden p-3 rounded-xl border"></div>
+        <div class="input-group" style="margin-top: 10px;">
+            <span>3. 추출 및 활성화할 채팅 탭 필터</span>
+            <div class="checkbox-container">
+                <label class="translate-option-box"><input type="checkbox" id="tabMain" checked> 메인</label>
+                <label class="translate-option-box"><input type="checkbox" id="tabSub" checked> 잡담</label>
+                <label class="translate-option-box"><input type="checkbox" id="tabInfo" checked> 정보</label>
+                <label class="translate-option-box"><input type="checkbox" id="tabPrivate" checked> 프라이빗</label>
+            </div>
+        </div>
 
-        <div class="mt-6 border-t border-slate-200 pt-6">
-            <h3 class="text-md font-bold text-slate-700 mb-2">정리된 로그 미리보기</h3>
-            <div id="preview" class="w-full h-64 overflow-y-auto bg-slate-900 text-slate-100 rounded-xl p-4 text-xs font-mono whitespace-pre-wrap leading-relaxed">파일을 업로드하면 이곳에 정제된 데이터가 표시됩니다.</div>
+        <div class="btn-group">
+            <button id="btnProcess" class="notion-btn btn-submit">⚙️ 스크립트 변환</button>
+            <button id="btnDownload" class="notion-btn btn-download">📦 정제본 HTML 저장</button>
         </div>
     </div>
 
-    <footer class="mt-8 text-xs text-slate-400 text-center max-w-md">
-        사용자의 소중한 로그 데이터는 외부 서버로 전송되지 않으며, PC/모바일 브라우저 내부에서만 즉시 처리되므로 보안상 안전합니다.
-    </footer>
+    <div class="notion-card">
+        <div class="panel-header">
+            <div class="notion-label" id="statusLabel">편집 데이터 정렬창</div>
+        </div>
+        <div id="editorContainer">
+            <p style="color: var(--text-muted); text-align: center; font-size: 0.85rem; padding: 40px 0;">파일을 등록한 뒤 변환 버튼을 실행해 주세요.</p>
+        </div>
+    </div>
 
     <script>
-        let parsedLogs = []; // 파싱된 메시지 객체들을 담을 배열
-        let rawFileName = "ccfolia_log";
+        let rawLogData = [];
 
-        // 파일 선택 시 파싱만 먼저 수행
+        // 1. 코코포리아 파일 감지 및 타이틀 매칭
         document.getElementById('logFile').addEventListener('change', (e) => {
             const file = e.target.files[0];
             if (!file) return;
 
-            rawFileName = file.name.replace(/\.[^/.]+$/, ""); // 확장자 제거한 원래 파일명 저장
             const reader = new FileReader();
-            showStatus('🔄 코코포리아 원본 파일 분석 중...', 'border-indigo-200 bg-indigo-50 text-indigo-700');
-
             reader.onload = function(event) {
-                try {
-                    const htmlText = event.target.result;
-                    const parser = new DOMParser();
-                    const doc = parser.parseFromString(htmlText, 'text/html');
-                    
-                    // 코코포리아 로그는 기본적으로 각 메시지가 <p> 태그 내부에 담겨 있습니다.
-                    // 스타일과 구조에 따라 이름과 대사 색상(color) 정보를 가지고 있습니다.
-                    const paragraphs = doc.querySelectorAll('p');
-                    
-                    if (paragraphs.length === 0) {
-                        showStatus('❌ 코코포리아 정식 로그 파일 구조가 아니거나 빈 파일입니다.', 'border-red-200 bg-red-50 text-red-700');
-                        return;
-                    }
-
-                    parsedLogs = [];
-                    let previewText = "";
-
-                    paragraphs.forEach(p => {
-                        const rawText = p.textContent.trim();
-                        if(!rawText) return;
-
-                        // 패턴 분석: 코코포리아는 보통 [탭이름] 이름 : 내용  형식으로 추출됨
-                        // 정규식을 활용해 탭, 이름, 본문을 분류합니다.
-                        const match = rawText.match(/^\[([^\]]+)\]\s*([^:]+)\s*:\s*([\s\S]*)$/);
-                        
-                        // 말하는 사람 글자 색상 추출 (있을 경우 보존)
-                        let charColor = "#000000";
-                        const spanWithColor = p.querySelector('span[style*="color"]');
-                        if (spanWithColor) {
-                            charColor = spanWithColor.style.color;
-                        }
-
-                        if (match) {
-                            const logObj = {
-                                tab: match[1],
-                                name: match[2].trim(),
-                                message: match[3].trim(),
-                                color: charColor
-                            };
-                            parsedLogs.push(logObj);
-                            previewText += `[${logObj.tab}] ${logObj.name}: ${logObj.message}\n`;
-                        } else {
-                            // 양식이 조금 맞지 않더라도 본문 텍스트 통째로 보존
-                            parsedLogs.push({ tab: "기타", name: "시스템", message: rawText, color: "#6b7280" });
-                            previewText += `${rawText}\n`;
-                        }
-                    });
-
-                    document.getElementById('preview').textContent = previewText;
-                    showStatus(`✅ 총 ${parsedLogs.length}개의 로그를 정상적으로 읽어왔습니다! 원하는 확장자로 내려받으세요.`, 'border-green-200 bg-green-50 text-green-700');
-
-                } catch (err) {
-                    console.error(err);
-                    showStatus('❌ 파일 파싱 과정에서 알 수 없는 오류가 발생했습니다.', 'border-red-200 bg-red-50 text-red-700');
+                const parser = new DOMParser();
+                const doc = parser.parseFromString(event.target.result, 'text/html');
+                
+                // 룸 이름 인식 처리
+                const titleNode = doc.querySelector('title');
+                if(titleNode && titleNode.innerText.trim()) {
+                    document.getElementById('roomTitle').innerText = titleNode.innerText.trim();
+                } else {
+                    document.getElementById('roomTitle').innerText = file.name.replace(/\.[^/.]+$/, "");
                 }
-            };
 
+                const paragraphs = doc.querySelectorAll('p');
+                rawLogData = [];
+
+                paragraphs.forEach(p => {
+                    const text = p.textContent.trim();
+                    if(!text) return;
+
+                    let color = "";
+                    const span = p.querySelector('span[style*="color"]');
+                    if(span) color = span.style.color;
+
+                    // [탭명] 캐릭터이름 : 본문 시간 정규식 매칭
+                    const match = text.match(/^\[([^\]]+)\]\s*([^:]+)\s*:\s*([\s\S]*)$/);
+                    if (match) {
+                        let tabName = match[1].trim();
+                        let charName = match[2].trim();
+                        let msgBody = match[3].trim();
+
+                        // 시간 정보 완전 제거 전처리
+                        const timeMatch = msgBody.match(/\s*(\d{4}\/\d{2}\/\d{2}\s+\d{2}:\d{2}:\d{2}|\d{2}:\d{2})$/);
+                        if(timeMatch) {
+                            msgBody = msgBody.replace(timeMatch[0], "").trim();
+                        }
+
+                        rawLogData.push({ tab: tabName, name: charName, message: msgBody, color: color });
+                    } else {
+                        rawLogData.push({ tab: "시스템", name: "SYSTEM", message: text, color: "" });
+                    }
+                });
+
+                document.getElementById('statusLabel').innerText = `편집 데이터 정렬창 (총 ${rawLogData.length}행 로드됨)`;
+            };
             reader.readAsText(file, 'UTF-8');
         });
 
-        // HTML 다운로드 이벤트
-        document.getElementById('btnHtml').addEventListener('click', () => {
-            if(parsedLogs.length === 0) return alert('먼저 로그 파일을 업로드해 주세요.');
+        // 2. 스크립트 정밀 파싱 변환기
+        document.getElementById('btnProcess').addEventListener('click', () => {
+            if(rawLogData.length === 0) return alert('정리할 스크립트 파일을 먼저 업로드해 주세요.');
             
-            // 깔끔하고 가독성 좋은 새로운 HTML 구조 빌드
-            let htmlContent = `
-<!DOCTYPE html>
+            const narrator = document.getElementById('narratorName').value.trim();
+            const container = document.getElementById('editorContainer');
+            container.innerHTML = ""; // 컨테이너 리셋
+
+            const incMain = document.getElementById('tabMain').checked;
+            const incSub = document.getElementById('tabSub').checked;
+            const incInfo = document.getElementById('tabInfo').checked;
+            const incPriv = document.getElementById('tabPrivate').checked;
+
+            let lastChar = "";
+
+            rawLogData.forEach((log) => {
+                // 탭 문자열 매칭 분류
+                let isMain = log.tab.includes('메인') || log.tab.toLowerCase() === 'main';
+                let isSub = log.tab.includes('잡담') || log.tab.toLowerCase() === 'sub' || log.tab.includes('잡');
+                let isInfo = log.tab.includes('정보') || log.tab.toLowerCase() === 'info';
+                let isPriv = log.tab.includes('비밀') || log.tab.includes('프라이빗') || log.tab.toLowerCase() === 'private';
+                let isSys = log.tab === "시스템";
+
+                if(isMain && !incMain) return;
+                if(isSub && !incSub) return;
+                if(isInfo && !incInfo) return;
+                if(isPriv && !incPriv) return;
+
+                let isNarrator = narrator && log.name === narrator;
+                let isDice = log.message.includes('Choice') || log.message.includes('🎲') || /[^a-zA-Z0-9가-힣\s]+:\s*\(.*?\)\s*->/.test(log.message);
+
+                // 캐릭터 변경 감지 시 자동 텍스트 구분 점선 생성
+                if (!isNarrator && !isSys && lastChar && lastChar !== log.name) {
+                    const divider = document.createElement('div');
+                    divider.className = "character-divider";
+                    container.appendChild(divider);
+                }
+                if (!isNarrator && !isSys) lastChar = log.name;
+
+                // 로우 래퍼 구성
+                const row = document.createElement('div');
+                row.className = "notion-row";
+
+                let innerStructure = "";
+
+                if (!isNarrator) {
+                    // 다이스, 시스템 판정 클래스 부여
+                    let msgClass = "notion-block";
+                    if (isDice) msgClass += " state-dice";
+                    if (isSys) msgClass += " state-system";
+
+                    // 이름 앞의 대괄호 [탭명] 완전 삭제 레이아웃 구성
+                    innerStructure += `
+                        <div style="flex: 1;">
+                            ${!isSys ? `<span class="char-name" style="color: ${log.color || 'inherit'}">${log.name}</span>` : ''}
+                            <div class="${msgClass}" contenteditable="true" spellcheck="true">${escapeHtml(log.message)}</div>
+                        </div>
+                    `;
+                } else {
+                    // 서술자 모드: 인장/이름/시간 전면 소거 후 볼드 및 기울임 중앙정렬 처리
+                    innerStructure += `
+                        <div class="notion-block state-narrator" contenteditable="true" spellcheck="true">${escapeHtml(log.message)}</div>
+                    `;
+                }
+
+                // 행 삭제 컨트롤 버튼
+                innerStructure += `
+                    <button class="row-control control-del" onclick="this.parentElement.remove()">✕</button>
+                `;
+
+                row.innerHTML = innerStructure;
+                container.appendChild(row);
+            });
+        });
+
+        // 3. 최종 완성본 파일 추출 빌드 다운로더
+        document.getElementById('btnDownload').addEventListener('click', () => {
+            const rows = document.querySelectorAll('#editorContainer > div, #editorContainer .character-divider');
+            if(rows.length === 0) return alert('추출할 가공 데이터가 없습니다.');
+
+            const finalTitle = document.getElementById('roomTitle').innerText.trim();
+
+            let fileOutput = `<!DOCTYPE html>
 <html lang="ko">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>${rawFileName} - 가공된 백업본</title>
+    <title>${finalTitle}</title>
     <style>
-        body { background-color: #fafafa; color: #2d3748; font-family: 'Malgun Gothic', sans-serif; padding: 20px; max-width: 900px; margin: 0 auto; }
-        .log-row { padding: 8px 12px; margin-bottom: 6px; background: white; border-radius: 6px; box-shadow: 0 1px 2px rgba(0,0,0,0.05); display: flex; align-items: flex-start; }
-        .tab-tag { font-size: 11px; font-weight: bold; padding: 2px 6px; border-radius: 4px; margin-right: 10px; flex-shrink: 0; margin-top: 2px; text-align: center; width: 50px; }
-        .tab-main { background-color: #e0f2fe; color: #0369a1; }
-        .tab-sub { background-color: #f3f4f6; color: #4b5563; }
-        .name-box { font-weight: bold; width: 130px; flex-shrink: 0; margin-right: 15px; word-break: break-all; }
-        .msg-box { word-break: break-all; white-space: pre-wrap; flex-grow: 1; }
+        body { background-color: #191919; color: rgba(255, 255, 255, 0.85); font-family: ui-sans-serif, -apple-system, system-ui, sans-serif; max-width: 700px; margin: 0 auto; padding: 40px 16px; }
+        h1 { font-size: 1.6rem; font-weight: 700; color: #fff; border-bottom: 1px solid rgba(255,255,255,0.07); padding-bottom: 12px; margin-bottom: 24px; }
+        .row { display: flex; align-items: flex-start; gap: 8px; margin-bottom: 10px; }
+        .name { font-size: 0.85rem; font-weight: 700; margin-bottom: 3px; display: block; }
+        .msg { font-size: 0.9rem; line-height: 1.6; white-space: pre-wrap; word-break: break-all; }
+        .narrator { text-align: center; font-weight: bold; font-style: italic; color: rgba(255,255,255,0.7); width: 100%; margin: 16px 0; }
+        .system { background-color: #202020; border-left: 3px solid rgba(255,255,255,0.4); opacity: 0.7; padding: 6px 10px; border-radius: 4px; flex: 1; }
+        .dice { background-color: rgba(239, 68, 68, 0.15); color: #f87171; border-left: 3px solid #f87171; font-weight: 500; padding: 6px 10px; border-radius: 4px; flex: 1; }
+        .divider { border-top: 1px dashed rgba(255, 255, 255, 0.07); margin: 14px 0; width: 100%; }
     </style>
 </head>
 <body>
-    <h2 style="border-bottom: 2px solid #6366f1; padding-bottom: 10px; margin-bottom: 20px; color:#4f46e5;">✨ ${rawFileName} 백업 로그</h2>
-    <div class="log-container">
-            `;
+    <h1>${finalTitle}</h1>
+    <div style="display: flex; flex-direction: column;">
+`;
 
-            parsedLogs.forEach(log => {
-                const isMain = log.tab.includes('메인') || log.tab.toLowerCase() == 'main';
-                const tabClass = isMain ? 'tab-main' : 'tab-sub';
-                
-                htmlContent += `
-        <div class="log-row">
-            <span class="tab-tag ${tabClass}">${log.tab}</span>
-            <span class="name-box" style="color: ${log.color}">${log.name}</span>
-            <span class="msg-box">${escapeHtml(log.message)}</span>
-        </div>`;
+            rows.forEach(element => {
+                if(element.classList.contains('character-divider')) {
+                    fileOutput += `        <div class="divider"></div>\n`;
+                    return;
+                }
+
+                const isBlockNarrator = element.querySelector('.state-narrator');
+                const isBlockDice = element.querySelector('.state-dice');
+                const isBlockSys = element.querySelector('.state-system');
+
+                fileOutput += `        <div class="row">\n`;
+
+                if(isBlockNarrator) {
+                    fileOutput += `            <div class="msg narrator">${escapeHtml(isBlockNarrator.innerText)}</div>\n`;
+                } else {
+                    let containerClass = "";
+                    if(isBlockDice) containerClass = ' class="dice"';
+                    if(isBlockSys) containerClass = ' class="system"';
+
+                    fileOutput += `            <div style="flex: 1;"${containerClass}>\n`;
+                    
+                    const nameNode = element.querySelector('.char-name');
+                    if(nameNode) {
+                        fileOutput += `                <span class="name" style="color:${nameNode.style.color}">${escapeHtml(nameNode.innerText)}</span>\n`;
+                    }
+
+                    const msgNode = element.querySelector('.notion-block');
+                    if(msgNode) {
+                        fileOutput += `                <div class="msg">${escapeHtml(msgNode.innerText)}</div>\n`;
+                    }
+                    fileOutput += `            </div>\n`;
+                }
+
+                fileOutput += `        </div>\n`;
             });
 
-            htmlContent += `
-    </div>
-</body>
-</html>`;
+            fileOutput += `    </div>\n</body>\n</html>`;
 
-            downloadFile(htmlContent, `${rawFileName}_정리본.html`, 'text/html');
-        });
-
-        // 일반 TXT 다운로드 이벤트
-        document.getElementById('btnTxt').addEventListener('click', () => {
-            if(parsedLogs.length === 0) return alert('먼저 로그 파일을 업로드해 주세요.');
-            
-            let txtContent = "";
-            parsedLogs.forEach(log => {
-                txtContent += `[${log.tab}] ${log.name} : ${log.message}\n`;
-            });
-
-            downloadFile(txtContent, `${rawFileName}_정리본.txt`, 'text/plain');
-        });
-
-        // 범용 다운로드 유틸리티 (모바일 사파리, 안드로이드 크롬 크로스 브라우징 지원)
-        function downloadFile(content, filename, contentType) {
-            const blob = new Blob([content], { type: `${contentType};charset=utf-8;` });
+            const blob = new Blob([fileOutput], { type: 'text/html;charset=utf-8;' });
             const link = document.createElement("a");
             link.href = URL.createObjectURL(blob);
-            link.setAttribute("download", filename);
+            link.setAttribute("download", `${finalTitle}_정리본.html`);
             document.body.appendChild(link);
             link.click();
             document.body.removeChild(link);
-        }
+        });
 
-        function showStatus(msg, classes) {
-            const statusDiv = document.getElementById('status');
-            statusDiv.className = `mt-4 text-sm p-3 rounded-xl border ${classes}`;
-            statusDiv.innerHTML = msg;
-            statusDiv.classList.remove('hidden');
-        }
-
-        // HTML 태그 깨짐 방지용 특수문자 이스케이프 함수
         function escapeHtml(text) {
             return text
                 .replace(/&/g, "&amp;")
