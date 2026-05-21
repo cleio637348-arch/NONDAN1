@@ -9,7 +9,7 @@
     <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;700&family=Noto+Serif+KR:wght@400;700&family=Hina+Mincho&family=Inter:wght@400;600&display=swap" rel="stylesheet">
     <style>
         :root {
-            /* 기본 인터페이스 (노션 스타일 다크 모드) */
+            /* 처음 성공했던 노션 스타일 다크 모드 기본 인터페이스 */
             --bg-main: #191919;
             --bg-surface: #202020;
             --bg-input: #252525;
@@ -18,12 +18,12 @@
             --text-muted: rgba(255, 255, 255, 0.4);
             --text-link: #60a5fa;
 
-            /* 폰트 프리셋 (기본 고딕) */
+            /* 폰트 프리셋 */
             --font-serif: "Hina Mincho", "Noto Serif KR", serif;
             --font-sans: "Noto Sans KR", "Inter", sans-serif;
             --current-font: var(--font-sans);
 
-            /* 스크립트 색상 스택 초기화 변수 */
+            /* 처음 성공했던 스크립트 출력 색상 프리셋 (Roll20 기본 흰배경 형태) */
             --script-bg: #f3f3f3;
             --script-text: #111111;
             --script-name: #b51212;
@@ -147,7 +147,7 @@
         .btn-util { flex: 1; border-color: rgba(96, 165, 250, 0.2); color: var(--text-link); }
         .btn-util:hover { background: rgba(96, 165, 250, 0.1); }
 
-        /* 동적 테마를 지원하는 본문 상자 */
+        /* 처음 성공한 스크립트 박스 디자인 */
         .script-container {
             display: flex;
             flex-direction: column;
@@ -158,6 +158,7 @@
             border: 1px solid var(--script-border);
         }
 
+        /* 처음 구조 롤백: 마우스 오버 시 우측 상단에 절묘하게 뜨는 absolute 레이아웃 */
         .notion-row { 
             display: flex; 
             align-items: flex-start; 
@@ -166,7 +167,7 @@
             position: relative;
         }
         
-        .avatar-box { width: 28px; height: 28px; border-radius: 4px; object-fit: cover; flex-shrink: 0; border: 1px solid rgba(0,0,0,0.1); background: #ddd; }
+        .avatar-box { width: 28px; height: 28px; border-radius: 4px; object-fit: cover; flex-shrink: 0; border: 1px solid rgba(0,0,0,0.1); background: #eee; }
         .avatar-placeholder { width: 28px; flex-shrink: 0; }
         
         .notion-block {
@@ -191,7 +192,7 @@
             font-family: var(--font-sans);
         }
 
-        /* 상태 템플릿 색상 연동 */
+        /* 상태 프리셋 */
         .state-narrator { 
             text-align: center; 
             font-weight: 700; 
@@ -205,10 +206,9 @@
         
         .state-system { font-family: var(--font-sans); font-size: 0.8rem; color: var(--script-sys) !important; }
 
-        /* [요구사항] 주사위 강조 제거 -> 일반 블록 서식과 투명화 연동 유지 */
-        .state-dice { background-color: transparent !important; color: var(--script-text) !important; border-left: none !important; padding: 2px 4px !important; }
+        /* [요구사항] 주사위는 별도의 특수 서식 클래스를 일절 부여하지 않고 일반 텍스트와 100% 동일화 */
 
-        /* 삭제 버튼 del 형태 */
+        /* 처음 성공한 del 마우스 오버 팝업식 버튼 복원 */
         .row-control { 
             position: absolute; 
             right: 6px; 
@@ -228,7 +228,6 @@
         .row-control:hover { color: #fff; background: #ff4d4d; border-color: #ff4d4d; }
         
         .character-divider { border-top: 1px solid rgba(0, 0, 0, 0.05); margin: 4px 0 2px 0; width: 100%; }
-        .hidden { display: none !important; }
     </style>
 </head>
 <body>
@@ -361,21 +360,18 @@
                 
                 document.getElementById('roomTitle').innerText = file.name.replace(/\.html$/i, "").replace(/\[all\]$/i, "").trim();
 
-                // 원본 소스의 스타일이나 레이아웃 내부 엘리먼트 완전 추적 수집
                 let elements = doc.querySelectorAll('p, div, span');
                 rawLogData = [];
                 detectedTabs.clear();
 
                 elements.forEach(p => {
                     if (p.children.length > 0 && p.tagName !== 'P') {
-                        // 중첩 구조 내부의 텍스트가 중복 파싱되는 것을 방지
                         if (p.querySelector('p')) return;
                     }
 
                     const text = p.textContent.trim();
                     if(!text || text.length < 2) return;
 
-                    // [이미지 추출 보강] 이미지 요소를 태그 관계 및 형제 노드까지 확장하여 아바타 정보 취득
                     let avatarSrc = "";
                     let imgEl = p.querySelector('img') || p.parentElement?.querySelector(`img`) || p.previousElementSibling?.querySelector('img');
                     if (imgEl && imgEl.getAttribute('src')) {
@@ -411,7 +407,6 @@
                             rawLogData.push({ tab: "Main", name: charName, message: msgBody, avatar: avatarSrc });
                             if(avatarSrc && !characterAvatars[charName]) characterAvatars[charName] = avatarSrc;
                         } else {
-                            // 대화 형태 외 시스템 메시지 처리
                             if(!text.startsWith("http") && text.length > 1) {
                                 rawLogData.push({ tab: "시스템", name: "", message: text, avatar: "" });
                             }
@@ -510,7 +505,6 @@
                 row.dataset.tab = log.tab;
 
                 let msgClass = "notion-block";
-                if(log.message.includes('🎲') || log.message.includes('->') || log.message.includes('성공') || log.message.includes('실패')) msgClass += " state-dice";
                 if(isSys) msgClass += " state-system";
                 if(isNarrator) msgClass += " state-narrator";
 
