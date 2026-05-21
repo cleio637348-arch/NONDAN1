@@ -168,7 +168,7 @@
             position: relative;
         }
         
-        .avatar-box { width: 28px; height: 28px; border-radius: 4px; object-fit: cover; flex-shrink: 0; border: 1px solid rgba(0,0,0,0.1); }
+        .avatar-box { width: 28px; height: 28px; border-radius: 4px; object-fit: cover; flex-shrink: 0; border: 1px solid rgba(0,0,0,0.1); background: #eee; }
         .avatar-placeholder { width: 28px; flex-shrink: 0; }
         
         .notion-block {
@@ -208,7 +208,7 @@
         .state-system { font-family: var(--font-sans); font-size: 0.8rem; color: var(--script-sys) !important; }
         .state-dice { background-color: var(--script-dice-bg) !important; color: var(--script-dice-text) !important; border-left: 2px solid var(--script-dice-text) !important; font-weight: 500; font-family: var(--font-sans); padding: 2px 6px; }
 
-        /* [요구사항] 삭제 버튼을 del 텍스트 형태로 변경 */
+        /* 삭제 버튼 del 형태 */
         .row-control { 
             position: absolute; 
             right: 6px; 
@@ -305,7 +305,6 @@
         let currentFontType = "sans"; 
         let currentColorTheme = "roll20";
 
-        // 색상 테마 변수 매핑 테이블
         const themeProfiles = {
             roll20: {
                 bg: "#f3f3f3", text: "#111111", name: "#b51212", narrator: "#222222", sys: "#666666",
@@ -337,7 +336,6 @@
             arrow.innerText = content.classList.contains('open') ? '▼' : '▶';
         }
 
-        // 테마 선택 이벤트 바인딩
         document.querySelectorAll('input[name="colorTheme"]').forEach(radio => {
             radio.addEventListener('change', (e) => {
                 currentColorTheme = e.target.value;
@@ -345,7 +343,6 @@
             });
         });
 
-        // 초기 테마 로드
         applyColorTheme("roll20");
 
         document.querySelectorAll('input[name="fontPreset"]').forEach(radio => {
@@ -368,12 +365,20 @@
                 
                 document.getElementById('roomTitle').innerText = file.name.replace(/\.html$/i, "").replace(/\[all\]$/i, "").trim();
 
+                // 원본 파일 내 엘리먼트 기반으로 텍스트 및 인장 자산 통합 수집
                 const paragraphs = doc.querySelectorAll('p');
                 rawLogData = [];
                 detectedTabs.clear();
 
                 paragraphs.forEach(p => {
+                    // 내부 아바타 이미지 src 엘리먼트 추적 보강
                     let avatarSrc = p.querySelector('img')?.getAttribute('src') || "";
+                    if (!avatarSrc) {
+                        // 스팬이나 자식 노드 레벨에 숨어있는 아바타 백업용 노드 검사
+                        let embeddedImg = p.parentElement?.querySelector(`img[alt="${p.textContent.split(':')[0]}"]`);
+                        if(embeddedImg) avatarSrc = embeddedImg.getAttribute('src');
+                    }
+                    
                     const text = p.textContent.trim();
                     if(!text) return;
 
@@ -485,7 +490,8 @@
                 if(!isNarrator && !isSys) {
                     if(!isSameSpeaker) {
                         const avatar = characterAvatars[currentSpeaker] || log.avatar;
-                        inner += avatar ? `<img src="${avatar}" class="avatar-box">` : `<div class="avatar-box" style="background:#ddd"></div>`;
+                        // 이미지 소스가 있을 경우 엑스박스 방지 및 백업 바인딩 처리
+                        inner += avatar ? `<img src="${avatar}" class="avatar-box" data-raw-src="${avatar}">` : `<div class="avatar-box" style="background:#ddd"></div>`;
                     } else {
                         inner += `<div class="avatar-placeholder"></div>`;
                     }
@@ -497,7 +503,6 @@
                     inner += `<div class="${msgClass}" style="font-family: ${fontValue}" contenteditable="true" spellcheck="false">${escapeHtml(log.message)}</div>`;
                 }
                 
-                // [요구사항] 버튼 문구를 ✕에서 del로 수정
                 inner += `<button class="row-control" onclick="this.parentElement.remove()">del</button>`;
                 row.innerHTML = inner;
                 target.appendChild(row);
@@ -516,7 +521,7 @@
                 h1 { font-family: 'Noto Sans KR', sans-serif; font-size:1.5rem; border-bottom:1px solid rgba(255,255,255,0.1); padding-bottom:12px; margin-bottom:20px; color:#fff; }
                 .script-box { display: flex; flex-direction: column; gap: 2px; background:${p.bg}; padding:12px; border-radius:6px; border:1px solid ${p.border}; }
                 .row { display:flex; align-items:flex-start; gap:8px; padding: 2px 4px; }
-                .avatar { width:28px; height:28px; border-radius:4px; object-fit:cover; flex-shrink:0; border:1px solid rgba(0,0,0,0.1); }
+                .avatar { width:28px; height:28px; border-radius:4px; object-fit:cover; flex-shrink:0; border:1px solid rgba(0,0,0,0.1); background:#ddd; }
                 .name { font-size:0.8rem; font-weight:700; margin-bottom:1px; display:block; color:${p.name}; font-family: 'Noto Sans KR', sans-serif; }
                 .msg { font-family: ${chosenFontStack}; font-size:0.9rem; line-height:1.4; white-space:pre-wrap; word-break:break-all; flex:1; color:${p.text}; }
                 .narrator { text-align:center; font-weight:700; font-style:italic; padding:3px 10px; font-size:0.9rem; margin: 8px 0; color:${p.narrator}; }
@@ -540,10 +545,13 @@
 
                     res += '<div class="row">';
                     if(!isNarr && !isSys) {
-                        const img = el.querySelector('.avatar-box')?.src;
+                        const imgBox = el.querySelector('.avatar-box');
+                        const img = imgBox?.getAttribute('src') || imgBox?.dataset.rawSrc;
+                        
                         if(img && !same) res += `<img src="${img}" class="avatar">`;
                         else if(!same) res += `<div class="avatar" style="background:#ddd"></div>`;
                         else res += `<div style="width:28px;flex-shrink:0"></div>`;
+                        
                         res += '<div>';
                         if(!same) res += `<span class="name">${spk}</span>`;
                         res += `<div class="msg ${isDice?'dice':''}">${el.querySelector('.notion-block').innerText}</div></div>`;
