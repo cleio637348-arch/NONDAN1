@@ -1,488 +1,100 @@
-
-
-
-
-
 <!DOCTYPE html>
 <html lang="ko">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>TRPG Audio Station (Sync)</title>
-    <style>
-        :root {
-            --bg-color: #191919;
-            --card-bg: #202020;
-            --border-color: #2f2f2f;
-            --text-main: #ffffff;
-            --text-muted: #757575;
-            --btn-bg: #2c2c2c;
-            --btn-hover: #373737;
-            --point-green: #238636;
-            --point-red: #da3637;
-            --point-blue: #2f81f7;
-        }
-
-        body {
-            background-color: var(--bg-color);
-            color: var(--text-main);
-            font-family: ui-sans-serif, -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif;
-            margin: 0;
-            padding: 20px;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            min-height: 100vh;
-        }
-
-        .player-card {
-            background: var(--card-bg);
-            border: 1px solid var(--border-color);
-            border-radius: 4px;
-            padding: 20px;
-            width: 400px;
-            box-sizing: border-box;
-        }
-
-        .role-indicator {
-            font-size: 11px;
-            font-weight: bold;
-            padding: 4px 8px;
-            border-radius: 3px;
-            text-align: center;
-            margin-bottom: 12px;
-            text-transform: uppercase;
-        }
-        .role-master { background: rgba(47, 129, 247, 0.15); color: var(--point-blue); border: 1px solid var(--point-blue); }
-        .role-player { background: rgba(117, 117, 117, 0.15); color: var(--text-muted); border: 1px solid var(--border-color); }
-
-        .input-group {
-            display: flex;
-            flex-direction: column;
-            gap: 8px;
-            margin-bottom: 14px;
-        }
-
-        .row {
-            display: flex;
-            gap: 6px;
-            width: 100%;
-        }
-
-        input, select {
-            flex: 1;
-            min-width: 0;
-            background: #191919;
-            border: 1px solid var(--border-color);
-            border-radius: 4px;
-            padding: 8px 12px;
-            color: #ffffff !important;
-            font-size: 13px;
-            outline: none;
-            box-sizing: border-box;
-        }
-
-        input:focus { border-color: #555555; }
-        select option { background-color: var(--card-bg); color: #ffffff; }
-
-        button {
-            background: var(--btn-bg);
-            color: #ffffff;
-            border: 1px solid var(--border-color);
-            border-radius: 4px;
-            padding: 8px 14px;
-            font-size: 13px;
-            cursor: pointer;
-            white-space: nowrap;
-            box-sizing: border-box;
-        }
-        button:hover { background: var(--btn-hover); }
-        button:disabled { opacity: 0.4; cursor: not-allowed; }
-        
-        .storage-section {
-            border: 1px solid var(--border-color);
-            background: rgba(0, 0, 0, 0.1);
-            border-radius: 4px;
-            padding: 10px;
-            margin-bottom: 16px;
-            display: flex;
-            flex-direction: column;
-            gap: 6px;
-        }
-        .storage-section .row select { flex: 1.8; }
-        .storage-section .row button { flex: 1; font-size: 12px; padding: 8px 2px; }
-
-        #video-container {
-            width: 100%;
-            height: 220px;
-            background: #000000;
-            border: 1px solid var(--border-color);
-            border-radius: 4px;
-            overflow: hidden;
-            margin-bottom: 16px;
-            position: relative;
-        }
-        #main-player { width: 100%; height: 100%; border: none; }
-
-        .controls {
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            gap: 12px;
-            margin-bottom: 16px;
-        }
-
-        .btn-ctrl {
-            background: transparent;
-            border: 1px solid var(--border-color);
-            color: var(--text-main);
-            font-size: 14px;
-            width: 38px;
-            height: 38px;
-            border-radius: 4px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-        }
-        .btn-ctrl:hover { background: var(--btn-bg); }
-        .btn-main { background: #ffffff !important; color: #000000 !important; border: none; font-size: 16px; }
-        .btn-main:hover { background: #e0e0e0 !important; }
-
-        #loop-trigger { font-size: 11px; width: auto; height: 38px; padding: 0 10px; }
-        .active { border-color: var(--point-green) !important; color: #ffffff !important; background: var(--point-green) !important; }
-        
-        .playlist {
-            border-top: 1px solid var(--border-color);
-            padding-top: 14px;
-            max-height: 180px;
-            overflow-y: auto;
-        }
-        .playlist-title {
-            font-size: 11px;
-            color: var(--text-muted);
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
-            margin-bottom: 8px;
-            font-weight: 600;
-        }
-
-        .track {
-            padding: 8px 10px;
-            border-radius: 4px;
-            cursor: pointer;
-            font-size: 13px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            background: #191919;
-            margin-bottom: 4px;
-            border: 1px solid var(--border-color);
-        }
-        .track:hover { background: #252525; }
-        .track.playing { border-color: var(--point-green); background: rgba(35, 134, 54, 0.1); }
-        .track.playing .track-name { color: #ffffff; font-weight: 600; }
-        .track-info { display: flex; flex-direction: column; gap: 2px; flex: 1; }
-        .track-name { color: #ffffff; }
-
-        .btn-del {
-            background: transparent;
-            color: var(--point-red);
-            border: none;
-            padding: 4px 6px;
-            font-size: 12px;
-            cursor: pointer;
-        }
-        .btn-del:hover { background: rgba(218, 54, 55, 0.1); border-radius: 4px; }
-
-        .non-profit-footer {
-            margin-top: 16px;
-            font-size: 10px;
-            color: var(--text-muted);
-            text-align: center;
-            line-height: 1.4;
-            word-break: keep-all;
-        }
-    </style>
+    <title>코코포리아 로그 백업기</title>
+    <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
 </head>
-<body>
+<body class="bg-gray-100 text-gray-800 min-h-screen flex flex-col items-center justify-center p-4">
 
-<div class="player-card">
-    <div id="role-tag" class="role-indicator role-player">Player Mode (Muted Control)</div>
+    <div class="bg-white p-6 rounded-2xl shadow-md w-full max-w-md text-center">
+        <h1 class="text-2xl font-bold mb-2 text-indigo-600">Ccfolia Log Converter</h1>
+        <p class="text-sm text-gray-500 mb-6">코코포리아에서 다운로드한 HTML 로그를 깔끔한 TXT로 변환합니다. (PC/모바일 공용)</p>
 
-    <div class="input-group master-only">
-        <input type="text" id="url-input" placeholder="유튜브 링크 주소 입력">
-        <div class="row">
-            <input type="text" id="name-input" placeholder="곡 이름 입력 (예: 보스전)">
-            <button style="background: #ffffff; color: #000000;" onclick="addTrack()">트랙 추가</button>
+        <div class="mb-4">
+            <label class="block mb-2 text-sm font-medium text-gray-700 text-left" for="file_input">로그 파일(.html) 선택</label>
+            <input id="logFile" type="file" accept=".html" 
+                class="block w-full text-sm text-gray-900 border border-gray-300 rounded-lg cursor-pointer bg-gray-50 focus:outline-none p-2">
         </div>
+
+        <button id="convertBtn" class="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-medium py-2.5 px-4 rounded-lg transition duration-200 mb-4 cursor-pointer">
+            텍스트 변환 및 다운로드
+        </button>
+
+        <div id="status" class="text-sm text-gray-600 hidden bg-gray-50 p-3 rounded-lg border border-gray-200"></div>
     </div>
 
-    <div class="storage-section master-only">
-        <div class="row">
-            <input type="text" id="pack-name-input" placeholder="저장할 팩 이름">
-            <button style="background: #21262d; border-color: #30363d;" onclick="savePlaylistPack()">팩 저장</button>
-        </div>
-        <div class="row">
-            <select id="saved-packs-select"><option value="">-- 플레이리스트 선택 --</option></select>
-            <button onclick="loadPlaylistPack()">불러오기</button>
-            <button style="border-color: var(--point-red); color: var(--point-red);" onclick="deletePlaylistPack()">팩 삭제</button>
-        </div>
-    </div>
+    <footer class="mt-6 text-xs text-gray-400">
+        GitHub Pages를 통해 브라우저 자체에서 구동되므로 서버로 로그가 전송되지 않습니다.
+    </footer>
 
-    <div id="video-container">
-        <div id="main-player"></div>
-    </div>
-
-    <div class="controls master-only">
-        <button class="btn-ctrl" onclick="prevVideo()">⏮</button>
-        <button class="btn-ctrl btn-main" id="play-trigger" onclick="togglePlay()">▶</button>
-        <button class="btn-ctrl" onclick="nextVideo()">⏭</button>
-        <button class="btn-ctrl" id="loop-trigger" onclick="toggleLoop()">Repeat Off</button>
-    </div>
-
-    <div class="playlist">
-        <div class="playlist-title">Queue List</div>
-        <div id="track-list"></div>
-    </div>
-
-    <div class="non-profit-footer">
-         TRPG 세션 전용 실시간 동기화 오디오 스테이션입니다.
-    </div>
-</div>
-
-<script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-database-compat.js"></script>
-<script src="https://www.youtube.com/iframe_api"></script>
-
-<script>
-    const firebaseConfig = {
-       apiKey: "AIzaSyDw805zxD4g9CpCJqpUmMhp7YOUXetIevg",
-        authDomain: "trpgnondan.firebaseapp.com",
-        databaseURL: "https://console.firebase.google.com/u/0/project/trpgnondan/settings/general/web:N2ZkNDNjMzItYTkxNy00M2Y3LWE0ZDMtM2NkNzhlOTg3ZTkz",
-        projectId: "trpgnondan",
-    };
-    
-    // 파이어베이스 초기화
-    firebase.initializeApp(firebaseConfig);
-    const database = firebase.database();
-
-    // 주소창에서 마스터인지 확인 (?role=master 가 붙어있으면 마스터)
-    const urlParams = new URLSearchParams(window.location.search);
-    const isMaster = urlParams.get('role') === 'master';
-
-    let playlist = []; 
-    let currentIndex = 0;
-    let isLooping = false;
-    let isPlaying = false;
-    let player = null;
-
-    // 역할에 따른 UI 잠금/해제
-    document.addEventListener("DOMContentLoaded", () => {
-        const roleTag = document.getElementById('role-tag');
-        if (isMaster) {
-            roleTag.innerText = "👑 Master Mode (Control Active)";
-            roleTag.className = "role-indicator role-master";
-        } else {
-            roleTag.innerText = "👥 Player Mode (Synced with Master)";
-            roleTag.className = "role-indicator role-player";
-            // 플레이어는 입력 및 제어창 숨김
-            document.querySelectorAll('.master-only').forEach(el => el.style.display = 'none');
-        }
-    });
-
-    window.onYouTubeIframeAPIReady = function() {
-        player = new YT.Player('main-player', {
-            height: '100%', width: '100%', videoId: '',
-            playerVars: { 'autoplay': 1, 'controls': 1, 'rel': 0, 'modestbranding': 1 },
-            events: { 'onStateChange': onPlayerStateChange }
-        });
-
-        if (isMaster) {
-            updateSavedPacksSelect();
-        }
-
-        // 실시간 동기화 리스너 수신 (마스터와 플레이어 공통)
-        database.ref('room/currentTrack').on('value', (snapshot) => {
-            const data = snapshot.val();
-            if (data) {
-                playlist = data.playlist || [];
-                currentIndex = data.currentIndex || 0;
-                isLooping = data.isLooping || false;
-                isPlaying = data.isPlaying || false;
-                
-                renderPlaylist();
-                syncPlayer(data.currentVideoId, data.isPlaying);
+    <script>
+        document.getElementById('convertBtn').addEventListener('click', () => {
+            const fileInput = document.getElementById('logFile');
+            const statusDiv = document.getElementById('status');
+            
+            if (!fileInput.files[0]) {
+                showStatus('⚠️ 파일을 먼저 선택해 주세요.', 'text-red-500');
+                return;
             }
+
+            const file = fileInput.files[0];
+            const reader = new FileReader();
+
+            showStatus('🔄 파일 읽는 중...', 'text-indigo-500');
+
+            reader.onload = function(e) {
+                try {
+                    const htmlText = e.target.result;
+                    const parser = new DOMParser();
+                    const doc = parser.parseFromString(htmlText, 'text/html');
+                    
+                    // 코코포리아 백업 HTML 내부의 메시지 요소 추출 (보통 p 태그나 특정 구조)
+                    const paragraphs = doc.querySelectorAll('p');
+                    
+                    if (paragraphs.length === 0) {
+                        showStatus('❌ 올바른 코코포리아 로그 파일이 아니거나 대화 내용이 없습니다.', 'text-red-500');
+                        return;
+                    }
+
+                    let extractedText = '';
+                    paragraphs.forEach(p => {
+                        // 각 문단의 텍스트를 줄바꿈과 함께 저장
+                        extractedText += p.textContent.trim() + '\n';
+                    });
+
+                    // 다운로드 실행
+                    downloadTxt(extractedText, `ccfolia_backup_${Date.now()}.txt`);
+                    showStatus('✅ 변환 및 다운로드 완료!', 'text-green-600');
+
+                } catch (error) {
+                    console.error(error);
+                    showStatus('❌ 변환 중 오류가 발생했습니다.', 'text-red-500');
+                }
+            };
+
+            // UTF-8 인코딩으로 유한하게 모바일 깨짐 방지
+            reader.readAsText(file, 'UTF-8');
         });
-    };
 
-    // DB 정보를 내 플레이어에 강제 동기화
-    let lastVideoId = "";
-    function syncPlayer(videoId, shouldPlay) {
-        if (!player || !videoId) return;
-        
-        if (lastVideoId !== videoId) {
-            lastVideoId = videoId;
-            player.cueVideoById(videoId);
-            setTimeout(() => { if (shouldPlay) player.playVideo(); }, 200);
-        } else {
-            if (shouldPlay && player.getPlayerState() !== YT.PlayerState.PLAYING) {
-                player.playVideo();
-            } else if (!shouldPlay && player.getPlayerState() === YT.PlayerState.PLAYING) {
-                player.pauseVideo();
-            }
+        function downloadTxt(text, filename) {
+            const blob = new Blob([text], { type: 'text/plain;charset=utf-8;' });
+            const link = document.createElement("a");
+            
+            link.href = URL.createObjectURL(blob);
+            link.setAttribute("download", filename);
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
         }
 
-        // 버튼 상태 업데이트
-        const trigger = document.getElementById('play-trigger');
-        if (trigger) trigger.innerText = shouldPlay ? '❚❚' : '▶';
-    }
-
-    // 서버(파이어베이스)에 현재 상태 전송 (마스터 전용)
-    function pushStateToServer(overridePlaying = null) {
-        if (!isMaster) return;
-        const currentVideoId = playlist[currentIndex] ? playlist[currentIndex].id : "";
-        database.ref('room/currentTrack').set({
-            playlist: playlist,
-            currentIndex: currentIndex,
-            currentVideoId: currentVideoId,
-            isLooping: isLooping,
-            isPlaying: overridePlaying !== null ? overridePlaying : isPlaying
-        });
-    }
-
-    function onPlayerStateChange(event) {
-        if (isMaster && event.data === YT.PlayerState.ENDED) {
-            if (isLooping) { player.playVideo(); } else { window.nextVideo(); }
+        function showStatus(msg, colorClass) {
+            const statusDiv = document.getElementById('status');
+            statusDiv.className = `text-sm ${colorClass} bg-gray-50 p-3 rounded-lg border border-gray-200 mt-2`;
+            statusDiv.innerText = msg;
+            statusDiv.classList.remove('hidden');
         }
-    }
-
-    window.togglePlay = function() {
-        if (!isMaster || playlist.length === 0) return;
-        isPlaying = !isPlaying;
-        pushStateToServer();
-    };
-
-    window.prevVideo = function() {
-        if (isMaster && currentIndex > 0) { currentIndex--; pushStateToServer(true); }
-    };
-
-    window.nextVideo = function() {
-        if (!isMaster) return;
-        if (currentIndex < playlist.length - 1) {
-            currentIndex++; pushStateToServer(true);
-        } else if (isLooping && playlist.length > 0) {
-            currentIndex = 0; pushStateToServer(true);
-        }
-    };
-
-    window.toggleLoop = function() {
-        if (!isMaster) return;
-        isLooping = !isLooping;
-        const trigger = document.getElementById('loop-trigger');
-        if (isLooping) {
-            trigger.innerText = 'Repeat On'; trigger.classList.add('active');
-        } else {
-            trigger.innerText = 'Repeat Off'; trigger.classList.remove('active');
-        }
-        pushStateToServer();
-    };
-
-    function extractVideoId(url) {
-        if (!url) return null;
-        const regExp = /^.*(youtu.be\/|v\/|u\/\w\/|embed\/|watch\?v=|\&v=|\/live\/)([^#\&\?]*).*/;
-        const match = url.match(regExp);
-        return (match && match[2].length === 11) ? match[2] : null;
-    }
-
-    window.addTrack = function() {
-        if (!isMaster) return;
-        const urlInput = document.getElementById('url-input');
-        const nameInput = document.getElementById('name-input');
-        const id = extractVideoId(urlInput.value);
-        let trackName = nameInput.value.trim() || `기본 트랙 ${playlist.length + 1}`;
-        
-        if (!id) { alert('올바른 유튜브 주소가 아닙니다.'); return; }
-        
-        playlist.push({ id: id, name: trackName });
-        urlInput.value = ''; nameInput.value = '';
-        
-        if (playlist.length === 1) currentIndex = 0;
-        pushStateToServer(true);
-    };
-
-    window.removeTrack = function(index, event) {
-        if (!isMaster) return;
-        event.stopPropagation();
-        playlist.splice(index, 1);
-        if (currentIndex >= playlist.length && playlist.length > 0) currentIndex = playlist.length - 1;
-        pushStateToServer();
-    };
-
-    window.playTrack = function(index) {
-        if (!isMaster) return;
-        currentIndex = index;
-        pushStateToServer(true);
-    };
-
-    function renderPlaylist() {
-        const listContainer = document.getElementById('track-list');
-        listContainer.innerHTML = '';
-        
-        if (playlist.length === 0) {
-            listContainer.innerHTML = '<div style="font-size:12px; color:var(--text-muted); text-align:center; padding:15px;">대기열이 비어 있습니다.</div>';
-            return;
-        }
-
-        playlist.forEach((trackData, index) => {
-            const track = document.createElement('div');
-            track.className = `track ${index === currentIndex ? 'playing' : ''}`;
-            track.innerHTML = `
-                <div class="track-info" ${isMaster ? `onclick="playTrack(${index})"` : ''}>
-                    <span class="track-name">🎵 ${trackData.name}</span>
-                </div>
-                ${isMaster ? `<button class="btn-del" onclick="removeTrack(${index}, event)">지우기</button>` : ''}
-            `;
-            listContainer.appendChild(track);
-        });
-    }
-
-    // 로컬 보관함 시스템 (마스터 브라우저 전용)
-    window.savePlaylistPack = function() {
-        const name = document.getElementById('pack-name-input').value.trim();
-        if (!name || playlist.length === 0) return;
-        let packs = JSON.parse(localStorage.getItem('trpg_sync_packs') || '{}');
-        packs[name] = playlist;
-        localStorage.setItem('trpg_sync_packs', JSON.stringify(packs));
-        document.getElementById('pack-name-input').value = '';
-        updateSavedPacksSelect();
-        alert(`[${name}] 팩이 저장되었습니다.`);
-    };
-
-    window.loadPlaylistPack = function() {
-        const name = document.getElementById('saved-packs-select').value;
-        if (!name) return;
-        let packs = JSON.parse(localStorage.getItem('trpg_sync_packs') || '{}');
-        if (packs[name]) { playlist = packs[name]; currentIndex = 0; pushStateToServer(true); }
-    };
-
-    window.deletePlaylistPack = function() {
-        const name = document.getElementById('saved-packs-select').value;
-        if (!name || !confirm('삭제하시겠습니까?')) return;
-        let packs = JSON.parse(localStorage.getItem('trpg_sync_packs') || '{}');
-        delete packs[name]; localStorage.setItem('trpg_sync_packs', JSON.stringify(packs));
-        updateSavedPacksSelect();
-    };
-
-    function updateSavedPacksSelect() {
-        const select = document.getElementById('saved-packs-select');
-        select.innerHTML = '<option value="">-- 플레이리스트 선택 --</option>';
-        let packs = JSON.parse(localStorage.getItem('trpg_sync_packs') || '{}');
-        for (let name in packs) {
-            const opt = document.createElement('option'); opt.value = name; opt.innerText = name; select.appendChild(opt);
-        }
-    }
-</script>
+    </script>
 </body>
 </html>
