@@ -268,7 +268,6 @@
         .notion-row.filtered-out { display: none !important; }
         .notion-row:hover { background: rgba(128, 128, 128, 0.05); }
 
-        /* 클릭 이동 시 임시 하이라이트 효과 */
         .notion-row.row-flash {
             background-color: rgba(255, 255, 255, 0.15) !important;
         }
@@ -317,7 +316,6 @@
 
         .styler-divider { width: 1px; height: 14px; background: rgba(255,255,255,0.15); margin: 0 2px; }
 
-        /* 히스토리 및 상단 이동 버튼 인터페이스 패널 단정화 */
         .floating-history-panel {
             position: fixed; bottom: 20px; right: 20px; background: rgba(32, 32, 32, 0.65);
             backdrop-filter: blur(8px); border: 1px solid rgba(255, 255, 255, 0.1); border-radius: 30px;
@@ -334,7 +332,6 @@
         .history-btn:hover:not(:disabled) { background: rgba(255, 255, 255, 0.08); color: #fff; }
         .history-btn:disabled { color: rgba(255, 255, 255, 0.2); cursor: not-allowed; }
 
-        /* 탑 버튼 스타일 */
         .btn-scroll-top {
             border-left: 1px solid rgba(255,255,255,0.15);
             margin-left: 4px;
@@ -562,7 +559,6 @@
             });
         });
 
-        // 한번에 위로 가기 기능 바인딩
         document.getElementById('btnScrollTop').addEventListener('click', () => {
             window.scrollTo({ top: 0, behavior: 'smooth' });
         });
@@ -696,11 +692,9 @@
             updateHistoryButtons();
         });
 
-        // 제안 목록 클릭 시 해당 요소로 이동하고 하이라이트 효과를 주는 함수
         function scrollToTargetBlock(rowElement) {
             if (!rowElement) return;
             
-            // 만약 서브 탭 채널(접혀있는 구조)에 속해 있다면 자동으로 아코디언을 열어줌
             const accordionContent = rowElement.closest('.accordion-content');
             if (accordionContent && !accordionContent.classList.contains('open')) {
                 const card = accordionContent.closest('.notion-card');
@@ -710,7 +704,6 @@
 
             rowElement.scrollIntoView({ behavior: 'smooth', block: 'center' });
             
-            // 시각적 강조 피드백 발생
             rowElement.classList.add('row-flash');
             setTimeout(() => {
                 rowElement.classList.remove('row-flash');
@@ -736,15 +729,23 @@
 
             blocks.forEach((block) => {
                 currentIdx++;
+                const parentRow = block.closest('.notion-row');
+                if (!parentRow) return;
+
+                // [추가] 행이 속해있는 탭 이름 추출 후 '잡담' 또는 'talk'가 들어가면 맞춤법 검수 건너뛰기
+                const tabName = parentRow.dataset.tab || "";
+                if (tabName.includes("잡담") || tabName.toLowerCase().includes("talk")) {
+                    return; 
+                }
+
                 let html = block.innerHTML;
-                
                 spellRules.forEach(rule => {
                     if (rule.wrong.test(html)) {
                         detectedIssues.push({
                             element: block,
-                            rowElement: block.closest('.notion-row'),
+                            rowElement: parentRow,
                             lineNum: currentIdx,
-                            speaker: block.closest('.notion-row').dataset.speaker || "서술자/시스템",
+                            speaker: parentRow.dataset.speaker || "서술자/시스템",
                             wrongReg: rule.wrong,
                             rightText: rule.right
                         });
@@ -763,21 +764,20 @@
 
                     item.innerHTML = `
                         <div class="spell-context-box" style="flex: 1;">
-                            <span class="spell-meta-tag">${issue.lineNum}행 - ${issue.speaker}</span>
+                            <span class="spell-meta-tag">${issue.lineNum}행 - ${issue.speaker} (채널: ${issue.rowElement.dataset.tab})</span>
                             <div>${highlightedContext}</div>
                         </div>
                         <button class="spell-fix-trigger" id="fix_btn_${index}">교정</button>
                     `;
                     reportList.appendChild(item);
 
-                    // 박스 영역 어디를 누르든 본문 내 해당 위치로 바로 이동하도록 지정
                     item.addEventListener('click', (e) => {
-                        if (e.target.classList.contains('spell-fix-trigger')) return; // 교정 버튼 자체 클릭 시 예외
+                        if (e.target.classList.contains('spell-fix-trigger')) return;
                         scrollToTargetBlock(issue.rowElement);
                     });
 
                     document.getElementById(`fix_btn_${index}`).addEventListener('click', function(e) {
-                        e.stopPropagation(); // 이동 이벤트 중단
+                        e.stopPropagation();
                         saveHistoryState();
                         issue.element.innerHTML = issue.element.innerHTML.replace(issue.wrongReg, issue.rightText);
                         item.style.opacity = "0.3";
