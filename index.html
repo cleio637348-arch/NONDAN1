@@ -15,7 +15,7 @@
             --border-notion: rgba(255, 255, 255, 0.07);
             --text-main: rgba(255, 255, 255, 0.85);
             --text-muted: rgba(255, 255, 255, 0.4);
-            --text-link: #888888; /* 심플한 메탈릭 그레이로 변경 */
+            --text-link: #888888;
 
             --font-serif: "Hina Mincho", "Noto Serif KR", serif;
             --font-sans: "Noto Sans KR", "Inter", sans-serif;
@@ -164,7 +164,6 @@
         .btn-util { flex: 1; border-color: rgba(255, 255, 255, 0.1); color: var(--text-main); }
         .btn-util:hover { background: rgba(255, 255, 255, 0.05); }
 
-        /* 색 조화를 극도로 절제한 미니멀 제안창 */
         .spell-report-card {
             background: var(--bg-surface);
             border: 1px solid var(--border-notion);
@@ -465,12 +464,12 @@
         let redoStack = [];
         let isHistoryAction = false; 
 
-        // 띄어쓰기 오류가 포함된 고도화 룰셋
+        // 결합 형태를 완전히 고려하여 과교정을 막은 정교한 룰셋
         const spellRules = [
-            { wrong: /됬/g, right: "됐" },
+            // 1. 단순 교정 (안되/됐/않/오탈자)
             { wrong: /됬다/g, right: "됐다" },
             { wrong: /됬어/g, right: "됐어" },
-            { wrong: /안되/g, right: "안 돼" },
+            { wrong: /됬/g, right: "됐" },
             { wrong: /않하고/g, right: "안 하고" },
             { wrong: /않돼/g, right: "안 돼" },
             { wrong: /어의없/g, right: "어처구니없" },
@@ -479,7 +478,21 @@
             { wrong: /뒤짚/g, right: "뒤집" },
             { wrong: /오랫만/g, right: "오랜만" },
             { wrong: /궂이/g, right: "굳이" },
-            // 띄어쓰기 의존성 룰 추가
+
+            // 2. 어미 결합에 의한 띄어쓰기 과교정 원천 봉쇄 (안되나요 -> 안 되나요)
+            { wrong: /안되나요/g, right: "안 되나요" },
+            { wrong: /안되죠/g, right: "안 되죠" },
+            { wrong: /안된다/g, right: "안 된다" },
+            { wrong: /안되면/g, right: "안 되면" },
+            { wrong: /안돼나요/g, right: "안 되나요" }, // 오탈자 혼합형 방어
+
+            // 3. 받침 침범 및 오탈자 피드백 (잇나요 -> 있나요)
+            { wrong: /잇나요/g, right: "있나요" },
+            { wrong: /잇어/g, right: "있어" },
+            { wrong: /잇다/g, right: "있다" },
+            { wrong: /잇는/g, right: "있는" },
+
+            // 4. 일반 의존명사 및 어미 띄어쓰기
             { wrong: /할거야/g, right: "할 거야" },
             { wrong: /할수/g, right: "할 수" },
             { wrong: /갈수/g, right: "갈 수" },
@@ -661,7 +674,6 @@
             updateHistoryButtons();
         });
 
-        // 띄어쓰기 매칭 컨텍스트를 확실하게 캡처하는 핵심 로직
         function runAutoSpellChecker() {
             const isEnabled = document.querySelector('input[name="spellCheckToggle"]:checked').value === "on";
             const reportCard = document.getElementById('spellReportCard');
@@ -703,7 +715,6 @@
                     item.className = "spell-report-item";
                     
                     const fullText = issue.element.innerText;
-                    // 원색 피드백 대신 깔끔하고 명도가 정돈된 텍스트 장식 가이드 적용
                     const highlightedContext = fullText.replace(issue.wrongReg, `<span style="text-decoration:line-through; color:rgba(255,255,255,0.3); margin:0 2px;">$&</span><span style="color:rgba(255,255,255,0.95); font-weight:700; border-bottom:1px dashed rgba(255,255,255,0.5); margin:0 2px;">${issue.rightText}</span>`);
 
                     item.innerHTML = `
