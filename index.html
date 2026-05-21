@@ -9,7 +9,7 @@
     <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;700&family=Noto+Serif+KR:wght@400;700&family=Hina+Mincho&family=Inter:wght@400;600&display=swap" rel="stylesheet">
     <style>
         :root {
-            /* 처음 성공했던 노션 스타일 다크 모드 기본 인터페이스 */
+            /* 캡처화면 기반 노션 스타일 다크 인터페이스 */
             --bg-main: #191919;
             --bg-surface: #202020;
             --bg-input: #252525;
@@ -18,18 +18,18 @@
             --text-muted: rgba(255, 255, 255, 0.4);
             --text-link: #60a5fa;
 
-            /* 폰트 프리셋 */
+            /* 서체 설정 기본값 */
             --font-serif: "Hina Mincho", "Noto Serif KR", serif;
             --font-sans: "Noto Sans KR", "Inter", sans-serif;
             --current-font: var(--font-sans);
 
-            /* 처음 성공했던 스크립트 출력 색상 프리셋 (Roll20 기본 흰배경 형태) */
-            --script-bg: #f3f3f3;
-            --script-text: #111111;
-            --script-name: #b51212;
-            --script-narrator: #222222;
-            --script-sys: #666666;
-            --script-border: #dddddd;
+            /* 스크립트 내부 색상 기본 프리셋 (출력창 다크 모드) */
+            --script-bg: #202020;
+            --script-text: rgba(255, 255, 255, 0.9);
+            --script-name: #e56363;
+            --script-narrator: #ffffff;
+            --script-sys: #888888;
+            --script-border: rgba(255, 255, 255, 0.05);
         }
 
         body {
@@ -50,11 +50,10 @@
         }
 
         header h1 {
-            font-size: 1.7rem;
+            font-size: 1.5rem;
             font-weight: 700;
             color: rgba(255, 255, 255, 0.9);
             margin: 0 0 6px 0;
-            letter-spacing: -0.02em;
         }
 
         .notion-card {
@@ -90,20 +89,13 @@
             justify-content: space-between;
             align-items: center;
             cursor: pointer;
-            padding: 2px 0;
         }
-        .accordion-icon { font-size: 0.8rem; transition: transform 0.2s; color: var(--text-muted); }
+        .accordion-icon { font-size: 0.8rem; color: var(--text-muted); }
         .accordion-content { max-height: 0; overflow: hidden; transition: max-height 0.3s ease-out; }
         .accordion-content.open { max-height: none; margin-top: 14px; }
 
-        .grid-config {
-            display: grid;
-            grid-template-columns: 1fr;
-            gap: 12px;
-        }
-        @media (min-width: 600px) {
-            .grid-config { grid-template-columns: repeat(2, 1fr); }
-        }
+        .grid-config { display: grid; grid-template-columns: 1fr; gap: 12px; }
+        @media (min-width: 600px) { .grid-config { grid-template-columns: repeat(2, 1fr); } }
 
         .input-group { display: flex; flex-direction: column; gap: 6px; margin-bottom: 12px; }
         .input-group span { font-size: 0.8rem; color: var(--text-muted); font-weight: 600; }
@@ -114,24 +106,10 @@
         }
 
         .switch-group {
-            display: flex;
-            gap: 16px;
-            background: var(--bg-input);
-            padding: 10px 14px;
-            border-radius: 6px;
-            border: 1px solid var(--border-notion);
+            display: flex; gap: 16px; background: var(--bg-input); padding: 10px 14px; border-radius: 6px; border: 1px solid var(--border-notion);
         }
-        .switch-item {
-            display: flex;
-            align-items: center;
-            gap: 6px;
-            font-size: 0.85rem;
-            cursor: pointer;
-        }
-        .switch-item input {
-            accent-color: var(--text-link);
-            cursor: pointer;
-        }
+        .switch-item { display: flex; align-items: center; gap: 6px; font-size: 0.85rem; cursor: pointer; }
+        .switch-item input { accent-color: var(--text-link); cursor: pointer; }
 
         .filter-container { display: grid; grid-template-columns: repeat(auto-fill, minmax(130px, 1fr)); gap: 8px; margin-top: 6px; }
         .filter-item { display: flex; align-items: center; gap: 6px; font-size: 0.85rem; cursor: pointer; }
@@ -147,35 +125,45 @@
         .btn-util { flex: 1; border-color: rgba(96, 165, 250, 0.2); color: var(--text-link); }
         .btn-util:hover { background: rgba(96, 165, 250, 0.1); }
 
-        /* 처음 성공한 스크립트 박스 디자인 */
+        /* 로그 세션 출력 전용 콘테이너 */
         .script-container {
             display: flex;
             flex-direction: column;
-            gap: 2px;
+            gap: 4px;
             background-color: var(--script-bg);
-            padding: 12px;
-            border-radius: 6px;
+            padding: 16px;
+            border-radius: 8px;
             border: 1px solid var(--script-border);
         }
 
-        /* 처음 구조 롤백: 마우스 오버 시 우측 상단에 절묘하게 뜨는 absolute 레이아웃 */
+        /* 캡처화면 기반 우측 고정 삭제버튼 레이아웃 구조 */
         .notion-row { 
             display: flex; 
-            align-items: flex-start; 
-            gap: 8px; 
-            padding: 2px 4px; 
-            position: relative;
+            align-items: center; 
+            justify-content: space-between;
+            gap: 12px; 
+            padding: 6px 8px; 
+            border-radius: 4px;
+            transition: background 0.15s;
+        }
+        .notion-row:hover {
+            background: rgba(255, 255, 255, 0.02);
         }
         
-        .avatar-box { width: 28px; height: 28px; border-radius: 4px; object-fit: cover; flex-shrink: 0; border: 1px solid rgba(0,0,0,0.1); background: #eee; }
-        .avatar-placeholder { width: 28px; flex-shrink: 0; }
+        .content-cell {
+            display: flex;
+            align-items: flex-start;
+            gap: 12px;
+            flex: 1;
+        }
+
+        .avatar-box { width: 32px; height: 32px; border-radius: 4px; object-fit: cover; flex-shrink: 0; border: 1px solid rgba(255,255,255,0.05); background: #333; }
+        .avatar-placeholder { width: 32px; flex-shrink: 0; }
         
         .notion-block {
             flex: 1; 
-            padding: 2px 4px; 
-            border-radius: 4px; 
-            font-size: 0.9rem; 
-            line-height: 1.4; 
+            font-size: 0.95rem; 
+            line-height: 1.5; 
             word-break: break-all; 
             outline: none; 
             color: var(--script-text); 
@@ -186,66 +174,60 @@
         .char-name { 
             font-size: 0.8rem; 
             font-weight: 700; 
-            margin-bottom: 1px; 
+            margin-bottom: 2px; 
             display: block; 
             color: var(--script-name); 
             font-family: var(--font-sans);
         }
 
-        /* 상태 프리셋 */
-        .state-narrator { 
-            text-align: center; 
-            font-weight: 700; 
-            font-style: italic; 
-            color: var(--script-narrator) !important; 
-            width: 100%; 
-            margin: 8px 0; 
-            padding: 3px 10px; 
-            font-size: 0.9rem; 
+        .state-narrator { font-weight: 500; color: var(--script-narrator) !important; }
+        .state-system { font-family: var(--font-sans); font-size: 0.85rem; color: var(--script-sys) !important; }
+
+        /* 주사위 강조 삭제 (일반 텍스트와 완벽 동일) */
+        .state-dice { background: none !important; border: none !important; color: var(--script-text) !important; padding: 0 !important; }
+
+        /* 우측 정렬 del 영역 */
+        .control-cell {
+            flex-shrink: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
         }
-        
-        .state-system { font-family: var(--font-sans); font-size: 0.8rem; color: var(--script-sys) !important; }
 
-        /* [요구사항] 주사위는 별도의 특수 서식 클래스를 일절 부여하지 않고 일반 텍스트와 100% 동일화 */
-
-        /* 처음 성공한 del 마우스 오버 팝업식 버튼 복원 */
         .row-control { 
-            position: absolute; 
-            right: 6px; 
-            top: 4px; 
-            background: rgba(0,0,0,0.05); 
-            border: 1px solid rgba(0,0,0,0.1); 
-            color: #666; 
+            background: rgba(255, 255, 255, 0.03); 
+            border: 1px solid rgba(255, 255, 255, 0.08); 
+            color: #ff6b6b; 
             cursor: pointer; 
             font-size: 0.75rem; 
-            font-weight: bold;
-            padding: 1px 5px;
-            border-radius: 3px;
-            display: none; 
-            font-family: var(--font-sans);
+            width: 24px;
+            height: 24px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 4px;
+            transition: all 0.15s;
         }
-        .notion-row:hover .row-control { display: block; }
-        .row-control:hover { color: #fff; background: #ff4d4d; border-color: #ff4d4d; }
+        .row-control:hover { background: rgba(255, 107, 107, 0.15); border-color: #ff6b6b; color: #ffffff; }
         
-        .character-divider { border-top: 1px solid rgba(0, 0, 0, 0.05); margin: 4px 0 2px 0; width: 100%; }
+        .character-divider { border-top: 1px solid rgba(255, 255, 255, 0.03); margin: 6px 0 2px 0; width: 100%; }
     </style>
 </head>
 <body>
 
     <header>
         <h1>논단군 코코포 로그 백업기</h1>
-        <p>간단하게 로그를 백업합니다</p>
     </header>
 
     <div class="notion-card">
         <div class="notion-label">설정 센터</div>
         <div class="grid-config" style="margin-bottom: 12px;">
             <div class="input-group">
-                <span>1. 로그 파일 업로드 (.html)</span>
+                <span>1. 백업 로그 업로드 (.html)</span>
                 <input id="logFile" type="file" accept=".html">
             </div>
             <div class="input-group">
-                <span>2. 서술자 이름 지정</span>
+                <span>2. 지문 서술자 이름 지정 (선택)</span>
                 <input id="narratorName" type="text" placeholder="예: GM 또는 서술자">
             </div>
         </div>
@@ -284,14 +266,14 @@
     </div>
 
     <div class="btn-group">
-        <button id="btnProcess" class="notion-btn btn-submit">실행</button>
+        <button id="btnProcess" class="notion-btn btn-submit">스크립트 가공 실행</button>
         <button id="btnCopy" class="notion-btn btn-util">코드 복사</button>
         <button id="btnDownload" class="notion-btn btn-util">파일로 저장</button>
     </div>
 
     <div id="mainOutputCard" class="notion-card">
-        <div class="notion-label">메인 세션 로그 (Main)</div>
-        <h2 id="roomTitle" class="output-room-title" contenteditable="true" spellcheck="false"> </h2>
+        <div class="notion-label">결과 출력 창</div>
+        <h2 id="roomTitle" class="output-room-title" contenteditable="true" spellcheck="false">ccfolia - logs</h2>
         <div id="mainContainer" class="script-container"></div>
     </div>
 
@@ -304,6 +286,7 @@
         let currentFontType = "sans"; 
         let currentColorTheme = "roll20";
 
+        /* 최종 저장 파일에 적용될 색상값 분리 정의 */
         const themeProfiles = {
             roll20: {
                 bg: "#f3f3f3", text: "#111111", name: "#b51212", narrator: "#222222", sys: "#666666", border: "#dddddd"
@@ -313,17 +296,6 @@
             }
         };
 
-        function applyColorTheme(themeName) {
-            const p = themeProfiles[themeName];
-            const root = document.documentElement;
-            root.style.setProperty('--script-bg', p.bg);
-            root.style.setProperty('--script-text', p.text);
-            root.style.setProperty('--script-name', p.name);
-            root.style.setProperty('--script-narrator', p.narrator);
-            root.style.setProperty('--script-sys', p.sys);
-            root.style.setProperty('--script-border', p.border);
-        }
-
         function toggleAccordion(contentId, arrowId) {
             const content = document.getElementById(contentId);
             content.classList.toggle('open');
@@ -332,13 +304,8 @@
         }
 
         document.querySelectorAll('input[name="colorTheme"]').forEach(radio => {
-            radio.addEventListener('change', (e) => {
-                currentColorTheme = e.target.value;
-                applyColorTheme(currentColorTheme);
-            });
+            radio.addEventListener('change', (e) => { currentColorTheme = e.target.value; });
         });
-
-        applyColorTheme("roll20");
 
         document.querySelectorAll('input[name="fontPreset"]').forEach(radio => {
             radio.addEventListener('change', (e) => {
@@ -349,6 +316,7 @@
             });
         });
 
+        /* [핵심 수정] 코코포리아 백업 HTML 원본 노드의 깨진 파싱 처리 교정 */
         document.getElementById('logFile').addEventListener('change', (e) => {
             const file = e.target.files[0];
             if (!file) return;
@@ -360,30 +328,30 @@
                 
                 document.getElementById('roomTitle').innerText = file.name.replace(/\.html$/i, "").replace(/\[all\]$/i, "").trim();
 
-                let elements = doc.querySelectorAll('p, div, span');
+                // 원본 p 태그 내부 추출 고도화
+                let paragraphs = doc.querySelectorAll('p');
                 rawLogData = [];
                 detectedTabs.clear();
 
-                elements.forEach(p => {
-                    if (p.children.length > 0 && p.tagName !== 'P') {
-                        if (p.querySelector('p')) return;
-                    }
-
+                paragraphs.forEach(p => {
                     const text = p.textContent.trim();
-                    if(!text || text.length < 2) return;
+                    if(!text) return;
 
+                    // 인장 스캔
                     let avatarSrc = "";
-                    let imgEl = p.querySelector('img') || p.parentElement?.querySelector(`img`) || p.previousElementSibling?.querySelector('img');
+                    let imgEl = p.querySelector('img') || p.previousElementSibling?.querySelector('img');
                     if (imgEl && imgEl.getAttribute('src')) {
                         avatarSrc = imgEl.getAttribute('src');
                     }
 
+                    // 정규식 매칭 분리 [탭] 이름 : 대사
                     const match = text.match(/^\[([^\]]+)\]\s*([^:]+)\s*:\s*([\s\S]*)$/);
                     if (match) {
                         let tabName = match[1].trim();
                         let charName = match[2].trim();
                         let msgBody = match[3].trim();
                         
+                        // 타임스탬프 필터링
                         const timeMatch = msgBody.match(/\s*(\d{4}\/\d{2}\/\d{2}\s+\d{2}:\d{2}:\d{2}|\d{2}:\d{2})$/);
                         if(timeMatch) msgBody = msgBody.replace(timeMatch[0], "").trim();
 
@@ -395,6 +363,7 @@
                             if(avatarSrc && !characterAvatars[charName]) characterAvatars[charName] = avatarSrc;
                         }
                     } else {
+                        // 일반 이름 : 대사 포맷
                         const simpleMatch = text.match(/^([^:]+)\s*:\s*([\s\S]*)$/);
                         if(simpleMatch) {
                             let charName = simpleMatch[1].trim();
@@ -403,23 +372,16 @@
                             const timeMatch = msgBody.match(/\s*(\d{4}\/\d{2}\/\d{2}\s+\d{2}:\d{2}:\d{2}|\d{2}:\d{2})$/);
                             if(timeMatch) msgBody = msgBody.replace(timeMatch[0], "").trim();
 
-                            detectedTabs.add("Main");
-                            rawLogData.push({ tab: "Main", name: charName, message: msgBody, avatar: avatarSrc });
+                            detectedTabs.add("main");
+                            rawLogData.push({ tab: "main", name: charName, message: msgBody, avatar: avatarSrc });
                             if(avatarSrc && !characterAvatars[charName]) characterAvatars[charName] = avatarSrc;
                         } else {
-                            if(!text.startsWith("http") && text.length > 1) {
+                            if(text.length > 0) {
                                 rawLogData.push({ tab: "시스템", name: "", message: text, avatar: "" });
                             }
                         }
                     }
                 });
-
-                if(rawLogData.length === 0) {
-                    elements.forEach(p => {
-                        if(p.textContent.trim()) rawLogData.push({ tab: "Main", name: "로그", message: p.textContent.trim(), avatar: "" });
-                    });
-                    detectedTabs.add("Main");
-                }
 
                 buildFilters();
             };
@@ -441,6 +403,7 @@
             });
         }
 
+        /* 가공 실행 함수 */
         document.getElementById('btnProcess').addEventListener('click', () => {
             if(rawLogData.length === 0) return alert('파일을 먼저 업로드해 주세요.');
             
@@ -454,7 +417,7 @@
 
             const tabGroups = {};
             selectedTabs.forEach(t => {
-                if(t.includes('메인') || t.toLowerCase() === 'main' || selectedTabs.length === 1) {
+                if(t.toLowerCase() === 'main' || t.includes('메인') || selectedTabs.length === 1) {
                     tabGroups[t] = mainContainer;
                 } else {
                     const card = document.createElement('div');
@@ -508,11 +471,11 @@
                 if(isSys) msgClass += " state-system";
                 if(isNarrator) msgClass += " state-narrator";
 
-                let inner = "";
+                let inner = `<div class="content-cell">`;
                 if(!isNarrator && !isSys) {
                     if(!isSameSpeaker) {
                         const avatar = characterAvatars[currentSpeaker] || log.avatar;
-                        inner += avatar ? `<img src="${avatar}" class="avatar-box" data-raw-src="${avatar}">` : `<div class="avatar-box" style="background:#ddd"></div>`;
+                        inner += avatar ? `<img src="${avatar}" class="avatar-box" data-raw-src="${avatar}">` : `<div class="avatar-box"></div>`;
                     } else {
                         inner += `<div class="avatar-placeholder"></div>`;
                     }
@@ -523,13 +486,17 @@
                 } else {
                     inner += `<div class="${msgClass}" style="font-family: ${fontValue}" contenteditable="true" spellcheck="false">${escapeHtml(log.message)}</div>`;
                 }
+                inner += `</div>`;
                 
-                inner += `<button class="row-control" onclick="this.parentElement.remove()">del</button>`;
+                // 우측 배치형 삭제 버튼 고정 정렬
+                inner += `<div class="control-cell"><button class="row-control" onclick="this.parentElement.parentElement.remove()">×</button></div>`;
+                
                 row.innerHTML = inner;
                 target.appendChild(row);
             });
         });
 
+        /* 최종 추출 파일 빌더 */
         function buildFinal() {
             const finalTitle = document.getElementById('roomTitle').innerText.trim() || "TRPG 로그 백업 스크립트";
             const chosenFontStack = currentFontType === "serif" ? `'Hina Mincho', 'Noto Serif KR', serif` : `'Noto Sans KR', sans-serif`;
@@ -540,14 +507,14 @@
                 @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;700&family=Noto+Serif+KR:wght@400;700&family=Hina+Mincho&display=swap');
                 body { background:#191919; color:rgba(255,255,255,0.85); font-family: 'Noto Sans KR', sans-serif; max-width:750px; margin:0 auto; padding:30px 20px; }
                 h1 { font-family: 'Noto Sans KR', sans-serif; font-size:1.5rem; border-bottom:1px solid rgba(255,255,255,0.1); padding-bottom:12px; margin-bottom:20px; color:#fff; }
-                .script-box { display: flex; flex-direction: column; gap: 2px; background:${p.bg}; padding:12px; border-radius:6px; border:1px solid ${p.border}; }
-                .row { display:flex; align-items:flex-start; gap:8px; padding: 2px 4px; }
-                .avatar { width:28px; height:28px; border-radius:4px; object-fit:cover; flex-shrink:0; border:1px solid rgba(0,0,0,0.1); background:#ddd; }
-                .name { font-size:0.8rem; font-weight:700; margin-bottom:1px; display:block; color:${p.name}; font-family: 'Noto Sans KR', sans-serif; }
-                .msg { font-family: ${chosenFontStack}; font-size:0.9rem; line-height:1.4; white-space:pre-wrap; word-break:break-all; flex:1; color:${p.text}; }
-                .narrator { text-align:center; font-weight:700; font-style:italic; padding:3px 10px; font-size:0.9rem; margin: 8px 0; color:${p.narrator}; }
-                .system { color:${p.sys}; font-size:0.8rem; font-family: 'Noto Sans KR', sans-serif; }
-                .divider { border-top: 1px solid rgba(0,0,0,0.05); margin:4px 0 2px 0; }
+                .script-box { display: flex; flex-direction: column; gap: 4px; background:${p.bg}; padding:16px; border-radius:8px; border:1px solid ${p.border}; }
+                .row { display:flex; align-items:flex-start; gap:10px; padding: 6px 8px; }
+                .avatar { width:32px; height:32px; border-radius:4px; object-fit:cover; flex-shrink:0; border:1px solid rgba(255,255,255,0.05); background:#333; }
+                .name { font-size:0.8rem; font-weight:700; margin-bottom:2px; display:block; color:${p.name}; font-family: 'Noto Sans KR', sans-serif; }
+                .msg { font-family: ${chosenFontStack}; font-size:0.95rem; line-height:1.5; white-space:pre-wrap; word-break:break-all; flex:1; color:${p.text}; }
+                .narrator { font-weight:500; color:${p.narrator}; }
+                .system { color:${p.sys}; font-size:0.85rem; font-family: 'Noto Sans KR', sans-serif; }
+                .divider { border-top: 1px solid rgba(255,255,255,0.03); margin:6px 0 2px 0; }
                 details { background:#202020; border:1px solid rgba(255,255,255,0.07); border-radius:8px; padding:12px; margin-top:16px; }
                 summary { font-size:0.85rem; font-weight:700; color:rgba(255,255,255,0.4); cursor:pointer; }
             </style></head><body><h1>${finalTitle}</h1><div class="script-box">`;
@@ -568,12 +535,13 @@
                         const img = imgBox?.getAttribute('src') || imgBox?.dataset.rawSrc;
                         
                         if(img && !same) res += `<img src="${img}" class="avatar">`;
-                        else if(!same) res += `<div class="avatar" style="background:#ddd"></div>`;
-                        else res += `<div style="width:28px;flex-shrink:0"></div>`;
+                        else if(!same) res += `<div class="avatar"></div>`;
+                        else res += `<div style="width:32px;flex-shrink:0"></div>`;
                         
-                        res += '<div>';
+                        res += '<div style="flex:1;">';
                         if(!same) res += `<span class="name">${spk}</span>`;
-                        res += `<div class="msg">${el.querySelector('.notion-block').innerText}</div></div>`;
+                        const blockEl = el.querySelector('.notion-block');
+                        res += `<div class="msg">${blockEl ? blockEl.innerText : ""}</div></div>`;
                     } else {
                         const contentNode = el.querySelector('.notion-block');
                         res += `<div class="msg ${isNarr?'narrator':(isSys?'system':'')}">${contentNode ? contentNode.innerText : el.textContent}</div>`;
