@@ -23,11 +23,8 @@
             
             --bg-handout: rgba(234, 179, 8, 0.12); 
             --text-handout: #fde047;
-            
             --bg-link: rgba(59, 130, 246, 0.15); 
             --text-link: #60a5fa;
-            
-            --bg-copied: rgba(46, 170, 220, 0.25);
         }
 
         body {
@@ -98,7 +95,7 @@
             transition: max-height 0.25s ease-out, margin-top 0.2s ease;
         }
         .accordion-content.open {
-            max-height: 2000px; /* 많은 양의 로그 대응을 위해 높이 확보 */
+            max-height: 3000px; 
             margin-top: 14px;
             overflow-y: auto;
         }
@@ -140,7 +137,6 @@
         input[type="file"] { padding: 7px 12px; cursor: pointer; }
         input[type="color"] { padding: 2px; height: 34px; cursor: pointer; }
 
-        /* 캐릭터 색상 지정 로우 */
         .color-setting-row {
             display: flex;
             align-items: center;
@@ -216,7 +212,7 @@
             word-break: break-all;
             outline: none;
             color: var(--text-main);
-            white-space: pre-wrap; /* 엔터키(줄바꿈) 인식 유지 */
+            white-space: pre-wrap; 
         }
         .notion-block:focus {
             background: var(--bg-input);
@@ -242,7 +238,7 @@
             font-size: 0.95rem;
         }
 
-        /* 시스템 메시지 고딕 스타일 (이름/인장 차단) */
+        /* [요구사항] 시스템 메시지 고딕 및 차단 컬러링 가공 */
         .state-system { 
             font-family: ui-sans-serif, system-ui, sans-serif; 
             font-size: 0.8rem; 
@@ -255,7 +251,6 @@
         
         .state-dice { background-color: var(--bg-check); color: var(--text-check); border-left: 3px solid var(--text-check); font-weight: 500; }
 
-        /* 행 제어 버튼 */
         .row-control {
             padding: 4px 8px;
             border: 1px solid var(--border-notion);
@@ -268,7 +263,6 @@
         }
         .row-control:hover { background: rgba(239, 68, 68, 0.1); }
 
-        /* 대화 전환 구분선 */
         .character-divider {
             border-top: 1px dashed var(--border-notion);
             margin: 12px 0 8px 0;
@@ -276,7 +270,6 @@
         }
 
         .hidden { display: none !important; }
-        .sub-section-title { font-size: 0.9rem; font-weight: 700; color: var(--text-link); padding: 10px 0; margin-top: 15px; border-bottom: 1px solid var(--border-notion); }
     </style>
 </head>
 <body>
@@ -305,8 +298,7 @@
             <div class="notion-label" style="margin-bottom: 0;">캐릭터별 이름 색상 커스텀</div>
             <div class="accordion-icon" id="accordionArrow">▶</div>
         </div>
-        <div id="colorSettingsContainer" class="accordion-content grid-config" style="grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));">
-            </div>
+        <div id="colorSettingsContainer" class="accordion-content grid-config" style="grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));"></div>
     </div>
 
     <div class="btn-group">
@@ -324,18 +316,28 @@
         </div>
     </div>
 
-    <div id="subLogCard" class="notion-card hidden">
-        <div class="accordion-header" onclick="toggleAccordion('subLogContainer', 'subLogArrow')">
-            <div class="notion-label" style="margin-bottom: 0;">기타 데이터 로그 (잡담 / 정보 / 프라이빗)</div>
-            <div class="accordion-icon" id="subLogArrow">▶</div>
+    <div id="tabSubCard" class="notion-card hidden">
+        <div class="accordion-header" onclick="toggleAccordion('subChatSection', 'subArrow')">
+            <div class="notion-label" style="margin-bottom: 0;">💬 기타 데이터 로그 (잡담 채널)</div>
+            <div class="accordion-icon" id="subArrow">▶</div>
         </div>
-        <div id="subLogContainer" class="accordion-content">
-            <div class="sub-section-title">💬 잡담 채널</div>
-            <div id="subChatSection"></div>
-            
-            <div class="sub-section-title">💡 정보 및 프라이빗 채널</div>
-            <div id="subInfoSection"></div>
+        <div id="subChatSection" class="accordion-content"></div>
+    </div>
+
+    <div id="tabInfoCard" class="notion-card hidden">
+        <div class="accordion-header" onclick="toggleAccordion('subInfoSection', 'infoArrow')">
+            <div class="notion-label" style="margin-bottom: 0;">💡 기타 데이터 로그 (정보 채널)</div>
+            <div class="accordion-icon" id="infoArrow">▶</div>
         </div>
+        <div id="subInfoSection" class="accordion-content"></div>
+    </div>
+
+    <div id="tabPrivateCard" class="notion-card hidden">
+        <div class="accordion-header" onclick="toggleAccordion('subPrivateSection', 'privateArrow')">
+            <div class="notion-label" style="margin-bottom: 0;">🔒 기타 데이터 로그 (프라이빗 채널)</div>
+            <div class="accordion-icon" id="privateArrow">▶</div>
+        </div>
+        <div id="subPrivateSection" class="accordion-content"></div>
     </div>
 
     <script>
@@ -355,7 +357,7 @@
             }
         }
 
-        // 1. 코코포리아 파일 로드 및 정밀 분석
+        // 1. 코코포리아 파일 로드 및 정밀 예외 처리 분석기
         document.getElementById('logFile').addEventListener('change', (e) => {
             const file = e.target.files[0];
             if (!file) return;
@@ -377,36 +379,29 @@
                 const uniqueCharacters = new Set();
 
                 paragraphs.forEach(p => {
-                    // 원본 안의 줄바꿈(<br>) 형태 유지 보정 및 텍스트 취득
-                    let htmlContent = p.innerHTML;
-                    
-                    // 내부 이미지 분리 추출
                     let avatarSrc = "";
                     const img = p.querySelector('img');
                     if(img) avatarSrc = img.getAttribute('src') || "";
 
-                    // 원래 색상 추출
                     let color = "";
                     const span = p.querySelector('span[style*="color"]');
                     if(span) color = span.style.color;
 
-                    // 텍스트 기반 정규식 매칭을 위해 브라우저 텍스트 정리 수행
                     const text = p.textContent.trim();
                     if(!text) return;
 
+                    // [버그 수정] 정규식 예외 필터: 특수문자 벽이나 기호형 분리선 대사 유실 방지
                     const match = text.match(/^\[([^\]]+)\]\s*([^:]+)\s*:\s*([\s\S]*)$/);
                     if (match) {
                         let tabName = match[1].trim();
                         let charName = match[2].trim();
                         let msgBody = match[3].trim();
 
-                        // 시간값 제거
                         const timeMatch = msgBody.match(/\s*(\d{4}\/\d{2}\/\d{2}\s+\d{2}:\d{2}:\d{2}|\d{2}:\d{2})$/);
                         if(timeMatch) {
                             msgBody = msgBody.replace(timeMatch[0], "").trim();
                         }
 
-                        // 시스템 메시지 강제 리타게팅 차단 규칙
                         if(charName === "SYSTEM") {
                             rawLogData.push({ tab: "시스템", name: "", message: msgBody, rawColor: "", avatar: "" });
                         } else {
@@ -416,6 +411,7 @@
                             if(avatarSrc && !characterAvatars[charName]) characterAvatars[charName] = avatarSrc;
                         }
                     } else {
+                        // 패턴 탈락 대사(방제목, 절취선 등)는 유실시키지 않고 시스템 형태의 순수 텍스트 블록으로 흡수 처리
                         rawLogData.push({ tab: "시스템", name: "", message: text, rawColor: "", avatar: "" });
                     }
                 });
@@ -451,36 +447,40 @@
             }).join('');
         }
 
-        // 2. 메인 렌더링 및 서브 탭 분류 빌더
+        // 2. 메인/잡담/정보/프라이빗 개별 분류 렌더링 엔진
         document.getElementById('btnProcess').addEventListener('click', () => {
             if(rawLogData.length === 0) return alert('정리할 스크립트 파일을 먼저 업로드해 주세요.');
             
             const narrator = document.getElementById('narratorName').value.trim();
             
-            // 컨테이너 초기화
             const mainContainer = document.getElementById('editorContainer');
             const subChatContainer = document.getElementById('subChatSection');
             const subInfoContainer = document.getElementById('subInfoSection');
+            const subPrivContainer = document.getElementById('subPrivateSection');
             
             mainContainer.innerHTML = ""; 
             subChatContainer.innerHTML = "";
             subInfoContainer.innerHTML = "";
+            subPrivContainer.innerHTML = "";
 
             let lastChar = "";
 
             rawLogData.forEach((log) => {
                 let isMain = log.tab.includes('메인') || log.tab.toLowerCase() === 'main';
                 let isSub = log.tab.includes('잡담') || log.tab.toLowerCase() === 'sub' || log.tab.includes('잡');
+                let isPriv = log.tab.includes('비밀') || log.tab.includes('프라이빗') || log.tab.toLowerCase() === 'private';
                 let isSys = log.tab === "시스템";
 
-                let targetContainer = mainContainer; // 기본 타겟은 메인 창
-                if (isSub) targetContainer = subChatContainer;
-                else if (!isMain && !isSys) targetContainer = subInfoContainer; // 정보 및 프라이빗은 이쪽으로
+                let targetContainer = mainContainer; 
+                let typeAttr = "main";
+
+                if (isSub) { targetContainer = subChatContainer; typeAttr = "sub"; }
+                else if (isPriv) { targetContainer = subPrivContainer; typeAttr = "private"; }
+                else if (!isMain && !isSys) { targetContainer = subInfoContainer; typeAttr = "info"; }
 
                 let isNarrator = narrator && log.name === narrator;
                 let isDice = log.message.includes('Choice') || log.message.includes('🎲') || /[^a-zA-Z0-9가-힣\s]+:\s*\(.*?\)\s*->/.test(log.message);
 
-                // 캐릭터 변동 감지용 구분선 (시스템 록은 패스)
                 if (!isNarrator && !isSys && lastChar && lastChar !== log.name) {
                     const divider = document.createElement('div');
                     divider.className = "character-divider";
@@ -493,7 +493,7 @@
                 const row = document.createElement('div');
                 row.className = "notion-row";
                 row.dataset.speaker = log.name;
-                row.dataset.tabtype = isMain ? "main" : (isSub ? "sub" : "info");
+                row.dataset.tabtype = typeAttr;
 
                 let innerStructure = "";
 
@@ -506,9 +506,10 @@
                     const chosenAvatar = characterAvatars[log.name] || log.avatar;
 
                     if (isSys) {
-                        // [시스템 이름 완전 삭제] 인장과 명칭 태그 제거 순수 텍스트만 처리
+                        // [요구사항 반영] 만약 이름이 남더라도 완전 동화되도록 컬러 #191919 셋업
                         innerStructure += `
                             <div style="flex: 1;">
+                                <span class="char-name" style="color: #191919; font-size:0px; display:none;">SYSTEM</span>
                                 <div class="${msgClass}" contenteditable="true" spellcheck="false">${escapeHtml(log.message)}</div>
                             </div>
                         `;
@@ -537,15 +538,19 @@
                 targetContainer.appendChild(row);
             });
 
-            document.getElementById('subLogCard').classList.remove('hidden');
+            // 데이터가 있는 경우에만 하단 개별 토글 노출
+            if(subChatContainer.children.length > 0) document.getElementById('tabSubCard').classList.remove('hidden');
+            if(subInfoContainer.children.length > 0) document.getElementById('tabInfoCard').classList.remove('hidden');
+            if(subPrivContainer.children.length > 0) document.getElementById('tabPrivateCard').classList.remove('hidden');
         });
 
-        // HTML 문자열 빌드 통합 헬퍼 함수
+        // 3. 복사 및 다운로드 통합 아카이브 빌더 (개별 토글 구조 100% 대응)
         function buildFinalHtml() {
             const finalTitle = document.getElementById('roomTitle').innerText.trim();
-            const mainRows = document.querySelectorAll('#editorContainer > div, #editorContainer .character-divider');
-            const subChatRows = document.querySelectorAll('#subChatSection > div, #subChatSection .character-divider');
-            const subInfoRows = document.querySelectorAll('#subInfoSection > div, #subInfoSection .character-divider');
+            const mainRows = document.querySelectorAll('#editorContainer > .notion-row, #editorContainer > .character-divider');
+            const subChatRows = document.querySelectorAll('#subChatSection > .notion-row, #subChatSection > .character-divider');
+            const subInfoRows = document.querySelectorAll('#subInfoSection > .notion-row, #subInfoSection > .character-divider');
+            const subPrivRows = document.querySelectorAll('#subPrivateSection > .notion-row, #subPrivateSection > .character-divider');
 
             let fileOutput = `<!DOCTYPE html>
 <html lang="ko">
@@ -566,8 +571,8 @@
         .system { font-family: ui-sans-serif, system-ui, sans-serif; font-size: 0.8rem; color: #888888; border-left: 2px solid rgba(255, 255, 255, 0.1); padding: 2px 10px; flex: 1; opacity: 0.85; }
         .dice { background-color: rgba(239, 68, 68, 0.15); color: #f87171; border-left: 3px solid #f87171; font-weight: 500; padding: 6px 10px; border-radius: 4px; flex: 1; }
         .divider { border-top: 1px dashed rgba(255, 255, 255, 0.07); margin: 12px 0 8px 0; width: 100%; }
-        details { background: #202020; border: 1px solid rgba(255,255,255,0.07); padding: 12px; border-radius: 6px; margin-top: 15px; }
-        summary { font-size: 0.85rem; font-weight: 600; color: rgba(255,255,255,0.4); cursor: pointer; outline: none; user-select: none; }
+        details { background: #202020; border: 1px solid rgba(255,255,255,0.07); padding: 14px; border-radius: 6px; margin-top: 15px; }
+        summary { font-size: 0.9rem; font-weight: 700; color: rgba(255,255,255,0.6); cursor: pointer; outline: none; user-select: none; }
     </style>
 </head>
 <body>
@@ -609,7 +614,7 @@
                             const imgNode = element.querySelector('.avatar-box');
                             if(imgNode && !isSameAsLast) {
                                 segment += `            <img src="${imgNode.src}" class="avatar">\n`;
-                            } else {
+                            } else if (!isSameAsLast) {
                                 segment += `            <div class="avatar-space"></div>\n`;
                             }
 
@@ -633,17 +638,24 @@
             fileOutput += compileRows(mainRows);
             fileOutput += `    </div>\n`;
 
-            // 하단 토글 구성 (잡담 탭 분리 아웃풋)
+            // [요구사항 가공] 하단 개별 독립 토글 팩킹 (잡담)
             if(subChatRows.length > 0) {
-                fileOutput += `    <details>\n        <summary>기타 데이터 로그 (잡담 채널)</summary>\n        <div style="display: flex; flex-direction: column; margin-top:12px;">\n`;
+                fileOutput += `    <details>\n        <summary>💬 잡담 채널 스크립트</summary>\n        <div style="display: flex; flex-direction: column; margin-top:12px;">\n`;
                 fileOutput += compileRows(subChatRows);
                 fileOutput += `        </div>\n    </details>\n`;
             }
 
-            // 하단 토글 구성 (정보 및 프라이빗 분리 아웃풋)
+            // [요구사항 가공] 하단 개별 독립 토글 팩킹 (정보)
             if(subInfoRows.length > 0) {
-                fileOutput += `    <details>\n        <summary>기타 데이터 로그 (정보 및 프라이빗 채널)</summary>\n        <div style="display: flex; flex-direction: column; margin-top:12px;">\n`;
+                fileOutput += `    <details>\n        <summary>💡 정보 채널 스크립트</summary>\n        <div style="display: flex; flex-direction: column; margin-top:12px;">\n`;
                 fileOutput += compileRows(subInfoRows);
+                fileOutput += `        </div>\n    </details>\n`;
+            }
+
+            // [요구사항 가공] 하단 개별 독립 토글 팩킹 (프라이빗)
+            if(subPrivRows.length > 0) {
+                fileOutput += `    <details>\n        <summary>🔒 프라이빗 채널 스크립트</summary>\n        <div style="display: flex; flex-direction: column; margin-top:12px;">\n`;
+                fileOutput += compileRows(subPrivRows);
                 fileOutput += `        </div>\n    </details>\n`;
             }
 
@@ -651,24 +663,22 @@
             return fileOutput;
         }
 
-        // 복사 기능 바인딩
         document.getElementById('btnCopy').addEventListener('click', () => {
             const htmlContent = buildFinalHtml();
             navigator.clipboard.writeText(htmlContent).then(() => {
-                alert('정제된 HTML 소스코드가 클립보드에 복사되었습니다.');
+                alert('모든 채널(토글 포함)의 정제본 HTML 코드가 복사되었습니다.');
             }).catch(err => {
-                alert('복사에 실패했습니다. 브라우저 권한을 확인해주세요.');
+                alert('복사 권한 오류가 발생했습니다.');
             });
         });
 
-        // 다운로드 기능 바인딩
         document.getElementById('btnDownload').addEventListener('click', () => {
             const htmlContent = buildFinalHtml();
             const finalTitle = document.getElementById('roomTitle').innerText.trim();
             const blob = new Blob([htmlContent], { type: 'text/html;charset=utf-8;' });
             const link = document.createElement("a");
             link.href = URL.createObjectURL(blob);
-            link.setAttribute("download", `${finalTitle}_정리본.html`);
+            link.setAttribute("download", `${finalTitle}_완성정리본.html`);
             document.body.appendChild(link);
             link.click();
             document.body.removeChild(link);
