@@ -15,7 +15,7 @@
             --border-notion: rgba(255, 255, 255, 0.07);
             --text-main: rgba(255, 255, 255, 0.85);
             --text-muted: rgba(255, 255, 255, 0.4);
-            --text-link: #60a5fa;
+            --text-link: #888888; /* 심플한 메탈릭 그레이로 변경 */
 
             --font-serif: "Hina Mincho", "Noto Serif KR", serif;
             --font-sans: "Noto Sans KR", "Inter", sans-serif;
@@ -134,11 +134,11 @@
             font-size: 0.85rem;
             cursor: pointer;
         }
-        .switch-item input { accent-color: var(--text-link); cursor: pointer; }
+        .switch-item input { accent-color: var(--text-main); cursor: pointer; }
 
         .filter-container { display: grid; grid-template-columns: repeat(auto-fill, minmax(130px, 1fr)); gap: 8px; margin-top: 6px; }
         .filter-item { display: flex; align-items: center; gap: 6px; font-size: 0.85rem; cursor: pointer; }
-        .filter-item input[type="checkbox"] { width: 15px; height: 15px; cursor: pointer; accent-color: var(--text-link); }
+        .filter-item input[type="checkbox"] { width: 15px; height: 15px; cursor: pointer; accent-color: var(--text-main); }
 
         .color-picker-item {
             display: flex;
@@ -161,13 +161,13 @@
         }
         .btn-submit { background: rgba(255, 255, 255, 0.05); border-color: rgba(255, 255, 255, 0.1); flex: 2; }
         .btn-submit:hover { background: rgba(255, 255, 255, 0.1); }
-        .btn-util { flex: 1; border-color: rgba(96, 165, 250, 0.2); color: var(--text-link); }
-        .btn-util:hover { background: rgba(96, 165, 250, 0.1); }
+        .btn-util { flex: 1; border-color: rgba(255, 255, 255, 0.1); color: var(--text-main); }
+        .btn-util:hover { background: rgba(255, 255, 255, 0.05); }
 
-        /* 맞춤법 제안창 미니멀 정돈 디자인 */
+        /* 색 조화를 극도로 절제한 미니멀 제안창 */
         .spell-report-card {
             background: var(--bg-surface);
-            border: 1px solid rgba(220, 38, 38, 0.4);
+            border: 1px solid var(--border-notion);
             border-radius: 8px;
             padding: 16px;
             margin-bottom: 20px;
@@ -184,20 +184,20 @@
         .spell-report-title {
             font-size: 0.85rem;
             font-weight: 700;
-            color: #ef4444;
+            color: rgba(255, 255, 255, 0.8);
         }
         .spell-btn-all {
-            background: rgba(16, 185, 129, 0.1);
-            border: 1px solid rgba(16, 185, 129, 0.3);
-            color: #10b981;
+            background: none;
+            border: 1px solid rgba(255, 255, 255, 0.15);
+            color: rgba(255, 255, 255, 0.8);
             border-radius: 4px;
             padding: 4px 12px;
             font-size: 0.75rem;
             font-weight: 600;
             cursor: pointer;
-            transition: 0.15s;
+            transition: 0.1s;
         }
-        .spell-btn-all:hover { background: rgba(16, 185, 129, 0.2); }
+        .spell-btn-all:hover { background: rgba(255, 255, 255, 0.05); border-color: rgba(255, 255, 255, 0.3); }
         
         .spell-report-list {
             max-height: 250px;
@@ -219,19 +219,19 @@
         }
         .spell-context-box {
             line-height: 1.5;
-            color: rgba(255,255,255,0.7);
+            color: rgba(255, 255, 255, 0.7);
         }
         .spell-meta-tag {
-            color: var(--text-link);
+            color: var(--text-muted);
             font-size: 0.75rem;
             font-weight: 700;
             margin-bottom: 3px;
             display: block;
         }
         .spell-fix-trigger {
-            background: rgba(255,255,255,0.05);
-            border: 1px solid rgba(255,255,255,0.1);
-            color: #fff;
+            background: none;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            color: rgba(255,255,255,0.8);
             padding: 4px 10px;
             font-size: 0.75rem;
             border-radius: 4px;
@@ -239,7 +239,7 @@
             flex-shrink: 0;
             transition: 0.1s;
         }
-        .spell-fix-trigger:hover { background: var(--text-link); border-color: var(--text-link); }
+        .spell-fix-trigger:hover { background: rgba(255,255,255,0.05); border-color: rgba(255,255,255,0.3); }
 
         .script-container {
             display: flex;
@@ -273,7 +273,7 @@
             font-family: var(--current-font);
         }
         
-        mark.log-match { background: #fef08a; color: #000; border-radius: 2px; padding: 0 2px; }
+        mark.log-match { background: #e2e8f0; color: #000; border-radius: 2px; padding: 0 2px; }
 
         .notion-block b, .msg b { font-weight: bold; }
         .notion-block i, .msg i { font-style: italic; }
@@ -382,7 +382,7 @@
 
         <div class="grid-config">
             <div class="input-group" style="grid-column: span 2;">
-                <span>5. 맞춤법 검사 기능 사용 여부</span>
+                <span>5. 맞춤법 및 띄어쓰기 교정 기능 사용 여부</span>
                 <div class="switch-group">
                     <label class="switch-item">
                         <input type="radio" name="spellCheckToggle" value="off" checked> 기능 끄기 (Off)
@@ -422,7 +422,7 @@
 
     <div id="spellReportCard" class="spell-report-card">
         <div class="spell-report-header">
-            <div class="spell-report-title">맞춤법 및 오탈자 수정 제안 리스트</div>
+            <div class="spell-report-title">맞춤법 및 띄어쓰기 수정 제안 리스트</div>
             <button id="btnSpellFixAll" class="spell-btn-all">제안된 항목 모두 교정</button>
         </div>
         <div id="spellReportList" class="spell-report-list"></div>
@@ -465,6 +465,7 @@
         let redoStack = [];
         let isHistoryAction = false; 
 
+        // 띄어쓰기 오류가 포함된 고도화 룰셋
         const spellRules = [
             { wrong: /됬/g, right: "됐" },
             { wrong: /됬다/g, right: "됐다" },
@@ -477,7 +478,14 @@
             { wrong: /그라믄/g, right: "그러면" },
             { wrong: /뒤짚/g, right: "뒤집" },
             { wrong: /오랫만/g, right: "오랜만" },
-            { wrong: /궂이/g, right: "굳이" }
+            { wrong: /궂이/g, right: "굳이" },
+            // 띄어쓰기 의존성 룰 추가
+            { wrong: /할거야/g, right: "할 거야" },
+            { wrong: /할수/g, right: "할 수" },
+            { wrong: /갈수/g, right: "갈 수" },
+            { wrong: /볼수/g, right: "볼 수" },
+            { wrong: /좋아할뿐더러/g, right: "좋아할 뿐더러" },
+            { wrong: /하는바람에/g, right: "하는 바람에" }
         ];
 
         const themeProfiles = {
@@ -653,7 +661,7 @@
             updateHistoryButtons();
         });
 
-        // 원본 컨텍스트 전체 문장을 불러오도록 엔진 고도화
+        // 띄어쓰기 매칭 컨텍스트를 확실하게 캡처하는 핵심 로직
         function runAutoSpellChecker() {
             const isEnabled = document.querySelector('input[name="spellCheckToggle"]:checked').value === "on";
             const reportCard = document.getElementById('spellReportCard');
@@ -694,9 +702,9 @@
                     const item = document.createElement('div');
                     item.className = "spell-report-item";
                     
-                    // 문맥 안에서 매칭 단어를 찾아 시각적 변경 가이드라인 구성
                     const fullText = issue.element.innerText;
-                    const highlightedContext = fullText.replace(issue.wrongReg, `<span style="text-decoration:line-through; color:#ef4444; margin:0 2px;">$&</span><span style="color:#10b981; font-weight:700; margin:0 2px;">${issue.rightText}</span>`);
+                    // 원색 피드백 대신 깔끔하고 명도가 정돈된 텍스트 장식 가이드 적용
+                    const highlightedContext = fullText.replace(issue.wrongReg, `<span style="text-decoration:line-through; color:rgba(255,255,255,0.3); margin:0 2px;">$&</span><span style="color:rgba(255,255,255,0.95); font-weight:700; border-bottom:1px dashed rgba(255,255,255,0.5); margin:0 2px;">${issue.rightText}</span>`);
 
                     item.innerHTML = `
                         <div class="spell-context-box">
@@ -728,7 +736,7 @@
             });
 
             const reportList = document.getElementById('spellReportList');
-            reportList.innerHTML = `<div style="padding: 10px; color: #10b981; font-weight: 600; text-align: center;">모든 제안 항목 일괄 교정이 완료되었습니다.</div>`;
+            reportList.innerHTML = `<div style="padding: 10px; color: rgba(255,255,255,0.8); font-weight: 600; text-align: center;">모든 제안 항목 일괄 교정이 완료되었습니다.</div>`;
         });
 
         document.getElementById('btnProcess').addEventListener('click', () => {
