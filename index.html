@@ -3,307 +3,334 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>논단군 코코포 로그 백업</title>
+    <title>트알피 로그 가공기 (Roll20 & Ccfolia)</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;700&family=Noto+Serif+KR:wght@400;700&family=Hina+Mincho&family=Inter:wght@400;600&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;700&family=Noto+Serif+KR:wght@400;700&family=Hina+Mincho&display=swap" rel="stylesheet">
     <style>
         :root {
-            --bg-main: #191919;
-            --bg-surface: #202020;
-            --bg-input: #252525;
-            --border-notion: rgba(255, 255, 255, 0.07);
-            --text-main: rgba(255, 255, 255, 0.85);
-            --text-muted: rgba(255, 255, 255, 0.4);
-            --text-kp: #4ade80;
-            --text-check: #f87171;
-            --text-link: #60a5fa;
-            --bg-check: rgba(239, 68, 68, 0.15); 
-            
-            /* 서체 기본 프리셋 */
+            /* 기본 테마 변수 (스크립트 제어용) */
             --font-serif: "Hina Mincho", "Noto Serif KR", serif;
-            --font-sans: "Noto Sans KR", "Inter", sans-serif;
+            --font-sans: "Noto Sans KR", sans-serif;
             
-            /* 기본값은 세리프(명조)로 설정 */
-            --current-font: var(--font-sans-serif);
+            /* [요구사항] 기본 폰트를 고딕체로 설정 */
+            --current-font: var(--font-sans);
+            
+            /* 스타일 프리셋 색상 정의 */
+            --bg-panel: #222222;
+            --bg-input: #111111;
+            --border-color: #333333;
+            --text-main: #dfdfdf;
+            
+            /* 지문(서술자) 글씨색 상향 조정 (가독성 개선) */
+            --text-narrator: #f0f0f0; 
         }
 
         body {
             font-family: var(--font-sans);
-            max-width: 850px;
-            margin: 0 auto;
-            padding: 30px 16px;
-            background-color: var(--bg-main);
+            background-color: #171717;
             color: var(--text-main);
-            -webkit-font-smoothing: antialiased;
-            letter-spacing: -0.01em;
+            margin: 0;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
         }
 
-        header {
-            margin-bottom: 24px;
-            border-bottom: 1px solid var(--border-notion);
-            padding-bottom: 16px;
+        /* 컨트롤 패널 UI */
+        .control-panel {
+            width: 100%;
+            max-width: 750px;
+            background: var(--bg-panel);
+            border: 1px solid var(--border-color);
+            border-radius: 4px;
+            padding: 15px;
+            margin-bottom: 20px;
+            box-sizing: border-box;
         }
 
-        header h1 {
-            font-size: 1.7rem;
-            font-weight: 700;
-            color: rgba(255, 255, 255, 0.9);
-            margin: 0 0 6px 0;
-            letter-spacing: -0.02em;
+        .panel-row {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 15px;
+            margin-bottom: 12px;
         }
 
-        .notion-card {
-            background: var(--bg-surface);
-            border: 1px solid var(--border-notion);
-            border-radius: 8px;
-            padding: 16px;
+        .input-wrap {
+            flex: 1;
+            min-width: 200px;
+            display: flex;
+            flex-direction: column;
+            gap: 5px;
+        }
+
+        .input-wrap label {
+            font-size: 0.8rem;
+            color: #999;
+            font-weight: bold;
+        }
+
+        input[type="text"], input[type="file"] {
+            background: var(--bg-input);
+            border: 1px solid var(--border-color);
+            color: #fff;
+            padding: 8px;
+            border-radius: 3px;
+            font-size: 0.85rem;
+            outline: none;
+        }
+
+        .selector-group {
+            display: flex;
+            gap: 12px;
+            align-items: center;
+            background: var(--bg-input);
+            padding: 6px 10px;
+            border-radius: 3px;
+            border: 1px solid var(--border-color);
+        }
+
+        .selector-group label {
+            font-size: 0.85rem;
+            color: #ccc;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+
+        .filter-wrap {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            background: var(--bg-input);
+            padding: 8px;
+            border-radius: 3px;
+            border: 1px solid var(--border-color);
+        }
+
+        .filter-item {
+            display: flex;
+            align-items: center;
+            gap: 4px;
+            font-size: 0.8rem;
+            color: #bbb;
+        }
+
+        .btn-group {
+            display: flex;
+            gap: 8px;
+            width: 100%;
+            max-width: 750px;
             margin-bottom: 20px;
         }
 
-        .notion-label {
-            font-size: 0.75rem;
-            font-weight: 700;
-            letter-spacing: 0.05em;
-            margin-bottom: 12px;
-            color: var(--text-muted);
-            text-transform: uppercase;
-        }
-
-        .output-room-title {
-            font-family: var(--current-font);
-            font-size: 1.6rem;
-            font-weight: 700;
-            color: #ffffff;
-            margin: 0 0 16px 0;
-            outline: none;
-            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
-            padding-bottom: 10px;
-        }
-
-        .accordion-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            cursor: pointer;
-            padding: 2px 0;
-        }
-        .accordion-icon { font-size: 0.8rem; transition: transform 0.2s; color: var(--text-muted); }
-        .accordion-content { max-height: 0; overflow: hidden; transition: max-height 0.3s ease-out; }
-        .accordion-content.open { max-height: none; margin-top: 14px; }
-
-        .grid-config {
-            display: grid;
-            grid-template-columns: 1fr;
-            gap: 12px;
-        }
-        @media (min-width: 600px) {
-            .grid-config { grid-template-columns: repeat(2, 1fr); }
-        }
-
-        .input-group { display: flex; flex-direction: column; gap: 6px; margin-bottom: 12px; }
-        .input-group span { font-size: 0.8rem; color: var(--text-muted); font-weight: 600; }
-
-        input[type="text"], input[type="file"], input[type="color"] {
-            width: 100%; background-color: var(--bg-input); border: 1px solid var(--border-notion);
-            border-radius: 6px; color: var(--text-main); font-size: 0.85rem; padding: 10px; box-sizing: border-box; outline: none;
-        }
-
-        /* 서체 스위치 라디오 스타일 */
-        .font-switch-group {
-            display: flex;
-            gap: 16px;
-            background: var(--bg-input);
-            padding: 10px 14px;
-            border-radius: 6px;
-            border: 1px solid var(--border-notion);
-        }
-        .font-switch-item {
-            display: flex;
-            align-items: center;
-            gap: 6px;
+        .r20-btn {
+            background: #333;
+            border: 1px solid #444;
+            color: #fff;
+            padding: 10px 16px;
             font-size: 0.85rem;
+            font-weight: bold;
             cursor: pointer;
-        }
-        .font-switch-item input {
-            accent-color: var(--text-link);
-            cursor: pointer;
+            border-radius: 3px;
+            flex: 1;
         }
 
-        .filter-container { display: grid; grid-template-columns: repeat(auto-fill, minmax(130px, 1fr)); gap: 8px; margin-top: 6px; }
-        .filter-item { display: flex; align-items: center; gap: 6px; font-size: 0.85rem; cursor: pointer; }
-        .filter-item input { width: 15px; height: 15px; cursor: pointer; accent-color: var(--text-link); }
+        .r20-btn:hover { background: #444; }
+        .btn-main { background: #5c1d1d; border-color: #7a2828; }
+        .btn-main:hover { background: #7a2828; }
 
-        .btn-group { display: flex; gap: 8px; margin-bottom: 20px; }
-        .notion-btn {
-            background: none; border: 1px solid var(--border-notion); color: var(--text-main);
-            border-radius: 6px; cursor: pointer; padding: 10px 16px; font-size: 0.85rem; transition: 0.2s; font-weight: 600;
-        }
-        .btn-submit { background: rgba(255, 255, 255, 0.05); border-color: rgba(255, 255, 255, 0.1); flex: 2; }
-        .btn-submit:hover { background: rgba(255, 255, 255, 0.1); }
-        .btn-util { flex: 1; border-color: rgba(96, 165, 250, 0.2); color: var(--text-link); }
-        .btn-util:hover { background: rgba(96, 165, 250, 0.1); }
-
-        /* 롤20 컴팩트 스펙 레이아웃 */
-        .script-container {
+        /* 출력 컨테이너 */
+        .textchatcontainer {
+            width: 100%;
+            max-width: 750px;
+            background-color: #1a1a1a;
+            border: 1px solid var(--border-color);
+            padding: 10px;
+            box-sizing: border-box;
             display: flex;
             flex-direction: column;
-            gap: 2px;
+            gap: 1px;
         }
 
-        .notion-row { 
-            display: flex; 
-            align-items: flex-start; 
-            gap: 8px; 
-            padding: 2px 4px; 
-            margin-bottom: 0px;
-            border-bottom: 1px solid rgba(255, 255, 255, 0.01); 
-        }
-        
-        .avatar-box { width: 28px; height: 28px; border-radius: 4px; object-fit: cover; flex-shrink: 0; border: 1px solid var(--border-notion); }
-        .avatar-placeholder { width: 28px; flex-shrink: 0; }
-        
-        .notion-block {
-            flex: 1; 
-            padding: 2px 4px; 
-            border-radius: 4px; 
-            font-size: 0.9rem; 
-            line-height: 1.4; 
-            word-break: break-all; 
-            outline: none; 
-            color: var(--text-main); 
-            white-space: pre-wrap;
-            font-family: var(--current-font);
-        }
-        .notion-block:focus { background: var(--bg-input); }
-        
-        .char-name { 
-            font-size: 0.8rem; 
-            font-weight: 700; 
-            margin-bottom: 1px; 
-            display: block; 
-            color: var(--text-link); 
-            font-family: var(--font-sans);
+        .room-title-area {
+            background: #111;
+            border-bottom: 1px solid var(--border-color);
+            padding: 10px;
+            margin: -10px -10px 10px -10px;
         }
 
-        /* [요구사항] 서술자 지문 위아래로 아주 미세한 공백 설정 (margin: 8px 0) */
-        .state-narrator { 
-            text-align: center; 
-            font-weight: 600; 
-            font-style: italic; 
-            color: rgba(255, 255, 255, 0.65); 
-            width: 100%; 
-            margin: 8px 0; 
-            padding: 3px 10px; 
-            font-size: 0.9rem; 
-            border: none !important; 
+        .room-title-area h2 {
+            margin: 0;
+            font-size: 1.2rem;
+            color: #fff;
+            outline: none;
         }
-        
-        .state-system { font-family: var(--font-sans); font-size: 0.8rem; color: #777777; background-color: transparent; padding: 1px 4px; border: none !important; }
-        .state-dice { background-color: var(--bg-check); color: var(--text-check); border-left: 2px solid var(--text-check) !important; font-weight: 500; font-family: var(--font-sans); padding: 2px 6px; }
 
-        .row-control { padding: 1px 6px; border: 1px solid var(--border-notion); background: rgba(255,255,255,0.02); color: var(--text-check); border-radius: 4px; cursor: pointer; font-size: 0.65rem; align-self: center; margin-left: 4px; opacity: 0.3; transition: opacity 0.2s; }
-        .notion-row:hover .row-control { opacity: 1; }
+        /* -------------------------------------------------------------
+           [스타일 클래스 셋업 - Roll20 vs Ccfolia]
+        ------------------------------------------------------------- */
         
-        .character-divider { border-top: 1px solid rgba(255, 255, 255, 0.04); margin: 4px 0 2px 0; width: 100%; }
+        /* 1. Roll20 모드 스타일 스펙 */
+        .theme-roll20 .message {
+            display: flex;
+            padding: 3px 5px;
+            position: relative;
+            align-items: flex-start;
+        }
+        .theme-roll20 .message:hover { background: rgba(255, 255, 255, 0.02); }
+        .theme-roll20 .avatar-area { width: 30px; margin-right: 8px; flex-shrink: 0; }
+        .theme-roll20 .avatar-img { width: 30px; height: 30px; object-fit: cover; border-radius: 3px; border: 1px solid #444; }
+        .theme-roll20 .spacer-avatar { width: 30px; }
+        .theme-roll20 .content-area { flex: 1; min-width: 0; }
+        .theme-roll20 .by { font-size: 0.8rem; font-weight: bold; color: #ffb700; margin-bottom: 1px; display: block; }
+        .theme-roll20 .spacer-line { border-top: 1px solid rgba(255, 255, 255, 0.03); margin: 2px 0 1px 0; width: 100%; }
+        .theme-roll20 .sheet-rolltemplate-custom { font-family: var(--current-font); font-size: 0.9rem; line-height: 1.4; white-space: pre-wrap; word-break: break-all; color: #dfdfdf; }
+        .theme-roll20 .message.narrator-mode { display: block; text-align: center; padding: 3px 20px; margin: 6px 0; background: transparent !important; }
+        .theme-roll20 .message.narrator-mode .sheet-rolltemplate-custom { text-align: center; font-weight: bold; font-style: italic; color: var(--text-narrator); }
+        .theme-roll20 .message.system-mode { padding-left: 43px; }
+        .theme-roll20 .message.system-mode .sheet-rolltemplate-custom { font-size: 0.8rem; color: #aaaaaa; }
+        .theme-roll20 .message.dice-mode { background-color: #261616 !important; border-left: 2px solid #ff6b6b; margin: 2px 0; }
+        .theme-roll20 .message.dice-mode .sheet-rolltemplate-custom { color: #ff6b6b; padding: 2px 4px; }
+
+        /* 2. 코코포리아 모드 스타일 스펙 */
+        .theme-ccfolia .message {
+            display: grid;
+            grid-template-columns: auto 1fr;
+            padding: 6px 8px;
+            position: relative;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.04);
+            background: #212121;
+            margin-bottom: 2px;
+            border-radius: 4px;
+        }
+        .theme-ccfolia .avatar-area { grid-column: 1; margin-right: 10px; }
+        .theme-ccfolia .avatar-img { width: 36px; height: 36px; border-radius: 50%; object-fit: cover; border: 1px solid rgba(255,255,255,0.1); }
+        .theme-ccfolia .spacer-avatar { display: none; } /* 코코포리아는 연속 대사도 그리드 정렬 처리 */
+        .theme-ccfolia .content-area { grid-column: 2; display: flex; flex-direction: column; justify-content: center; }
+        .theme-ccfolia .by { font-size: 0.85rem; font-weight: 700; color: #fff; margin-bottom: 3px; }
+        .theme-ccfolia .spacer-line { display: none; }
+        .theme-ccfolia .sheet-rolltemplate-custom { font-family: var(--current-font); font-size: 0.9rem; line-height: 1.5; white-space: pre-wrap; word-break: break-all; color: #e0e0e0; }
+        .theme-ccfolia .message.narrator-mode { display: block; background: rgba(255,255,255,0.03); border: 1px dashed rgba(255,255,255,0.1); padding: 8px 15px; margin: 8px 0; border-radius: 4px; }
+        .theme-ccfolia .message.narrator-mode .sheet-rolltemplate-custom { text-align: left; font-weight: 500; color: var(--text-narrator); }
+        .theme-ccfolia .message.system-mode { background: #1a1a1a; border: none; padding: 4px 10px; }
+        .theme-ccfolia .message.system-mode .sheet-rolltemplate-custom { color: #888888; font-size: 0.8rem; }
+        .theme-ccfolia .message.dice-mode { background: #2c1e1e; border-left: 3px solid #ff4d4d; }
+        .theme-ccfolia .message.dice-mode .sheet-rolltemplate-custom { color: #ff9999; font-weight: 500; }
+
+        /* 공통 액션 요소 */
+        .del-btn {
+            position: absolute;
+            right: 5px;
+            top: 4px;
+            background: none;
+            border: none;
+            color: #777;
+            cursor: pointer;
+            font-size: 0.7rem;
+            display: none;
+        }
+        .message:hover .del-btn { display: block; }
+        .del-btn:hover { color: #ff6b6b; }
+
+        .tab-section { width: 100%; max-width: 750px; margin-top: 15px; border: 1px solid var(--border-color); border-radius: 4px; background: #1f1f1f; overflow: hidden; }
+        .tab-header { background: #2a2a2a; padding: 8px 12px; font-size: 0.8rem; font-weight: bold; color: #aaa; cursor: pointer; display: flex; justify-content: space-between; }
+        .tab-content { display: none; padding: 10px; background: #1a1a1a; }
+        .tab-content.open { display: flex; flex-direction: column; gap: 1px; }
+
         .hidden { display: none !important; }
-
-        .checker-badge { display: inline-block; font-size: 0.65rem; background: rgba(234, 179, 8, 0.12); color: #eab308; padding: 0px 4px; border-radius: 3px; border: 1px solid rgba(234, 179, 8, 0.2); margin-bottom: 2px; font-family: var(--font-sans); }
     </style>
 </head>
 <body>
 
-    <header>
-        <h1>논단군 코코포리아 로그 백업</h1>
-        <p>코코포리아 로그 백업기</p>
-    </header>
-
-    <div class="notion-card">
-        <div class="notion-label">설정</div>
-        <div class="grid-config" style="margin-bottom: 12px;">
-            <div class="input-group">
-                <span>1. 로그 파일 업로드 (.html)</span>
+    <div class="control-panel">
+        <div class="panel-row">
+            <div class="input-wrap">
+                <label>1. 로그 파일 업로드 (.html)</label>
                 <input id="logFile" type="file" accept=".html">
             </div>
-            <div class="input-group">
-                <span>2. 서술자 이름 지정</span>
+            <div class="input-wrap">
+                <label>2. 지문 서술자 이름 지정</label>
                 <input id="narratorName" type="text" placeholder="예: GM 또는 서술자">
             </div>
         </div>
-
-        <div class="grid-config">
-            <div class="input-group">
-                <span>3. 서체 선택</span>
-                <div class="font-switch-group">
-                    <label class="font-switch-item">
-                        <input type="radio" name="fontPreset" value="serif" checked> 고급 명조체 (Serif)
-                    </label>
-                    <label class="font-switch-item">
-                        <input type="radio" name="fontPreset" value="sans"> 깔끔 고딕체 (Gothic)
-                    </label>
+        <div class="panel-row">
+            <div class="input-wrap">
+                <label>3. 출력 레이아웃 테마 선택</label>
+                <div class="selector-group">
+                    <label><input type="radio" name="themePreset" value="roll20" checked> Roll20 스타일</label>
+                    <label><input type="radio" name="themePreset" value="ccfolia"> 코코포리아 스타일</label>
+                </div>
+            </div>
+            <div class="input-wrap">
+                <label>4. 서체 포맷 변경</label>
+                <div class="selector-group">
+                    <label><input type="radio" name="fontPreset" value="sans" checked> 고딕체 (Gothic)</label>
+                    <label><input type="radio" name="fontPreset" value="serif"> 명조체 (Serif)</label>
                 </div>
             </div>
         </div>
-        
-        <div class="input-group" style="margin-top: 10px;">
-            <span>4. 추출 탭</span>
-            <div id="dynamicFilters" class="filter-container">
-                <p style="font-size: 0.8rem; color: var(--text-muted);">파일을 먼저 업로드하세요.</p>
-            </div>
+        <div class="input-wrap" style="margin-top: 5px;">
+            <label>5. 출력 채널 필터링</label>
+            <div id="dynamicFilters" class="filter-wrap">파일을 먼저 등록해 주세요.</div>
         </div>
-    </div>
-
-    <div id="colorCard" class="notion-card hidden">
-        <div class="accordion-header" onclick="toggleAccordion('colorSettingsContainer', 'accordionArrow')">
-            <div class="notion-label" style="margin-bottom: 0;">캐릭터 대사 색상 설정</div>
-            <div class="accordion-icon" id="accordionArrow">▶</div>
-        </div>
-        <div id="colorSettingsContainer" class="accordion-content grid-config" style="grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); margin-top: 0;"></div>
     </div>
 
     <div class="btn-group">
-        <button id="btnProcess" class="notion-btn btn-submit">스크립트 가공 및 분류 실행</button>
-        <button id="btnCopy" class="notion-btn btn-util">전체 코드 복사</button>
-        <button id="btnDownload" class="notion-btn btn-util">파일로 저장</button>
+        <button id="btnProcess" class="r20-btn btn-main">스크립트 변환 및 분류 실행</button>
+        <button id="btnCopy" class="r20-btn">최종 코드 복사</button>
+        <button id="btnDownload" class="r20-btn">파일로 저장</button>
     </div>
 
-    <div id="mainOutputCard" class="notion-card">
-        <div class="notion-label">메인 세션 로그 (Main)</div>
-        <h2 id="roomTitle" class="output-room-title" contenteditable="true" spellcheck="false">파일을 기다리는 중...</h2>
-        <div id="mainContainer" class="script-container"></div>
+    <div id="outputContainer" class="textchatcontainer theme-roll20">
+        <div class="room-title-area">
+            <h2 id="roomTitle" contenteditable="true" spellcheck="false">세션 로그 출력창</h2>
+        </div>
+        <div id="mainChatFlow" style="display: flex; flex-direction: column; gap: 1px;"></div>
     </div>
 
-    <div id="dynamicTabsOutput"></div>
+    <div id="secondaryTabsArea" style="width:100%; max-width:750px;"></div>
 
     <script>
         let rawLogData = [];
-        let characterColors = {}; 
         let characterAvatars = {}; 
         let detectedTabs = new Set();
-        let currentFontType = "serif"; 
+        let currentFontType = "sans";
+        let currentTheme = "roll20";
 
-        const spellRules = [
-            { regex: /됫/g, fix: "됐" }, { regex: /됬/g, fix: "됐" }, { regex: /않하고/g, fix: "안 하고" }, 
-            { regex: /않돼/g, fix: "안 돼" }, { regex: /구지/g, fix: "굳이" }, { regex: /할께/g, fix: "할게" }
-        ];
-
-        function toggleAccordion(contentId, arrowId) {
-            const content = document.getElementById(contentId);
-            const arrow = document.getElementById(arrowId);
+        function toggleTab(id) {
+            const content = document.getElementById(id);
             content.classList.toggle('open');
-            arrow.innerText = content.classList.contains('open') ? '▼' : '▶';
         }
 
+        // 테마 토글 핸들러
+        document.querySelectorAll('input[name="themePreset"]').forEach(radio => {
+            radio.addEventListener('change', (e) => {
+                currentTheme = e.target.value;
+                const container = document.getElementById('outputContainer');
+                const subContainers = document.querySelectorAll('.tab-content');
+                
+                if(currentTheme === 'roll20') {
+                    container.className = "textchatcontainer theme-roll20";
+                    subContainers.forEach(sc => sc.className = "tab-content theme-roll20 open");
+                } else {
+                    container.className = "textchatcontainer theme-ccfolia";
+                    subContainers.forEach(sc => sc.className = "tab-content theme-ccfolia open");
+                }
+                
+                // 테마가 변경되면 구조가 리프레시되도록 재가공 프로세스를 가볍게 트리거하는 편이 안정적입니다.
+                if(rawLogData.length > 0) document.getElementById('btnProcess').click();
+            });
+        });
+
+        // 폰트 토글 핸들러
         document.querySelectorAll('input[name="fontPreset"]').forEach(radio => {
             radio.addEventListener('change', (e) => {
                 currentFontType = e.target.value;
                 const fontValue = currentFontType === "serif" ? "var(--font-serif)" : "var(--font-sans)";
                 document.documentElement.style.setProperty('--current-font', fontValue);
-                
-                document.querySelectorAll('.notion-block').forEach(el => {
-                    el.style.fontFamily = fontValue;
-                });
-                document.getElementById('roomTitle').style.fontFamily = fontValue;
+                document.querySelectorAll('.sheet-rolltemplate-custom').forEach(el => el.style.fontFamily = fontValue);
             });
         });
 
@@ -316,16 +343,14 @@
                 const parser = new DOMParser();
                 const doc = parser.parseFromString(event.target.result, 'text/html');
                 
-                document.getElementById('roomTitle').innerText = file.name.replace(/\.html$/i, "").replace(/\[all\]$/i, "").trim();
+                document.getElementById('roomTitle').innerText = file.name.replace(/\.html$/i, "").trim();
 
                 const paragraphs = doc.querySelectorAll('p');
                 rawLogData = [];
                 detectedTabs.clear();
-                const uniqueCharacters = new Set();
 
                 paragraphs.forEach(p => {
                     let avatarSrc = p.querySelector('img')?.getAttribute('src') || "";
-                    let color = p.querySelector('span[style*="color"]')?.style.color || "";
                     const text = p.textContent.trim();
                     if(!text) return;
 
@@ -334,25 +359,23 @@
                         let tabName = match[1].trim();
                         let charName = match[2].trim();
                         let msgBody = match[3].trim();
+                        
                         const timeMatch = msgBody.match(/\s*(\d{4}\/\d{2}\/\d{2}\s+\d{2}:\d{2}:\d{2}|\d{2}:\d{2})$/);
                         if(timeMatch) msgBody = msgBody.replace(timeMatch[0], "").trim();
 
                         detectedTabs.add(tabName);
                         if(charName.toUpperCase() === "SYSTEM" || charName === "시스템") {
-                            rawLogData.push({ tab: "시스템", name: "", message: msgBody, rawColor: "", avatar: "" });
+                            rawLogData.push({ tab: "시스템", name: "", message: msgBody, avatar: "" });
                         } else {
-                            rawLogData.push({ tab: tabName, name: charName, message: msgBody, rawColor: color, avatar: avatarSrc });
-                            uniqueCharacters.add(charName);
-                            if(color && !characterColors[charName]) characterColors[charName] = rgbToHex(color);
+                            rawLogData.push({ tab: tabName, name: charName, message: msgBody, avatar: avatarSrc });
                             if(avatarSrc && !characterAvatars[charName]) characterAvatars[charName] = avatarSrc;
                         }
                     } else {
-                        rawLogData.push({ tab: "시스템", name: "", message: text, rawColor: "", avatar: "" });
+                        rawLogData.push({ tab: "시스템", name: "", message: text, avatar: "" });
                     }
                 });
 
                 buildFilters();
-                buildColorSettings(uniqueCharacters);
             };
             reader.readAsText(file, 'UTF-8');
         });
@@ -363,73 +386,45 @@
             Array.from(detectedTabs).sort().forEach(tab => {
                 const label = document.createElement('label');
                 label.className = "filter-item";
-                label.innerHTML = `<input type="checkbox" class="tab-chk" value="${tab}" checked> <span>${tab}</span>`;
+                label.innerHTML = `<input type="checkbox" class="tab-chk" value="${tab}" checked> ${tab}`;
                 container.appendChild(label);
             });
         }
 
-        function buildColorSettings(charSet) {
-            const container = document.getElementById('colorSettingsContainer');
-            container.innerHTML = "";
-            if(charSet.size === 0) { document.getElementById('colorCard').classList.add('hidden'); return; }
-            charSet.forEach(name => {
-                const row = document.createElement('div');
-                row.className = "color-setting-row";
-                row.innerHTML = `<span>${name}</span><input type="color" value="${characterColors[name] || '#ffffff'}" onchange="characterColors['${name}'] = this.value">`;
-                container.appendChild(row);
-            });
-            document.getElementById('colorCard').classList.remove('hidden');
-        }
-
-        function rgbToHex(rgb) {
-            if(!rgb || !rgb.startsWith('rgb')) return rgb || "#ffffff";
-            const parts = rgb.match(/\d+/g);
-            return parts ? "#" + parts.slice(0,3).map(x => parseInt(x).toString(16).padStart(2, '0')).join('') : "#ffffff";
-        }
-
-        function checkSpellErrors(text) {
-            let suggestions = [];
-            spellRules.forEach(rule => { if(rule.regex.test(text)) suggestions.push(`'${rule.fix}' 추천`); });
-            return suggestions.length > 0 ? `<span class="checker-badge" draggable="false">⚠️ ${suggestions.join(', ')}</span>` : '';
-        }
-
         document.getElementById('btnProcess').addEventListener('click', () => {
-            if(rawLogData.length === 0) return alert('파일을 로드하세요.');
+            if(rawLogData.length === 0) return alert('파일을 업로드해 주세요.');
             
             const narrator = document.getElementById('narratorName').value.trim();
             const selectedTabs = Array.from(document.querySelectorAll('.tab-chk:checked')).map(c => c.value);
             
-            const mainContainer = document.getElementById('mainContainer');
-            const dynamicTabsOutput = document.getElementById('dynamicTabsOutput');
-            mainContainer.innerHTML = "";
-            dynamicTabsOutput.innerHTML = "";
+            const mainChatFlow = document.getElementById('mainChatFlow');
+            const secondaryTabsArea = document.getElementById('secondaryTabsArea');
+            mainChatFlow.innerHTML = "";
+            secondaryTabsArea.innerHTML = "";
 
-            const tabGroups = {};
+            const tabTargets = {};
             selectedTabs.forEach(t => {
                 if(t.includes('메인') || t.toLowerCase() === 'main') {
-                    tabGroups[t] = mainContainer;
+                    tabTargets[t] = mainChatFlow;
                 } else {
-                    const card = document.createElement('div');
-                    card.className = "notion-card";
-                    const id = `tab_sec_${t}`;
-                    card.innerHTML = `
-                        <div class="accordion-header" onclick="toggleAccordion('${id}', 'arr_${id}')">
-                            <div class="notion-label" style="margin-bottom:0;">[${t}] 채널 로그</div>
-                            <div class="accordion-icon" id="arr_${id}">▶</div>
-                        </div>
-                        <div id="${id}" class="accordion-content script-container"></div>`;
-                    dynamicTabsOutput.appendChild(card);
-                    tabGroups[t] = card.querySelector('.accordion-content');
+                    const sec = document.createElement('div');
+                    sec.className = "tab-section";
+                    const id = `r20_sub_${t}`;
+                    sec.innerHTML = `
+                        <div class="tab-header" onclick="toggleTab('${id}')"><span>[${t}] 채널 스크립트</span><span>▼</span></div>
+                        <div id="${id}" class="tab-content theme-${currentTheme}"></div>`;
+                    secondaryTabsArea.appendChild(sec);
+                    tabTargets[t] = sec.querySelector('.tab-content');
                 }
             });
 
-            let lastSpeakers = {}; 
+            let lastSpeakers = {};
             const fontValue = currentFontType === "serif" ? "var(--font-serif)" : "var(--font-sans)";
 
             rawLogData.forEach(log => {
                 if(log.tab !== "시스템" && !selectedTabs.includes(log.tab)) return;
                 
-                const target = tabGroups[log.tab] || mainContainer;
+                const target = tabTargets[log.tab] || mainChatFlow;
                 const isNarrator = narrator && log.name === narrator;
                 const isSys = log.tab === "시스템";
                 const currentSpeaker = log.name;
@@ -439,10 +434,11 @@
                     forceShowName = true;
                 }
 
-                if (!isNarrator && !isSys && lastSpeakers[log.tab] && lastSpeakers[log.tab] !== currentSpeaker) {
-                    const divider = document.createElement('div');
-                    divider.className = "character-divider";
-                    target.appendChild(divider);
+                // Roll20 스타일일 때만 연속 대사 분리선 추가
+                if (currentTheme === 'roll20' && !isNarrator && !isSys && lastSpeakers[log.tab] && lastSpeakers[log.tab] !== currentSpeaker) {
+                    const div = document.createElement('div');
+                    div.className = "spacer-line";
+                    target.appendChild(div);
                 }
 
                 let isSameSpeaker = (!forceShowName && !isNarrator && !isSys && lastSpeakers[log.tab] === currentSpeaker);
@@ -451,39 +447,40 @@
                 else if (isNarrator) lastSpeakers[log.tab] = "__NARR__";
                 else lastSpeakers[log.tab] = currentSpeaker;
 
-                const row = document.createElement('div');
-                row.className = "notion-row";
-                row.dataset.speaker = currentSpeaker;
-                row.dataset.tab = log.tab;
+                const msgRow = document.createElement('div');
+                msgRow.className = "message";
+                msgRow.dataset.speaker = currentSpeaker;
+                msgRow.dataset.tab = log.tab;
 
-                let msgClass = "notion-block";
-                if(log.message.includes('🎲') || log.message.includes('->')) msgClass += " state-dice";
-                if(isSys) msgClass += " state-system";
-                if(isNarrator) msgClass += " state-narrator";
+                if(log.message.includes('🎲') || log.message.includes('->')) msgRow.classList.add('dice-mode');
+                if(isSys) msgRow.classList.add('system-mode');
+                if(isNarrator) msgRow.classList.add('narrator-mode');
 
                 let inner = "";
                 if(!isNarrator && !isSys) {
-                    if(!isSameSpeaker) {
+                    // 코코포리아는 프로필 사진을 연속 대사 여부와 무관하게 고정 표기하고, Roll20은 연속 대사시 아바타 생략
+                    if(currentTheme === 'ccfolia' || !isSameSpeaker) {
                         const avatar = characterAvatars[currentSpeaker] || log.avatar;
-                        inner += avatar ? `<img src="${avatar}" class="avatar-box">` : `<div class="avatar-box" style="background:#333"></div>`;
+                        inner += `<div class="avatar-area">` + (avatar ? `<img src="${avatar}" class="avatar-img">` : `<div class="avatar-img" style="background:#333"></div>`) + `</div>`;
                     } else {
-                        inner += `<div class="avatar-placeholder"></div>`;
+                        inner += `<div class="avatar-area spacer-avatar"></div>`;
                     }
-                    inner += `<div style="flex:1;">
-                        ${!isSameSpeaker ? `<span class="char-name" style="color:${characterColors[currentSpeaker] || 'inherit'}">${currentSpeaker}</span>` : ''}
-                        ${checkSpellErrors(log.message)}
-                        <div class="${msgClass}" style="font-family: ${fontValue}" contenteditable="true" spellcheck="false">${escapeHtml(log.message)}</div>
+                    
+                    inner += `<div class="content-area">
+                        ${(currentTheme === 'ccfolia' || !isSameSpeaker) ? `<span class="by">${currentSpeaker}</span>` : ''}
+                        <div class="sheet-rolltemplate-custom" style="font-family: ${fontValue}" contenteditable="true" spellcheck="false">${escapeHtml(log.message)}</div>
                     </div>`;
                 } else {
-                    inner += `<div class="${msgClass}" style="font-family: ${fontValue}" contenteditable="true" spellcheck="false">${escapeHtml(log.message)}</div>`;
+                    inner += `<div class="content-area"><div class="sheet-rolltemplate-custom" style="font-family: ${fontValue}" contenteditable="true" spellcheck="false">${escapeHtml(log.message)}</div></div>`;
                 }
                 
-                inner += `<button class="row-control" onclick="this.parentElement.remove()">✕</button>`;
-                row.innerHTML = inner;
-                target.appendChild(row);
+                inner += `<button class="del-btn" onclick="this.parentElement.remove()">✕</button>`;
+                msgRow.innerHTML = inner;
+                target.appendChild(msgRow);
             });
         });
 
+        // 다운로드용 최종 정적 마크업 빌더
         function buildFinal() {
             const finalTitle = document.getElementById('roomTitle').innerText.trim();
             const chosenFontStack = currentFontType === "serif" ? `'Hina Mincho', 'Noto Serif KR', serif` : `'Noto Sans KR', sans-serif`;
@@ -491,56 +488,93 @@
             let output = `<!DOCTYPE html><html><head><meta charset="UTF-8"><title>${finalTitle}</title>
             <style>
                 @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;700&family=Noto+Serif+KR:wght@400;700&family=Hina+Mincho&display=swap');
-                body { background:#191919; color:rgba(255,255,255,0.85); font-family: 'Noto Sans KR', sans-serif; max-width:750px; margin:0 auto; padding:30px 20px; }
-                h1 { font-family: ${chosenFontStack}; font-size:1.8rem; border-bottom:1px solid rgba(255,255,255,0.1); padding-bottom:12px; margin-bottom:20px; }
-                .script-box { display: flex; flex-direction: column; gap: 2px; }
-                .row { display:flex; align-items:flex-start; gap:8px; padding: 2px 4px; }
-                .avatar { width:28px; height:28px; border-radius:4px; object-fit:cover; flex-shrink:0; }
-                .name { font-size:0.8rem; font-weight:700; margin-bottom:1px; display:block; font-family: 'Noto Sans KR', sans-serif; }
-                .msg { font-family: ${chosenFontStack}; font-size:0.9rem; line-height:1.4; white-space:pre-wrap; word-break:break-all; flex:1; }
-                .narrator { text-align:center; font-weight:600; font-style:italic; opacity:0.7; padding:3px 10px; font-size:0.9rem; margin: 8px 0; }
-                .system { color:#777; font-size:0.8rem; font-family: 'Noto Sans KR', sans-serif; }
-                .dice { background:rgba(239,68,68,0.1); color:#f87171; border-left:2px solid #f87171; padding:2px 6px; border-radius:4px; font-family: 'Noto Sans KR', sans-serif; }
-                .divider { border-top:1px solid rgba(255,255,255,0.04); margin:4px 0 2px 0; }
-                details { background:#222; border:1px solid rgba(255,255,255,0.05); border-radius:8px; padding:12px; margin-top:16px; }
-                summary { font-size:0.85rem; font-weight:700; color:rgba(255,255,255,0.5); cursor:pointer; }
-            </style></head><body><h1>${finalTitle}</h1><div class="script-box">`;
+                body { background:#171717; color:#dfdfdf; font-family: 'Noto Sans KR', sans-serif; max-width:750px; margin:0 auto; padding:20px; }
+                h1 { font-family: ${chosenFontStack}; font-size:1.4rem; border-bottom:1px solid #333; padding-bottom:10px; margin-bottom:15px; color:#fff; }
+                
+                .textchatcontainer { background:#1a1a1a; border:1px solid #333; padding:10px; display:flex; flex-direction:column; gap:1px; }
+                .msg { font-family: ${chosenFontStack}; font-size:0.9rem; white-space:pre-wrap; word-break:break-all; }
+                
+                /* 테마 1. Roll20 정적 클래스 */
+                .theme-roll20 .message { display:flex; padding:3px 5px; position:relative; align-items:flex-start; }
+                .theme-roll20 .avatar-area { width:30px; margin-right:8px; flex-shrink:0; }
+                .theme-roll20 .avatar-img { width:30px; height:30px; object-fit:cover; border-radius:3px; border:1px solid #444; }
+                .theme-roll20 .content-area { flex:1; min-width:0; }
+                .theme-roll20 .by { font-size:0.8rem; font-weight:bold; color:#ffb700; margin-bottom:1px; display:block; }
+                .theme-roll20 .msg { line-height:1.4; }
+                .theme-roll20 .narrator-mode { display:block; text-align:center; margin:6px 0; }
+                .theme-roll20 .narrator-mode .msg { text-align:center; font-weight:bold; font-style:italic; color:#f0f0f0; }
+                .theme-roll20 .system-mode { padding-left:43px; }
+                .theme-roll20 .system-mode .msg { color:#aaaaaa; font-size:0.8rem; }
+                .theme-roll20 .dice-mode { background:#261616; border-left:2px solid #ff6b6b; margin:2px 0; }
+                .theme-roll20 .dice-mode .msg { color:#ff6b6b; }
+                .theme-roll20 .spacer-line { border-top:1px solid rgba(255,255,255,0.03); margin:2px 0 1px 0; }
+                
+                /* 테마 2. 코코포리아 정적 클래스 */
+                .theme-ccfolia .message { display:grid; grid-template-columns: auto 1fr; padding:6px 8px; border-bottom:1px solid rgba(255,255,255,0.04); background:#212121; margin-bottom:2px; border-radius:4px; }
+                .theme-ccfolia .avatar-area { grid-column:1; margin-right:10px; }
+                .theme-ccfolia .avatar-img { width:36px; height:36px; border-radius:50%; object-fit:cover; border:1px solid rgba(255,255,255,0.1); }
+                .theme-ccfolia .content-area { grid-column:2; display:flex; flex-direction:column; justify-content:center; }
+                .theme-ccfolia .by { font-size:0.85rem; font-weight:700; color:#fff; margin-bottom:3px; }
+                .theme-ccfolia .msg { line-height:1.5; color:#e0e0e0; }
+                .theme-ccfolia .narrator-mode { display:block; background:rgba(255,255,255,0.03); border:1px dashed rgba(255,255,255,0.1); padding:8px 15px; margin:8px 0; border-radius:4px; }
+                .theme-ccfolia .narrator-mode .msg { text-align:left; font-weight:500; color:#f0f0f0; }
+                .theme-ccfolia .system-mode { background:#1a1a1a; border:none; padding:4px 10px; }
+                .theme-ccfolia .system-mode .msg { color:#888888; font-size:0.8rem; }
+                .theme-ccfolia .dice-mode { background:#2c1e1e; border-left:3px solid #ff4d4d; }
+                .theme-ccfolia .dice-mode .msg { color:#ff9999; font-weight:500; }
+                
+                details { background:#1f1f1f; border:1px solid #333; border-radius:4px; margin-top:15px; }
+                summary { font-size:0.8rem; font-weight:bold; color:#aaa; padding:8px 12px; cursor:pointer; background:#2a2a2a; }
+                .sub-box { background:#1a1a1a; padding:10px; display:flex; flex-direction:column; gap:1px; }
+            </style></head><body><h1>${finalTitle}</h1><div class="textchatcontainer theme-${currentTheme}">`;
 
             function processContainer(nodes) {
                 let res = ""; let last = "";
                 nodes.forEach(el => {
-                    if(el.classList.contains('character-divider')) { res += '<div class="divider"></div>'; return; }
-                    const isNarr = el.querySelector('.state-narrator');
-                    const isDice = el.querySelector('.state-dice');
-                    const isSys = el.querySelector('.state-system');
+                    if(el.classList.contains('spacer-line')) { 
+                        if(currentTheme === 'roll20') res += '<div class="spacer-line"></div>'; 
+                        return; 
+                    }
+                    
+                    const isNarr = el.classList.contains('narrator-mode');
+                    const isDice = el.classList.contains('dice-mode');
+                    const isSys = el.classList.contains('system-mode');
                     const spk = el.dataset.speaker;
                     const same = (last === spk && !isNarr && !isSys);
                     last = isNarr ? "__N__" : (isSys ? "__S__" : spk);
 
-                    res += '<div class="row">';
+                    let typeClass = isNarr ? "narrator-mode" : (isSys ? "system-mode" : (isDice ? "dice-mode" : ""));
+
+                    res += `<div class="message ${typeClass}">`;
                     if(!isNarr && !isSys) {
-                        const img = el.querySelector('.avatar-box')?.src;
-                        if(img && !same) res += `<img src="${img}" class="avatar">`;
-                        else if(!same) res += `<div class="avatar" style="background:#333"></div>`;
-                        else res += `<div style="width:28px;flex-shrink:0"></div>`;
-                        res += '<div>';
-                        if(!same) res += `<span class="name" style="color:${el.querySelector('.char-name')?.style.color}">${spk}</span>`;
-                        res += `<div class="msg ${isDice?'dice':''}">${el.querySelector('.notion-block').innerText}</div></div>`;
+                        const img = el.querySelector('.avatar-img')?.src;
+                        if(currentTheme === 'ccfolia' || !same) {
+                            res += `<div class="avatar-area">`;
+                            if(img) res += `<img src="${img}" class="avatar-img">`;
+                            else res += `<div class="avatar-img" style="background:#333"></div>`;
+                            res += `</div>`;
+                        } else {
+                            res += `<div class="avatar-area spacer-avatar"></div>`;
+                        }
+                        
+                        res += `<div class="content-area">`;
+                        if(currentTheme === 'ccfolia' || !same) res += `<span class="by">${spk}</span>`;
+                        res += `<div class="msg">${el.querySelector('.sheet-rolltemplate-custom').innerText}</div></div>`;
                     } else {
-                        res += `<div class="msg ${isNarr?'narrator':(isSys?'system':'')}">${el.querySelector('.notion-block').innerText}</div>`;
+                        res += `<div class="content-area"><div class="msg">${el.querySelector('.sheet-rolltemplate-custom').innerText}</div></div>`;
                     }
                     res += '</div>';
                 });
                 return res;
             }
 
-            output += processContainer(document.querySelectorAll('#mainContainer > div'));
+            output += processContainer(document.querySelectorAll('#mainChatFlow > div'));
             output += '</div>';
             
-            document.querySelectorAll('#dynamicTabsOutput > .notion-card').forEach(card => {
-                const title = card.querySelector('.notion-label').innerText;
-                const nodes = card.querySelectorAll('.accordion-content > div');
-                output += `<details><summary>${title}</summary><div class="script-box" style="margin-top:8px;">${processContainer(nodes)}</div></details>`;
+            document.querySelectorAll('#secondaryTabsArea .tab-section').forEach(sec => {
+                const title = sec.querySelector('.tab-header span').innerText;
+                const nodes = sec.querySelectorAll('.tab-content > div');
+                output += `<details><summary>${title}</summary><div class="sub-box theme-${currentTheme}">${processContainer(nodes)}</div></details>`;
             });
 
             output += '</body></html>';
@@ -548,7 +582,7 @@
         }
 
         document.getElementById('btnCopy').addEventListener('click', () => {
-            navigator.clipboard.writeText(buildFinal()).then(() => alert('코드가 복사되었습니다.'));
+            navigator.clipboard.writeText(buildFinal()).then(() => alert('선택한 스타일의 코드가 복사되었습니다.'));
         });
 
         document.getElementById('btnDownload').addEventListener('click', () => {
