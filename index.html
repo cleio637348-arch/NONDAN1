@@ -158,12 +158,25 @@
             border: 1px solid var(--script-border);
         }
 
+        /* [구조 보정] 대화 박스와 삭제 공간의 안정적인 배치 조율 */
         .notion-row { 
             display: flex; 
-            align-items: flex-start; 
-            gap: 8px; 
-            padding: 2px 4px; 
+            align-items: center; 
+            justify-content: space-between;
+            gap: 12px; 
+            padding: 4px 6px; 
+            border-radius: 4px;
             position: relative;
+        }
+        .notion-row:hover {
+            background: rgba(128, 128, 128, 0.05);
+        }
+
+        .content-cell {
+            display: flex;
+            align-items: flex-start;
+            gap: 8px;
+            flex: 1;
         }
         
         .avatar-box { width: 28px; height: 28px; border-radius: 4px; object-fit: cover; flex-shrink: 0; border: 1px solid rgba(0,0,0,0.1); background: #ddd; }
@@ -198,33 +211,33 @@
             font-style: italic; 
             color: var(--script-narrator) !important; 
             width: 100%; 
-            margin: 8px 0; 
+            margin: 4px 0; 
             padding: 3px 10px; 
             font-size: 0.9rem; 
         }
         
         .state-system { font-family: var(--font-sans); font-size: 0.8rem; color: var(--script-sys) !important; }
-
-        /* [요구사항] 주사위 강조 제거 -> 일반 블록 서식과 투명화 연동 유지 */
         .state-dice { background-color: transparent !important; color: var(--script-text) !important; border-left: none !important; padding: 2px 4px !important; }
 
-        /* 삭제 버튼 del 형태 */
+        /* [요구사항 기반] 우측에 깔끔하게 정렬된 del 칸 배치 */
+        .control-cell {
+            flex-shrink: 0;
+            display: flex;
+            align-items: center;
+        }
+
         .row-control { 
-            position: absolute; 
-            right: 6px; 
-            top: 4px; 
-            background: rgba(0,0,0,0.05); 
-            border: 1px solid rgba(0,0,0,0.1); 
-            color: #666; 
+            background: rgba(0,0,0,0.04); 
+            border: 1px solid rgba(0,0,0,0.08); 
+            color: #e05656; 
             cursor: pointer; 
-            font-size: 0.75rem; 
+            font-size: 0.7rem; 
             font-weight: bold;
-            padding: 1px 5px;
+            padding: 2px 5px;
             border-radius: 3px;
-            display: none; 
+            transition: all 0.1s;
             font-family: var(--font-sans);
         }
-        .notion-row:hover .row-control { display: block; }
         .row-control:hover { color: #fff; background: #ff4d4d; border-color: #ff4d4d; }
         
         .character-divider { border-top: 1px solid rgba(0, 0, 0, 0.05); margin: 4px 0 2px 0; width: 100%; }
@@ -350,6 +363,7 @@
             });
         });
 
+        /* [파싱 엔진 핵심 수정] 중복 태그 스캔을 탈피하고 알맹이 데이터만 정밀 필터링 */
         document.getElementById('logFile').addEventListener('change', (e) => {
             const file = e.target.files[0];
             if (!file) return;
@@ -361,27 +375,27 @@
                 
                 document.getElementById('roomTitle').innerText = file.name.replace(/\.html$/i, "").replace(/\[all\]$/i, "").trim();
 
-                // 원본 소스의 스타일이나 레이아웃 내부 엘리먼트 완전 추적 수집
-                let elements = doc.querySelectorAll('p, div, span');
+                // p나 div 등 본문이 들어있는 핵심 대화 단락들만 중복 없이 수집
+                let lines = doc.querySelectorAll('p, .msg, .chat-line');
+                if(lines.length === 0) lines = doc.querySelectorAll('body > div');
+                
                 rawLogData = [];
                 detectedTabs.clear();
 
-                elements.forEach(p => {
-                    if (p.children.length > 0 && p.tagName !== 'P') {
-                        // 중첩 구조 내부의 텍스트가 중복 파싱되는 것을 방지
-                        if (p.querySelector('p')) return;
-                    }
+                lines.forEach(p => {
+                    // 최하위 텍스트 덩어리를 가진 엘리먼트가 아니거나 공백이면 스킵
+                    if (p.querySelector('p')) return; 
 
                     const text = p.textContent.trim();
-                    if(!text || text.length < 2) return;
+                    if(!text) return;
 
-                    // [이미지 추출 보강] 이미지 요소를 태그 관계 및 형제 노드까지 확장하여 아바타 정보 취득
                     let avatarSrc = "";
-                    let imgEl = p.querySelector('img') || p.parentElement?.querySelector(`img`) || p.previousElementSibling?.querySelector('img');
+                    let imgEl = p.querySelector('img') || p.previousElementSibling?.querySelector('img') || p.parentElement?.querySelector('img');
                     if (imgEl && imgEl.getAttribute('src')) {
                         avatarSrc = imgEl.getAttribute('src');
                     }
 
+                    // 정규식 매칭 분석 고도화: [탭이름] 이름 : 본문대사
                     const match = text.match(/^\[([^\]]+)\]\s*([^:]+)\s*:\s*([\s\S]*)$/);
                     if (match) {
                         let tabName = match[1].trim();
@@ -399,6 +413,7 @@
                             if(avatarSrc && !characterAvatars[charName]) characterAvatars[charName] = avatarSrc;
                         }
                     } else {
+                        // 일반적인 이름 : 대사 포맷 처리
                         const simpleMatch = text.match(/^([^:]+)\s*:\s*([\s\S]*)$/);
                         if(simpleMatch) {
                             let charName = simpleMatch[1].trim();
@@ -411,17 +426,21 @@
                             rawLogData.push({ tab: "Main", name: charName, message: msgBody, avatar: avatarSrc });
                             if(avatarSrc && !characterAvatars[charName]) characterAvatars[charName] = avatarSrc;
                         } else {
-                            // 대화 형태 외 시스템 메시지 처리
-                            if(!text.startsWith("http") && text.length > 1) {
+                            // 단순 시스템 공지/알림 텍스트
+                            if(!text.startsWith("http")) {
                                 rawLogData.push({ tab: "시스템", name: "", message: text, avatar: "" });
                             }
                         }
                     }
                 });
 
+                // 만약 특수한 포맷이라 아무것도 안 잡혔을 경우 예외 구조 처리
                 if(rawLogData.length === 0) {
-                    elements.forEach(p => {
-                        if(p.textContent.trim()) rawLogData.push({ tab: "Main", name: "로그", message: p.textContent.trim(), avatar: "" });
+                    let fallbacks = doc.querySelectorAll('body *');
+                    fallbacks.forEach(f => {
+                        if(f.children.length === 0 && f.textContent.trim().length > 1) {
+                            rawLogData.push({ tab: "Main", name: "로그", message: f.textContent.trim(), avatar: "" });
+                        }
                     });
                     detectedTabs.add("Main");
                 }
@@ -514,7 +533,7 @@
                 if(isSys) msgClass += " state-system";
                 if(isNarrator) msgClass += " state-narrator";
 
-                let inner = "";
+                let inner = `<div class="content-cell">`;
                 if(!isNarrator && !isSys) {
                     if(!isSameSpeaker) {
                         const avatar = characterAvatars[currentSpeaker] || log.avatar;
@@ -529,8 +548,10 @@
                 } else {
                     inner += `<div class="${msgClass}" style="font-family: ${fontValue}" contenteditable="true" spellcheck="false">${escapeHtml(log.message)}</div>`;
                 }
+                inner += `</div>`;
                 
-                inner += `<button class="row-control" onclick="this.parentElement.remove()">del</button>`;
+                // 우측 삭제 독립 버튼 칸 정렬 보정 완료
+                inner += `<div class="control-cell"><button class="row-control" onclick="this.parentElement.parentElement.remove()">del</button></div>`;
                 row.innerHTML = inner;
                 target.appendChild(row);
             });
