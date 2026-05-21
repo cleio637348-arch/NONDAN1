@@ -3,85 +3,190 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>논단군 코코포리아 로그 백업기</title>
+    <title>코코포리아 로그 변환기 Pro</title>
     <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+    <style>
+        /* 변환된 로그 내역 스타일 커스텀 */
+        .log-container { font-family: 'Malgun Gothic', sans-serif; line-height: 1.6; }
+        .log-tab { font-size: 0.75rem; font-weight: bold; padding: 2px 6px; border-radius: 4px; margin-right: 6px; }
+        .tab-main { background-color: #e0f2fe; color: #0369a1; } /* 메인 탭 */
+        .tab-sub { background-color: #f3f4f6; color: #4b5563; }  /* 잡담 등 기타 탭 */
+    </style>
 </head>
-<body class="bg-gray-100 text-gray-800 min-h-screen flex flex-col items-center justify-center p-4">
+<body class="bg-slate-50 text-slate-800 min-h-screen flex flex-col items-center p-4 md:p-8">
 
-    <div class="bg-white p-6 rounded-2xl shadow-md w-full max-w-md text-center">
-        <h1 class="text-2xl font-bold mb-2 text-indigo-600">Ccfolia Log Converter</h1>
-        <p class="text-sm text-gray-500 mb-6">코코포리아에서 다운로드한 HTML 로그를 깔끔한 TXT로 변환합니다.</p>
+    <div class="bg-white p-6 md:p-8 rounded-2xl shadow-xl w-full max-w-2xl border border-slate-100">
+        <header class="text-center mb-8">
+            <h1 class="text-2xl md:text-3xl font-extrabold text-indigo-600 mb-2">Ccfolia Log Converter Pro</h1>
+            <p class="text-sm text-slate-500">원본 코코포리아 HTML 로그를 분석하여 읽기 편한 고급형 HTML/TXT 파일로 가공합니다.</p>
+        </header>
 
-        <div class="mb-4">
-            <label class="block mb-2 text-sm font-medium text-gray-700 text-left" for="file_input">로그 파일(.html) 선택</label>
-            <input id="logFile" type="file" accept=".html" 
-                class="block w-full text-sm text-gray-900 border border-gray-300 rounded-lg cursor-pointer bg-gray-50 focus:outline-none p-2">
+        <div class="space-y-4">
+            <div>
+                <label class="block mb-2 text-sm font-semibold text-slate-700" for="logFile">코코포리아 로그 파일 (.html)</label>
+                <input id="logFile" type="file" accept=".html" 
+                    class="block w-full text-sm text-slate-900 border border-slate-300 rounded-xl cursor-pointer bg-slate-50 focus:outline-none p-3 file:mr-4 file:py-1 file:px-3 file:rounded-full file:border-0 file:text-xs file:font-semibold file:bg-indigo-50 file:text-indigo-700 hover:file:bg-indigo-100">
+            </div>
+
+            <div class="grid grid-cols-2 gap-4">
+                <button id="btnHtml" class="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-medium py-3 px-4 rounded-xl shadow-sm transition duration-200 cursor-pointer disabled:opacity-50">
+                    ✨ 새 HTML로 내보내기
+                </button>
+                <button id="btnTxt" class="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-medium py-3 px-4 rounded-xl shadow-sm transition duration-200 cursor-pointer disabled:opacity-50">
+                    📝 일반 TXT로 내보내기
+                </button>
+            </div>
         </div>
 
-        <button id="convertBtn" class="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-medium py-2.5 px-4 rounded-lg transition duration-200 mb-4 cursor-pointer">
-            텍스트 변환 및 다운로드
-        </button>
+        <div id="status" class="mt-4 text-sm hidden p-3 rounded-xl border"></div>
 
-        <div id="status" class="text-sm text-gray-600 hidden bg-gray-50 p-3 rounded-lg border border-gray-200"></div>
+        <div class="mt-6 border-t border-slate-200 pt-6">
+            <h3 class="text-md font-bold text-slate-700 mb-2">정리된 로그 미리보기</h3>
+            <div id="preview" class="w-full h-64 overflow-y-auto bg-slate-900 text-slate-100 rounded-xl p-4 text-xs font-mono whitespace-pre-wrap leading-relaxed">파일을 업로드하면 이곳에 정제된 데이터가 표시됩니다.</div>
+        </div>
     </div>
 
-    <footer class="mt-6 text-xs text-gray-400">
-        GitHub Pages를 통해 브라우저 자체에서 구동되므로 서버로 로그가 전송되지 않습니다.
+    <footer class="mt-8 text-xs text-slate-400 text-center max-w-md">
+        사용자의 소중한 로그 데이터는 외부 서버로 전송되지 않으며, PC/모바일 브라우저 내부에서만 즉시 처리되므로 보안상 안전합니다.
     </footer>
 
     <script>
-        document.getElementById('convertBtn').addEventListener('click', () => {
-            const fileInput = document.getElementById('logFile');
-            const statusDiv = document.getElementById('status');
-            
-            if (!fileInput.files[0]) {
-                showStatus('파일을 먼저 선택해 주세요.', 'text-red-500');
-                return;
-            }
+        let parsedLogs = []; // 파싱된 메시지 객체들을 담을 배열
+        let rawFileName = "ccfolia_log";
 
-            const file = fileInput.files[0];
+        // 파일 선택 시 파싱만 먼저 수행
+        document.getElementById('logFile').addEventListener('change', (e) => {
+            const file = e.target.files[0];
+            if (!file) return;
+
+            rawFileName = file.name.replace(/\.[^/.]+$/, ""); // 확장자 제거한 원래 파일명 저장
             const reader = new FileReader();
+            showStatus('🔄 코코포리아 원본 파일 분석 중...', 'border-indigo-200 bg-indigo-50 text-indigo-700');
 
-            showStatus('LOADING...', 'text-indigo-500');
-
-            reader.onload = function(e) {
+            reader.onload = function(event) {
                 try {
-                    const htmlText = e.target.result;
+                    const htmlText = event.target.result;
                     const parser = new DOMParser();
                     const doc = parser.parseFromString(htmlText, 'text/html');
                     
-                    // 코코포리아 백업 HTML 내부의 메시지 요소 추출 (보통 p 태그나 특정 구조)
+                    // 코코포리아 로그는 기본적으로 각 메시지가 <p> 태그 내부에 담겨 있습니다.
+                    // 스타일과 구조에 따라 이름과 대사 색상(color) 정보를 가지고 있습니다.
                     const paragraphs = doc.querySelectorAll('p');
                     
                     if (paragraphs.length === 0) {
-                        showStatus('올바른 코코포리아 로그 파일이 아니거나 대화 내용이 없습니다.', 'text-red-500');
+                        showStatus('❌ 코코포리아 정식 로그 파일 구조가 아니거나 빈 파일입니다.', 'border-red-200 bg-red-50 text-red-700');
                         return;
                     }
 
-                    let extractedText = '';
+                    parsedLogs = [];
+                    let previewText = "";
+
                     paragraphs.forEach(p => {
-                        // 각 문단의 텍스트를 줄바꿈과 함께 저장
-                        extractedText += p.textContent.trim() + '\n';
+                        const rawText = p.textContent.trim();
+                        if(!rawText) return;
+
+                        // 패턴 분석: 코코포리아는 보통 [탭이름] 이름 : 내용  형식으로 추출됨
+                        // 정규식을 활용해 탭, 이름, 본문을 분류합니다.
+                        const match = rawText.match(/^\[([^\]]+)\]\s*([^:]+)\s*:\s*([\s\S]*)$/);
+                        
+                        // 말하는 사람 글자 색상 추출 (있을 경우 보존)
+                        let charColor = "#000000";
+                        const spanWithColor = p.querySelector('span[style*="color"]');
+                        if (spanWithColor) {
+                            charColor = spanWithColor.style.color;
+                        }
+
+                        if (match) {
+                            const logObj = {
+                                tab: match[1],
+                                name: match[2].trim(),
+                                message: match[3].trim(),
+                                color: charColor
+                            };
+                            parsedLogs.push(logObj);
+                            previewText += `[${logObj.tab}] ${logObj.name}: ${logObj.message}\n`;
+                        } else {
+                            // 양식이 조금 맞지 않더라도 본문 텍스트 통째로 보존
+                            parsedLogs.push({ tab: "기타", name: "시스템", message: rawText, color: "#6b7280" });
+                            previewText += `${rawText}\n`;
+                        }
                     });
 
-                    // 다운로드 실행
-                    downloadTxt(extractedText, `ccfolia_backup_${Date.now()}.txt`);
-                    showStatus('변환 및 다운로드 완료!', 'text-green-600');
+                    document.getElementById('preview').textContent = previewText;
+                    showStatus(`✅ 총 ${parsedLogs.length}개의 로그를 정상적으로 읽어왔습니다! 원하는 확장자로 내려받으세요.`, 'border-green-200 bg-green-50 text-green-700');
 
-                } catch (error) {
-                    console.error(error);
-                    showStatus('변환 중 오류가 발생했습니다.', 'text-red-500');
+                } catch (err) {
+                    console.error(err);
+                    showStatus('❌ 파일 파싱 과정에서 알 수 없는 오류가 발생했습니다.', 'border-red-200 bg-red-50 text-red-700');
                 }
             };
 
-            // UTF-8 인코딩으로 유한하게 모바일 깨짐 방지
             reader.readAsText(file, 'UTF-8');
         });
 
-        function downloadTxt(text, filename) {
-            const blob = new Blob([text], { type: 'text/plain;charset=utf-8;' });
-            const link = document.createElement("a");
+        // HTML 다운로드 이벤트
+        document.getElementById('btnHtml').addEventListener('click', () => {
+            if(parsedLogs.length === 0) return alert('먼저 로그 파일을 업로드해 주세요.');
             
+            // 깔끔하고 가독성 좋은 새로운 HTML 구조 빌드
+            let htmlContent = `
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>${rawFileName} - 가공된 백업본</title>
+    <style>
+        body { background-color: #fafafa; color: #2d3748; font-family: 'Malgun Gothic', sans-serif; padding: 20px; max-width: 900px; margin: 0 auto; }
+        .log-row { padding: 8px 12px; margin-bottom: 6px; background: white; border-radius: 6px; box-shadow: 0 1px 2px rgba(0,0,0,0.05); display: flex; align-items: flex-start; }
+        .tab-tag { font-size: 11px; font-weight: bold; padding: 2px 6px; border-radius: 4px; margin-right: 10px; flex-shrink: 0; margin-top: 2px; text-align: center; width: 50px; }
+        .tab-main { background-color: #e0f2fe; color: #0369a1; }
+        .tab-sub { background-color: #f3f4f6; color: #4b5563; }
+        .name-box { font-weight: bold; width: 130px; flex-shrink: 0; margin-right: 15px; word-break: break-all; }
+        .msg-box { word-break: break-all; white-space: pre-wrap; flex-grow: 1; }
+    </style>
+</head>
+<body>
+    <h2 style="border-bottom: 2px solid #6366f1; padding-bottom: 10px; margin-bottom: 20px; color:#4f46e5;">✨ ${rawFileName} 백업 로그</h2>
+    <div class="log-container">
+            `;
+
+            parsedLogs.forEach(log => {
+                const isMain = log.tab.includes('메인') || log.tab.toLowerCase() == 'main';
+                const tabClass = isMain ? 'tab-main' : 'tab-sub';
+                
+                htmlContent += `
+        <div class="log-row">
+            <span class="tab-tag ${tabClass}">${log.tab}</span>
+            <span class="name-box" style="color: ${log.color}">${log.name}</span>
+            <span class="msg-box">${escapeHtml(log.message)}</span>
+        </div>`;
+            });
+
+            htmlContent += `
+    </div>
+</body>
+</html>`;
+
+            downloadFile(htmlContent, `${rawFileName}_정리본.html`, 'text/html');
+        });
+
+        // 일반 TXT 다운로드 이벤트
+        document.getElementById('btnTxt').addEventListener('click', () => {
+            if(parsedLogs.length === 0) return alert('먼저 로그 파일을 업로드해 주세요.');
+            
+            let txtContent = "";
+            parsedLogs.forEach(log => {
+                txtContent += `[${log.tab}] ${log.name} : ${log.message}\n`;
+            });
+
+            downloadFile(txtContent, `${rawFileName}_정리본.txt`, 'text/plain');
+        });
+
+        // 범용 다운로드 유틸리티 (모바일 사파리, 안드로이드 크롬 크로스 브라우징 지원)
+        function downloadFile(content, filename, contentType) {
+            const blob = new Blob([content], { type: `${contentType};charset=utf-8;` });
+            const link = document.createElement("a");
             link.href = URL.createObjectURL(blob);
             link.setAttribute("download", filename);
             document.body.appendChild(link);
@@ -89,11 +194,21 @@
             document.body.removeChild(link);
         }
 
-        function showStatus(msg, colorClass) {
+        function showStatus(msg, classes) {
             const statusDiv = document.getElementById('status');
-            statusDiv.className = `text-sm ${colorClass} bg-gray-50 p-3 rounded-lg border border-gray-200 mt-2`;
-            statusDiv.innerText = msg;
+            statusDiv.className = `mt-4 text-sm p-3 rounded-xl border ${classes}`;
+            statusDiv.innerHTML = msg;
             statusDiv.classList.remove('hidden');
+        }
+
+        // HTML 태그 깨짐 방지용 특수문자 이스케이프 함수
+        function escapeHtml(text) {
+            return text
+                .replace(/&/g, "&amp;")
+                .replace(/</g, "&lt;")
+                .replace(/>/g, "&gt;")
+                .replace(/"/g, "&quot;")
+                .replace(/'/g, "&#039;");
         }
     </script>
 </body>
