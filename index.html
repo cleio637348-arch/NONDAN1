@@ -3,13 +3,13 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>논단군 스크립트 정리 Pro - Classic Edition</title>
+    <title>논단군 코코포 로그 백업기</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;700&family=Noto+Serif+KR:wght@400;700&family=Hina+Mincho&family=Inter:wght@400;600&display=swap" rel="stylesheet">
     <style>
         :root {
-            /* 원래 디자인용 다크 인터페이스 베이스 */
+            /* 기본 인터페이스 (노션 스타일 다크 모드) */
             --bg-main: #191919;
             --bg-surface: #202020;
             --bg-input: #252525;
@@ -18,19 +18,20 @@
             --text-muted: rgba(255, 255, 255, 0.4);
             --text-link: #60a5fa;
 
-            /* [요구사항] 스크립트 본문 영역 전용 Classic Roll20 색상 구성 */
-            --r20-classic-bg: #f3f3f3;       /* 회색 배경창 */
-            --r20-classic-text: #111111;     /* 검정색 글씨 */
-            --r20-classic-name: #b51212;     /* 클래식 이름 색상 */
-            --r20-classic-narrator: #222222; /* 진해서 잘 읽히는 지문 색상 */
-            --r20-classic-sys: #666666;
-            --r20-classic-dice-bg: #fde8e8;
-            --r20-classic-dice-text: #b91c1c;
-            
-            /* 서체 기본 프리셋 (기본값 고딕 설정) */
+            /* 폰트 프리셋 (기본 고딕) */
             --font-serif: "Hina Mincho", "Noto Serif KR", serif;
             --font-sans: "Noto Sans KR", "Inter", sans-serif;
             --current-font: var(--font-sans);
+
+            /* 스크립트 색상 스택 초기화 변수 */
+            --script-bg: #f3f3f3;
+            --script-text: #111111;
+            --script-name: #b51212;
+            --script-narrator: #222222;
+            --script-sys: #666666;
+            --script-dice-bg: #fde8e8;
+            --script-dice-text: #b91c1c;
+            --script-border: #dddddd;
         }
 
         body {
@@ -114,7 +115,7 @@
             border-radius: 6px; color: var(--text-main); font-size: 0.85rem; padding: 10px; box-sizing: border-box; outline: none;
         }
 
-        .font-switch-group {
+        .switch-group {
             display: flex;
             gap: 16px;
             background: var(--bg-input);
@@ -122,14 +123,14 @@
             border-radius: 6px;
             border: 1px solid var(--border-notion);
         }
-        .font-switch-item {
+        .switch-item {
             display: flex;
             align-items: center;
             gap: 6px;
             font-size: 0.85rem;
             cursor: pointer;
         }
-        .font-switch-item input {
+        .switch-item input {
             accent-color: var(--text-link);
             cursor: pointer;
         }
@@ -148,15 +149,15 @@
         .btn-util { flex: 1; border-color: rgba(96, 165, 250, 0.2); color: var(--text-link); }
         .btn-util:hover { background: rgba(96, 165, 250, 0.1); }
 
-        /* [요구사항 반영] 본문 스크립트 상자: 회색 배경창 디자인 */
+        /* 동적 테마를 지원하는 본문 상자 */
         .script-container {
             display: flex;
             flex-direction: column;
             gap: 2px;
-            background-color: var(--r20-classic-bg);
+            background-color: var(--script-bg);
             padding: 12px;
             border-radius: 6px;
-            border: 1px solid #dddddd;
+            border: 1px solid var(--script-border);
         }
 
         .notion-row { 
@@ -167,10 +168,9 @@
             position: relative;
         }
         
-        .avatar-box { width: 28px; height: 28px; border-radius: 4px; object-fit: cover; flex-shrink: 0; border: 1px solid #ccc; }
+        .avatar-box { width: 28px; height: 28px; border-radius: 4px; object-fit: cover; flex-shrink: 0; border: 1px solid rgba(0,0,0,0.1); }
         .avatar-placeholder { width: 28px; flex-shrink: 0; }
         
-        /* [요구사항 반영] 본문 글씨색: 검정색 */
         .notion-block {
             flex: 1; 
             padding: 2px 4px; 
@@ -179,7 +179,7 @@
             line-height: 1.4; 
             word-break: break-all; 
             outline: none; 
-            color: var(--r20-classic-text); 
+            color: var(--script-text); 
             white-space: pre-wrap;
             font-family: var(--current-font);
         }
@@ -189,28 +189,43 @@
             font-weight: 700; 
             margin-bottom: 1px; 
             display: block; 
-            color: var(--r20-classic-name); 
+            color: var(--script-name); 
             font-family: var(--font-sans);
         }
 
-        /* [요구사항 반영] 지문 가독성 보강: 진한 글씨색 + 위아래 미세 공백 마진 */
+        /* 상태 템플릿 색상 연동 */
         .state-narrator { 
             text-align: center; 
             font-weight: 700; 
             font-style: italic; 
-            color: var(--r20-classic-narrator) !important; 
+            color: var(--script-narrator) !important; 
             width: 100%; 
             margin: 8px 0; 
             padding: 3px 10px; 
             font-size: 0.9rem; 
         }
         
-        .state-system { font-family: var(--font-sans); font-size: 0.8rem; color: var(--r20-classic-sys) !important; }
-        .state-dice { background-color: var(--r20-classic-dice-bg) !important; color: var(--r20-classic-dice-text) !important; border-left: 2px solid var(--r20-classic-dice-text) !important; font-weight: 500; font-family: var(--font-sans); padding: 2px 6px; }
+        .state-system { font-family: var(--font-sans); font-size: 0.8rem; color: var(--script-sys) !important; }
+        .state-dice { background-color: var(--script-dice-bg) !important; color: var(--script-dice-text) !important; border-left: 2px solid var(--script-dice-text) !important; font-weight: 500; font-family: var(--font-sans); padding: 2px 6px; }
 
-        .row-control { position: absolute; right: 4px; top: 4px; background: none; border: none; color: #999; cursor: pointer; font-size: 0.7rem; display: none; }
+        /* [요구사항] 삭제 버튼을 del 텍스트 형태로 변경 */
+        .row-control { 
+            position: absolute; 
+            right: 6px; 
+            top: 4px; 
+            background: rgba(0,0,0,0.05); 
+            border: 1px solid rgba(0,0,0,0.1); 
+            color: #666; 
+            cursor: pointer; 
+            font-size: 0.75rem; 
+            font-weight: bold;
+            padding: 1px 5px;
+            border-radius: 3px;
+            display: none; 
+            font-family: var(--font-sans);
+        }
         .notion-row:hover .row-control { display: block; }
-        .row-control:hover { color: #ff4d4d; }
+        .row-control:hover { color: #fff; background: #ff4d4d; border-color: #ff4d4d; }
         
         .character-divider { border-top: 1px solid rgba(0, 0, 0, 0.05); margin: 4px 0 2px 0; width: 100%; }
         .hidden { display: none !important; }
@@ -219,8 +234,8 @@
 <body>
 
     <header>
-        <h1>논단군 스크립트 정리 Pro</h1>
-        <p>Classic Roll20 Color Configurator</p>
+        <h1>논단군 코코포 로그 백업기</h1>
+        <p>간단하게 로그를 백업합니다</p>
     </header>
 
     <div class="notion-card">
@@ -231,27 +246,38 @@
                 <input id="logFile" type="file" accept=".html">
             </div>
             <div class="input-group">
-                <span>2. 지문 서술자 이름 지정</span>
+                <span>2. 서술자 이름 지정</span>
                 <input id="narratorName" type="text" placeholder="예: GM 또는 서술자">
             </div>
         </div>
 
         <div class="grid-config">
             <div class="input-group">
-                <span>3. 스크립트 출력 서체 선택</span>
-                <div class="font-switch-group">
-                    <label class="font-switch-item">
-                        <input type="radio" name="fontPreset" value="sans" checked> 깔끔 고딕체 (Gothic)
+                <span>3. 본문 스타일 선택</span>
+                <div class="switch-group" id="themeSwitchGroup">
+                    <label class="switch-item">
+                        <input type="radio" name="colorTheme" value="roll20" checked> Roll20 색상 (회색배경/검은글씨)
                     </label>
-                    <label class="font-switch-item">
-                        <input type="radio" name="fontPreset" value="serif"> 고급 명조체 (Serif)
+                    <label class="switch-item">
+                        <input type="radio" name="colorTheme" value="ccfolia"> 코코포리아 색상 (검은배경/흰글씨)
+                    </label>
+                </div>
+            </div>
+            <div class="input-group">
+                <span>4. 서체 선택</span>
+                <div class="switch-group">
+                    <label class="switch-item">
+                        <input type="radio" name="fontPreset" value="sans" checked> 고딕
+                    </label>
+                    <label class="switch-item">
+                        <input type="radio" name="fontPreset" value="serif"> 명조
                     </label>
                 </div>
             </div>
         </div>
         
         <div class="input-group" style="margin-top: 10px;">
-            <span>4. 추출할 탭 필터링</span>
+            <span>5. 탭 필터링</span>
             <div id="dynamicFilters" class="filter-container">
                 <p style="font-size: 0.8rem; color: var(--text-muted);">파일을 먼저 업로드하세요.</p>
             </div>
@@ -259,14 +285,14 @@
     </div>
 
     <div class="btn-group">
-        <button id="btnProcess" class="notion-btn btn-submit">스크립트 가공 및 분류 실행</button>
-        <button id="btnCopy" class="notion-btn btn-util">전체 코드 복사</button>
+        <button id="btnProcess" class="notion-btn btn-submit">실행</button>
+        <button id="btnCopy" class="notion-btn btn-util">코드 복사</button>
         <button id="btnDownload" class="notion-btn btn-util">파일로 저장</button>
     </div>
 
     <div id="mainOutputCard" class="notion-card">
         <div class="notion-label">메인 세션 로그 (Main)</div>
-        <h2 id="roomTitle" class="output-room-title" contenteditable="true" spellcheck="false">파일을 기다리는 중...</h2>
+        <h2 id="roomTitle" class="output-room-title" contenteditable="true" spellcheck="false"> </h2>
         <div id="mainContainer" class="script-container"></div>
     </div>
 
@@ -277,6 +303,32 @@
         let characterAvatars = {}; 
         let detectedTabs = new Set();
         let currentFontType = "sans"; 
+        let currentColorTheme = "roll20";
+
+        // 색상 테마 변수 매핑 테이블
+        const themeProfiles = {
+            roll20: {
+                bg: "#f3f3f3", text: "#111111", name: "#b51212", narrator: "#222222", sys: "#666666",
+                diceBg: "#fde8e8", diceText: "#b91c1c", border: "#dddddd"
+            },
+            ccfolia: {
+                bg: "#1a1a1a", text: "#ffffff", name: "#4da6ff", narrator: "#e0e0e0", sys: "#888888",
+                diceBg: "#2c1e1e", diceText: "#ff9999", border: "#2d2d2d"
+            }
+        };
+
+        function applyColorTheme(themeName) {
+            const p = themeProfiles[themeName];
+            const root = document.documentElement;
+            root.style.setProperty('--script-bg', p.bg);
+            root.style.setProperty('--script-text', p.text);
+            root.style.setProperty('--script-name', p.name);
+            root.style.setProperty('--script-narrator', p.narrator);
+            root.style.setProperty('--script-sys', p.sys);
+            root.style.setProperty('--script-dice-bg', p.diceBg);
+            root.style.setProperty('--script-dice-text', p.diceText);
+            root.style.setProperty('--script-border', p.border);
+        }
 
         function toggleAccordion(contentId, arrowId) {
             const content = document.getElementById(contentId);
@@ -285,15 +337,23 @@
             arrow.innerText = content.classList.contains('open') ? '▼' : '▶';
         }
 
+        // 테마 선택 이벤트 바인딩
+        document.querySelectorAll('input[name="colorTheme"]').forEach(radio => {
+            radio.addEventListener('change', (e) => {
+                currentColorTheme = e.target.value;
+                applyColorTheme(currentColorTheme);
+            });
+        });
+
+        // 초기 테마 로드
+        applyColorTheme("roll20");
+
         document.querySelectorAll('input[name="fontPreset"]').forEach(radio => {
             radio.addEventListener('change', (e) => {
                 currentFontType = e.target.value;
                 const fontValue = currentFontType === "serif" ? "var(--font-serif)" : "var(--font-sans)";
                 document.documentElement.style.setProperty('--current-font', fontValue);
-                
-                document.querySelectorAll('.notion-block').forEach(el => {
-                    el.style.fontFamily = fontValue;
-                });
+                document.querySelectorAll('.notion-block').forEach(el => el.style.fontFamily = fontValue);
             });
         });
 
@@ -437,7 +497,8 @@
                     inner += `<div class="${msgClass}" style="font-family: ${fontValue}" contenteditable="true" spellcheck="false">${escapeHtml(log.message)}</div>`;
                 }
                 
-                inner += `<button class="row-control" onclick="this.parentElement.remove()">✕</button>`;
+                // [요구사항] 버튼 문구를 ✕에서 del로 수정
+                inner += `<button class="row-control" onclick="this.parentElement.remove()">del</button>`;
                 row.innerHTML = inner;
                 target.appendChild(row);
             });
@@ -446,21 +507,22 @@
         function buildFinal() {
             const finalTitle = document.getElementById('roomTitle').innerText.trim();
             const chosenFontStack = currentFontType === "serif" ? `'Hina Mincho', 'Noto Serif KR', serif` : `'Noto Sans KR', sans-serif`;
-            
+            const p = themeProfiles[currentColorTheme];
+
             let output = `<!DOCTYPE html><html><head><meta charset="UTF-8"><title>${finalTitle}</title>
             <style>
                 @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;700&family=Noto+Serif+KR:wght@400;700&family=Hina+Mincho&display=swap');
                 body { background:#191919; color:rgba(255,255,255,0.85); font-family: 'Noto Sans KR', sans-serif; max-width:750px; margin:0 auto; padding:30px 20px; }
                 h1 { font-family: 'Noto Sans KR', sans-serif; font-size:1.5rem; border-bottom:1px solid rgba(255,255,255,0.1); padding-bottom:12px; margin-bottom:20px; color:#fff; }
-                .script-box { display: flex; flex-direction: column; gap: 2px; background:#f3f3f3; padding:12px; border-radius:6px; border:1px solid #dddddd; }
+                .script-box { display: flex; flex-direction: column; gap: 2px; background:${p.bg}; padding:12px; border-radius:6px; border:1px solid ${p.border}; }
                 .row { display:flex; align-items:flex-start; gap:8px; padding: 2px 4px; }
-                .avatar { width:28px; height:28px; border-radius:4px; object-fit:cover; flex-shrink:0; border:1px solid #ccc; }
-                .name { font-size:0.8rem; font-weight:700; margin-bottom:1px; display:block; color:#b51212; font-family: 'Noto Sans KR', sans-serif; }
-                .msg { font-family: ${chosenFontStack}; font-size:0.9rem; line-height:1.4; white-space:pre-wrap; word-break:break-all; flex:1; color:#111111; }
-                .narrator { text-align:center; font-weight:700; font-style:italic; padding:3px 10px; font-size:0.9rem; margin: 8px 0; color:#222222; }
-                .system { color:#666666; font-size:0.8rem; font-family: 'Noto Sans KR', sans-serif; }
-                .dice { background:#fde8e8; color:#b91c1c; border-left:2px solid #b91c1c; padding:2px 6px; border-radius:4px; font-family: 'Noto Sans KR', sans-serif; }
-                .divider { border-top:1px solid rgba(0,0,0,0.05); margin:4px 0 2px 0; }
+                .avatar { width:28px; height:28px; border-radius:4px; object-fit:cover; flex-shrink:0; border:1px solid rgba(0,0,0,0.1); }
+                .name { font-size:0.8rem; font-weight:700; margin-bottom:1px; display:block; color:${p.name}; font-family: 'Noto Sans KR', sans-serif; }
+                .msg { font-family: ${chosenFontStack}; font-size:0.9rem; line-height:1.4; white-space:pre-wrap; word-break:break-all; flex:1; color:${p.text}; }
+                .narrator { text-align:center; font-weight:700; font-style:italic; padding:3px 10px; font-size:0.9rem; margin: 8px 0; color:${p.narrator}; }
+                .system { color:${p.sys}; font-size:0.8rem; font-family: 'Noto Sans KR', sans-serif; }
+                .dice { background:${p.diceBg}; color:${p.diceText}; border-left:2px solid ${p.diceText}; padding:2px 6px; border-radius:4px; font-family: 'Noto Sans KR', sans-serif; }
+                .divider { border-top: 1px solid rgba(0,0,0,0.05); margin:4px 0 2px 0; }
                 details { background:#202020; border:1px solid rgba(255,255,255,0.07); border-radius:8px; padding:12px; margin-top:16px; }
                 summary { font-size:0.85rem; font-weight:700; color:rgba(255,255,255,0.4); cursor:pointer; }
             </style></head><body><h1>${finalTitle}</h1><div class="script-box">`;
