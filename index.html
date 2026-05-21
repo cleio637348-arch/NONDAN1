@@ -144,20 +144,18 @@
         .btn-util { flex: 1; border-color: rgba(96, 165, 250, 0.2); color: var(--text-link); }
         .btn-util:hover { background: rgba(96, 165, 250, 0.1); }
 
-        /* -------------------------------------------------------------
-           [롤20 컴팩트 스펙 레이아웃] 문장 거리, 마진 최소화 작업 
-        ------------------------------------------------------------- */
+        /* 롤20 컴팩트 스펙 레이아웃 */
         .script-container {
             display: flex;
             flex-direction: column;
-            gap: 2px; /* 문장 사이의 간격을 대폭 축소 */
+            gap: 2px;
         }
 
         .notion-row { 
             display: flex; 
             align-items: flex-start; 
             gap: 8px; 
-            padding: 2px 4px; /* 위아래 패딩을 줄여 빽빽하게 구현 */
+            padding: 2px 4px; 
             margin-bottom: 0px;
             border-bottom: 1px solid rgba(255, 255, 255, 0.01); 
         }
@@ -170,7 +168,7 @@
             padding: 2px 4px; 
             border-radius: 4px; 
             font-size: 0.9rem; 
-            line-height: 1.4; /* 줄간격을 롤20 스타일에 가깝게 조밀화 (기존 1.7 -> 1.4) */
+            line-height: 1.4; 
             word-break: break-all; 
             outline: none; 
             color: var(--text-main); 
@@ -179,7 +177,6 @@
         }
         .notion-block:focus { background: var(--bg-input); }
         
-        /* 롤20 스타일의 컴팩트한 이름 표시 */
         .char-name { 
             font-size: 0.8rem; 
             font-weight: 700; 
@@ -189,27 +186,25 @@
             font-family: var(--font-sans);
         }
 
-        /* 지문/진행 모드 */
+        /* [요구사항] 서술자 지문 위아래로 아주 미세한 공백 설정 (margin: 8px 0) */
         .state-narrator { 
             text-align: center; 
             font-weight: 600; 
             font-style: italic; 
             color: rgba(255, 255, 255, 0.65); 
             width: 100%; 
-            margin: 4px 0; 
+            margin: 8px 0; 
             padding: 3px 10px; 
             font-size: 0.9rem; 
             border: none !important; 
         }
         
-        /* 시스템 및 주사위 롤20 최적화 */
         .state-system { font-family: var(--font-sans); font-size: 0.8rem; color: #777777; background-color: transparent; padding: 1px 4px; border: none !important; }
         .state-dice { background-color: var(--bg-check); color: var(--text-check); border-left: 2px solid var(--text-check) !important; font-weight: 500; font-family: var(--font-sans); padding: 2px 6px; }
 
         .row-control { padding: 1px 6px; border: 1px solid var(--border-notion); background: rgba(255,255,255,0.02); color: var(--text-check); border-radius: 4px; cursor: pointer; font-size: 0.65rem; align-self: center; margin-left: 4px; opacity: 0.3; transition: opacity 0.2s; }
         .notion-row:hover .row-control { opacity: 1; }
         
-        /* 롤20 대화 분기 구분선 가볍게 변경 */
         .character-divider { border-top: 1px solid rgba(255, 255, 255, 0.04); margin: 4px 0 2px 0; width: 100%; }
         .hidden { display: none !important; }
 
@@ -241,10 +236,10 @@
                 <span>3. 스크립트 출력 서체 선택</span>
                 <div class="font-switch-group">
                     <label class="font-switch-item">
-                        <input type="radio" name="fontPreset" value="serif" checked> ✨ 고급 명조체 (Serif)
+                        <input type="radio" name="fontPreset" value="serif" checked> 고급 명조체 (Serif)
                     </label>
                     <label class="font-switch-item">
-                        <input type="radio" name="fontPreset" value="sans"> 📱 깔끔 고딕체 (Gothic)
+                        <input type="radio" name="fontPreset" value="sans"> 깔끔 고딕체 (Gothic)
                     </label>
                 </div>
             </div>
@@ -285,7 +280,7 @@
         let characterColors = {}; 
         let characterAvatars = {}; 
         let detectedTabs = new Set();
-        let currentFontType = "serif"; // 현재 폰트 유형 캐싱
+        let currentFontType = "serif"; 
 
         const spellRules = [
             { regex: /됫/g, fix: "됐" }, { regex: /됬/g, fix: "됐" }, { regex: /않하고/g, fix: "안 하고" }, 
@@ -299,14 +294,12 @@
             arrow.innerText = content.classList.contains('open') ? '▼' : '▶';
         }
 
-        // 라디오 버튼 조작 시 실시간 폰트 적용 바인딩
         document.querySelectorAll('input[name="fontPreset"]').forEach(radio => {
             radio.addEventListener('change', (e) => {
                 currentFontType = e.target.value;
                 const fontValue = currentFontType === "serif" ? "var(--font-serif)" : "var(--font-sans)";
                 document.documentElement.style.setProperty('--current-font', fontValue);
                 
-                // 이미 화면에 렌더링된 요소들의 스타일도 즉시 업데이트
                 document.querySelectorAll('.notion-block').forEach(el => {
                     el.style.fontFamily = fontValue;
                 });
@@ -314,7 +307,6 @@
             });
         });
 
-        // 파일 선택기 동작
         document.getElementById('logFile').addEventListener('change', (e) => {
             const file = e.target.files[0];
             if (!file) return;
@@ -401,7 +393,6 @@
             return suggestions.length > 0 ? `<span class="checker-badge" draggable="false">⚠️ ${suggestions.join(', ')}</span>` : '';
         }
 
-        // 가공 프로세스 실행
         document.getElementById('btnProcess').addEventListener('click', () => {
             if(rawLogData.length === 0) return alert('파일을 로드하세요.');
             
@@ -493,7 +484,6 @@
             });
         });
 
-        // 다운로드용 최종 통합본 마크업 빌더 (선택한 서체 세팅 박제 복사됨)
         function buildFinal() {
             const finalTitle = document.getElementById('roomTitle').innerText.trim();
             const chosenFontStack = currentFontType === "serif" ? `'Hina Mincho', 'Noto Serif KR', serif` : `'Noto Sans KR', sans-serif`;
@@ -508,7 +498,7 @@
                 .avatar { width:28px; height:28px; border-radius:4px; object-fit:cover; flex-shrink:0; }
                 .name { font-size:0.8rem; font-weight:700; margin-bottom:1px; display:block; font-family: 'Noto Sans KR', sans-serif; }
                 .msg { font-family: ${chosenFontStack}; font-size:0.9rem; line-height:1.4; white-space:pre-wrap; word-break:break-all; flex:1; }
-                .narrator { text-align:center; font-weight:600; font-style:italic; opacity:0.7; padding:4px 0; font-size:0.9rem; }
+                .narrator { text-align:center; font-weight:600; font-style:italic; opacity:0.7; padding:3px 10px; font-size:0.9rem; margin: 8px 0; }
                 .system { color:#777; font-size:0.8rem; font-family: 'Noto Sans KR', sans-serif; }
                 .dice { background:rgba(239,68,68,0.1); color:#f87171; border-left:2px solid #f87171; padding:2px 6px; border-radius:4px; font-family: 'Noto Sans KR', sans-serif; }
                 .divider { border-top:1px solid rgba(255,255,255,0.04); margin:4px 0 2px 0; }
@@ -545,7 +535,7 @@
             }
 
             output += processContainer(document.querySelectorAll('#mainContainer > div'));
-            output += '</div>'; // 메인 스크립트 박스 닫기
+            output += '</div>';
             
             document.querySelectorAll('#dynamicTabsOutput > .notion-card').forEach(card => {
                 const title = card.querySelector('.notion-label').innerText;
@@ -558,7 +548,7 @@
         }
 
         document.getElementById('btnCopy').addEventListener('click', () => {
-            navigator.clipboard.writeText(buildFinal()).then(() => alert('Roll20 컴팩트 스타일 코드가 복사되었습니다.'));
+            navigator.clipboard.writeText(buildFinal()).then(() => alert('코드가 복사되었습니다.'));
         });
 
         document.getElementById('btnDownload').addEventListener('click', () => {
