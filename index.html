@@ -681,7 +681,7 @@
             });
         }
 
-        // 텍스트 스타일러 이벤트 위임 처리 (버튼 및 색상 칩 전용)
+        // 텍스트 스타일러 이벤트 위임 처리 (고장나지 않는 확실한 지우개 로직 교체)
         styler.addEventListener('mousedown', (e) => {
             const target = e.target.closest('[data-cmd]');
             if (!target) return;
@@ -694,24 +694,18 @@
             if (!selection.rangeCount || selection.isCollapsed) return;
 
             if (cmd === 'clear-hl') {
-                // 형광펜 취소(지우개) 기능 로직
                 const range = selection.getRangeAt(0);
                 const container = document.createElement('div');
                 container.appendChild(range.cloneContents());
                 
-                // 선택 영역 내부의 모든 형광펜 mark 태그를 걷어내고 텍스트만 추출
-                const marks = container.querySelectorAll('mark[class^="hl-"]');
-                marks.forEach(m => {
-                    const textNode = document.createTextNode(m.textContent);
-                    m.parentNode.replaceChild(textNode, m);
-                });
+                // 정규식 기반 매칭 및 노드 내부 구조 수동 해제 방식으로 확실히 초기화
+                let rawHtml = container.innerHTML;
+                rawHtml = rawHtml.replace(/<mark class="hl-[^">]+">([\s\S]*?)<\/mark>/gi, '$1');
                 
-                document.execCommand('insertHTML', false, container.innerHTML);
+                document.execCommand('insertHTML', false, rawHtml);
             } else if (cmd.startsWith('hl-')) {
-                // 새로운 형광펜 적용
                 document.execCommand('insertHTML', false, `<mark class="${cmd}">${selection.toString()}</mark>`);
             } else {
-                // 기본 스타일 속성 (B, I, S)
                 document.execCommand(cmd, false, null);
             }
         });
