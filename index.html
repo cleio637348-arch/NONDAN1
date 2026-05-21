@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>논단군 스크립트 정리 Pro</title>
     <style>
-        /* 노션 다크 테마 디자인 규격 */
+        /* 변함없는 순정 노션 다크 테마 가이드라인 */
         :root {
             --bg-main: #191919;
             --bg-surface: #202020;
@@ -36,14 +36,13 @@
             padding-bottom: 20px;
         }
 
-        /* 노션 스타일 고딕/산세리프 대형 타이틀 유지 */
+        /* 메인 프로그램 대타이틀 고정 (바뀌지 않음) */
         header h1 {
             font-size: 1.8rem;
             font-weight: 700;
             color: rgba(255, 255, 255, 0.9);
             margin: 0 0 6px 0;
             letter-spacing: -0.03em;
-            outline: none;
         }
 
         header p {
@@ -69,7 +68,19 @@
             text-transform: uppercase;
         }
 
-        /* 아코디언 토글 */
+        /* [핵심 요구사항] 결과 출력창 내부에 들어갈 세션 방 제목 스타일 */
+        .output-room-title {
+            font-size: 1.4rem;
+            font-weight: 700;
+            color: #ffffff;
+            margin: 0 0 16px 0;
+            letter-spacing: -0.02em;
+            outline: none;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            padding-bottom: 10px;
+        }
+
+        /* 아코디언 컴포넌트 */
         .accordion-header {
             display: flex;
             justify-content: space-between;
@@ -88,7 +99,7 @@
             transition: max-height 0.25s ease-out, margin-top 0.2s ease;
         }
         .accordion-content.open {
-            max-height: 4000px; 
+            max-height: 5000px; 
             margin-top: 14px;
             overflow-y: auto;
         }
@@ -110,15 +121,13 @@
             width: 100%; background-color: var(--bg-input); border: 1px solid var(--border-notion);
             border-radius: 4px; color: var(--text-main); font-size: 0.85rem; padding: 10px 12px; box-sizing: border-box; outline: none;
         }
-        input[type="file"] { padding: 7px 12px; cursor: pointer; }
-        input[type="color"] { padding: 2px; height: 34px; cursor: pointer; }
 
         .color-setting-row {
             display: flex; align-items: center; gap: 10px; background: var(--bg-input);
             padding: 6px 12px; border-radius: 4px; border: 1px solid var(--border-notion);
         }
         .color-setting-row span { font-size: 0.85rem; flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-        .color-setting-row input[type="color"] { width: 45px; flex-shrink: 0; }
+        .color-setting-row input[type="color"] { width: 45px; flex-shrink: 0; height: 34px; border: none; background: transparent; cursor: pointer; }
 
         .btn-group { display: flex; gap: 8px; margin-bottom: 20px; }
         .notion-btn {
@@ -132,7 +141,7 @@
         .btn-download { background: rgba(96, 165, 250, 0.1); border-color: rgba(96, 165, 250, 0.25); color: var(--text-link); flex: 1; }
         .btn-download:hover { background: rgba(96, 165, 250, 0.15); }
 
-        /* 행 구조 레이아웃 */
+        /* 세션록 대사 행 출력단 */
         .notion-row { display: flex; align-items: flex-start; gap: 12px; margin-bottom: 4px; border-bottom: 1px solid rgba(255, 255, 255, 0.01); padding-bottom: 4px; }
         .avatar-box { width: 36px; height: 36px; border-radius: 4px; object-fit: cover; flex-shrink: 0; background-color: var(--bg-input); border: 1px solid var(--border-notion); }
         .avatar-placeholder { width: 36px; flex-shrink: 0; }
@@ -145,16 +154,15 @@
         .char-name { font-size: 0.85rem; font-weight: 700; margin-bottom: 4px; display: block; }
 
         .state-narrator { text-align: center; font-weight: bold; font-style: italic; color: rgba(255, 255, 255, 0.75); width: 100%; margin: 4px 0; padding: 4px 10px; font-size: 0.95rem; }
-
-        /* 시스템 메시지 스타일: 테두리 선(border-left) 완전 공백 제거 완료 */
-        .state-system { font-family: ui-sans-serif, system-ui, sans-serif; font-size: 0.8rem; color: #888888; background-color: transparent; padding: 2px 10px; opacity: 0.85; }
+        
+        /* [피드백 완벽 반영] 왼쪽 세로선 제거 및 텍스트 알맹이 정상 출력 명시 */
+        .state-system { font-family: ui-sans-serif, system-ui, sans-serif; font-size: 0.85rem; color: #999999; background-color: transparent; padding: 4px 10px; }
         .state-dice { background-color: var(--bg-check); color: var(--text-check); border-left: 3px solid var(--text-check); font-weight: 500; }
 
         .row-control { padding: 4px 8px; border: 1px solid var(--border-notion); background: rgba(255,255,255,0.02); color: var(--text-check); border-radius: 4px; cursor: pointer; font-size: 0.7rem; margin-top: 4px; }
         .character-divider { border-top: 1px dashed var(--border-notion); margin: 12px 0 8px 0; width: 100%; }
         .hidden { display: none !important; }
 
-        /* 맞춤법 오타 제안 배지 */
         .checker-badge {
             display: inline-block; font-size: 0.7rem; background: rgba(234, 179, 8, 0.15); color: #fde047;
             padding: 1px 5px; border-radius: 3px; border: 1px solid rgba(234, 179, 8, 0.3); margin-bottom: 4px;
@@ -164,19 +172,19 @@
 <body>
 
     <header>
-        <h1 id="roomTitle" contenteditable="true" spellcheck="false">파일을 로드해 주세요</h1>
-        <p>TRPG 스크립트 가공 툴</p>
+        <h1>논단군 스크립트 정리 Pro</h1>
+        <p>TRPG 세션로그 맞춤법 검수 및 추출 엔진</p>
     </header>
 
     <div class="notion-card">
-        <div class="notion-label">컨트롤 센터</div>
+        <div class="notion-label">설정 및 파일 등록</div>
         <div class="grid-config">
             <div class="input-group">
-                <span>1. 로그 원본 (.html)</span>
+                <span>1. 백업 로그 업로드 (.html)</span>
                 <input id="logFile" type="file" accept=".html">
             </div>
             <div class="input-group">
-                <span>2. 지문 서술자 이름</span>
+                <span>2. 지문 서술자 이름 지정 (선택)</span>
                 <input id="narratorName" type="text" placeholder="예: GM 또는 서술자">
             </div>
         </div>
@@ -184,7 +192,7 @@
 
     <div id="colorCard" class="notion-card hidden">
         <div class="accordion-header" onclick="toggleAccordion('colorSettingsContainer', 'accordionArrow')">
-            <div class="notion-label" style="margin-bottom: 0;">캐릭터별 이름 색상 커스텀</div>
+            <div class="notion-label" style="margin-bottom: 0;">캐릭터별 대사 색상 커스텀</div>
             <div class="accordion-icon" id="accordionArrow">▶</div>
         </div>
         <div id="colorSettingsContainer" class="accordion-content grid-config" style="grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));"></div>
@@ -197,15 +205,17 @@
     </div>
 
     <div class="notion-card">
-        <div class="panel-header"><div class="notion-label" id="statusLabel">메인 세션록 정렬창</div></div>
+        <div class="notion-label" id="statusLabel">결과 출력 창</div>
+        <h2 id="roomTitle" class="output-room-title" contenteditable="true" spellcheck="false">파일을 업로드해 주세요</h2>
+        
         <div id="editorContainer">
-            <p style="color: var(--text-muted); text-align: center; font-size: 0.85rem; padding: 40px 0;">파일을 업로드하면 로그 정렬이 활성화됩니다.</p>
+            <p style="color: var(--text-muted); text-align: center; font-size: 0.85rem; padding: 40px 0;">가공된 텍스트 블록이 여기에 정렬됩니다.</p>
         </div>
     </div>
 
     <div id="tabSubCard" class="notion-card hidden">
         <div class="accordion-header" onclick="toggleAccordion('subChatSection', 'subArrow')">
-            <div class="notion-label" style="margin-bottom: 0;">💬 기타 로그 데이터 (잡담 채널)</div>
+            <div class="notion-label" style="margin-bottom: 0;">💬 잡담 채널 스크립트</div>
             <div class="accordion-icon" id="subArrow">▶</div>
         </div>
         <div id="subChatSection" class="accordion-content"></div>
@@ -213,7 +223,7 @@
 
     <div id="tabInfoCard" class="notion-card hidden">
         <div class="accordion-header" onclick="toggleAccordion('subInfoSection', 'infoArrow')">
-            <div class="notion-label" style="margin-bottom: 0;">💡 기타 로그 데이터 (정보 채널)</div>
+            <div class="notion-label" style="margin-bottom: 0;">💡 정보 채널 스크립트</div>
             <div class="accordion-icon" id="infoArrow">▶</div>
         </div>
         <div id="subInfoSection" class="accordion-content"></div>
@@ -221,7 +231,7 @@
 
     <div id="tabPrivateCard" class="notion-card hidden">
         <div class="accordion-header" onclick="toggleAccordion('subPrivateSection', 'privateArrow')">
-            <div class="notion-label" style="margin-bottom: 0;">🔒 기타 로그 데이터 (프라이빗 채널)</div>
+            <div class="notion-label" style="margin-bottom: 0;">🔒 프라이빗 채널 스크립트</div>
             <div class="accordion-icon" id="privateArrow">▶</div>
         </div>
         <div id="subPrivateSection" class="accordion-content"></div>
@@ -232,7 +242,6 @@
         let characterColors = {}; 
         let characterAvatars = {}; 
 
-        // 빌트인 맞춤법 대조 검수 규칙 딕셔너리
         const spellRules = [
             { regex: /됫/g, fix: "됐" }, { regex: /됬/g, fix: "됐" }, { regex: /되바라다/g, fix: "돼바라다" },
             { regex: /않하고/g, fix: "안 하고" }, { regex: /않돼/g, fix: "안 돼" }, { regex: /안돼고/g, fix: "안 되고" },
@@ -251,7 +260,7 @@
             }
         }
 
-        // 파일 선택 시 코코포리아 백업 제목 및 대사 본문 추출 연동
+        // 파일 트리거 시 작동단
         document.getElementById('logFile').addEventListener('change', (e) => {
             const file = e.target.files[0];
             if (!file) return;
@@ -261,13 +270,15 @@
                 const parser = new DOMParser();
                 const doc = parser.parseFromString(event.target.result, 'text/html');
                 
-                // 파일 내부 <title> 태그 구조 분석 후 룸 이름 자동 인출
+                // [요구사항 반영] 파일 원본 명칭에서 .html 확장자 부분을 온전히 트래킹하여 제거 후 출력창 제목으로 투하
                 const titleNode = doc.querySelector('title');
+                let parsedTitle = "";
                 if(titleNode && titleNode.innerText.trim()) {
-                    document.getElementById('roomTitle').innerText = titleNode.innerText.trim();
+                    parsedTitle = titleNode.innerText.trim();
                 } else {
-                    document.getElementById('roomTitle').innerText = file.name.replace(/\.[^/.]+$/, "");
+                    parsedTitle = file.name;
                 }
+                document.getElementById('roomTitle').innerText = parsedTitle.replace(/\.html$/i, "").trim();
 
                 const paragraphs = doc.querySelectorAll('p');
                 rawLogData = [];
@@ -292,10 +303,11 @@
                         let charName = match[2].trim();
                         let msgBody = match[3].trim();
 
+                        // 시간 데이터 소거 연산
                         const timeMatch = msgBody.match(/\s*(\d{4}\/\d{2}\/\d{2}\s+\d{2}:\d{2}:\d{2}|\d{2}:\d{2})$/);
                         if(timeMatch) msgBody = msgBody.replace(timeMatch[0], "").trim();
 
-                        // SYSTEM, 시스템 닉네임 문자열 완전 필터 소거
+                        // [피드백 영점 조절] 시스템의 '이름 영역'만 지우고 대사 본문 내용은 정상 수집 누락 방지!!
                         if(charName.toUpperCase() === "SYSTEM" || charName === "시스템") {
                             rawLogData.push({ tab: "시스템", name: "", message: msgBody, rawColor: "", avatar: "" });
                         } else {
@@ -305,13 +317,13 @@
                             if(avatarSrc && !characterAvatars[charName]) characterAvatars[charName] = avatarSrc;
                         }
                     } else {
-                        // 특수기호선 등 매칭 예외 텍스트 무누락 보존 후 시스템 블록으로 강제 이식
+                        // 구분선 등 기호 줄바꿈도 본문 소실 없이 시스템 블록 메시지 매핑 보존
                         rawLogData.push({ tab: "시스템", name: "", message: text, rawColor: "", avatar: "" });
                     }
                 });
 
                 buildColorSettings(uniqueCharacters);
-                document.getElementById('statusLabel').innerText = `메인 세션록 정렬창 (총 ${rawLogData.length}행 로드 완료)`;
+                document.getElementById('statusLabel').innerText = `결과 출력 창 (총 ${rawLogData.length}행 데이터 로드)`;
             };
             reader.readAsText(file, 'UTF-8');
         });
@@ -346,9 +358,8 @@
             return suggestions.length > 0 ? `<span class="checker-badge" draggable="false">⚠️ ${suggestions.join(', ')}</span>` : '';
         }
 
-        // 스크립트 정렬 구조 빌더
         document.getElementById('btnProcess').addEventListener('click', () => {
-            if(rawLogData.length === 0) return alert('가공할 로그 파일을 먼저 등록해 주세요.');
+            if(rawLogData.length === 0) return alert('가공할 원본 스크립트 파일을 업로드해 주세요.');
             
             const narrator = document.getElementById('narratorName').value.trim();
             const mainContainer = document.getElementById('editorContainer');
@@ -402,7 +413,7 @@
                     const spellBadge = checkSpellErrors(log.message);
 
                     if (isSys) {
-                        // [SYSTEM 명칭 완전 삭제] 구조 레이아웃 내 이름 태그 원천 배제 생성
+                        // 시스템 이름 간판 영역은 지워버리되 본문 텍스트 알맹이는 100% 정상 출력 보존!!
                         innerStructure += `
                             <div style="flex: 1;">
                                 <div class="${msgClass}" contenteditable="true" spellcheck="false">${escapeHtml(log.message)}</div>
@@ -439,9 +450,9 @@
             if(subPrivContainer.children.length > 0) document.getElementById('tabPrivateCard').classList.remove('hidden');
         });
 
-        // 사용자가 최종 가공한 제목 및 데이터를 취합하여 완벽한 단일 HTML 코드 문자열로 빌드하는 함수
+        // 결과물 아카이브 마크업 빌더 (수정 방제목 온전히 연동)
         function buildFinalHtml() {
-            // [실시간 제목 반영] 편집창 h1에 기입된 텍스트를 파싱해 최종 저장 객체에 대입
+            // 결과 출력창 내의 최종 수정된 룸 제목을 그대로 수집해 HTML 마크업에 영구 삽입
             const finalTitle = document.getElementById('roomTitle').innerText.trim();
             const mainRows = document.querySelectorAll('#editorContainer > .notion-row, #editorContainer > .character-divider');
             const subChatRows = document.querySelectorAll('#subChatSection > .notion-row, #subChatSection > .character-divider');
@@ -456,10 +467,7 @@
     <title>${finalTitle}</title>
     <style>
         body { background-color: #191919; color: rgba(255, 255, 255, 0.85); font-family: ui-sans-serif, -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif; max-width: 700px; margin: 0 auto; padding: 40px 16px; -webkit-font-smoothing: antialiased; letter-spacing: -0.01em; }
-        
-        /* 노션 순정 타이틀 굵기 및 크기 고정 규격 */
         h1 { font-size: 1.8rem; font-weight: 700; color: rgba(255, 255, 255, 0.9); border-bottom: 1px solid rgba(255,255,255,0.07); padding-bottom: 14px; margin-bottom: 24px; letter-spacing: -0.03em; }
-        
         .section-title { font-size: 1.1rem; font-weight: 700; color: #60a5fa; margin: 30px 0 15px 0; border-bottom: 1px solid rgba(255,255,255,0.1); padding-bottom: 6px; }
         .row { display: flex; align-items: flex-start; gap: 12px; margin-bottom: 8px; }
         .avatar { width: 36px; height: 36px; border-radius: 4px; object-fit: cover; flex-shrink: 0; }
@@ -468,9 +476,8 @@
         .msg { font-size: 0.9rem; line-height: 1.6; white-space: pre-wrap; word-break: break-all; color: rgba(255, 255, 255, 0.85); }
         .narrator { text-align: center; font-weight: bold; font-style: italic; color: rgba(255, 255, 255, 0.75); width: 100%; margin: 4px 0; font-size: 0.95rem; }
         
-        /* 최종 출력 저장본 스펙에서도 시스템 세로 줄 바(border-left) 완전 생략 제거 */
-        .system { font-family: ui-sans-serif, system-ui, sans-serif; font-size: 0.8rem; color: #888888; padding: 2px 10px; flex: 1; opacity: 0.85; }
-        
+        /* 최종 출력 저장본 스펙에서도 시스템 세로 줄 바(border-left) 제외 보존 */
+        .system { font-family: ui-sans-serif, system-ui, sans-serif; font-size: 0.85rem; color: #999999; padding: 4px 10px; flex: 1; }
         .dice { background-color: rgba(239, 68, 68, 0.15); color: #f87171; border-left: 3px solid #f87171; font-weight: 500; padding: 6px 10px; border-radius: 4px; flex: 1; }
         .divider { border-top: 1px dashed rgba(255, 255, 255, 0.07); margin: 12px 0 8px 0; width: 100%; }
         details { background: #202020; border: 1px solid rgba(255,255,255,0.07); padding: 14px; border-radius: 6px; margin-top: 15px; }
@@ -536,7 +543,6 @@
 
             fileOutput += compileRows(mainRows) + `    </div>\n`;
 
-            // 개별 분리된 각 서브 채널 토글 컴파일 바인딩 처리
             if(subChatRows.length > 0) {
                 fileOutput += `    <details>\n        <summary>💬 잡담 채널 스크립트</summary>\n        <div style="display: flex; flex-direction: column; margin-top:12px;">\n` + compileRows(subChatRows) + `        </div>\n    </details>\n`;
             }
@@ -562,7 +568,7 @@
             const blob = new Blob([htmlContent], { type: 'text/html;charset=utf-8;' });
             const link = document.createElement("a");
             link.href = URL.createObjectURL(blob);
-            link.setAttribute("download", `${finalTitle}_완성본.html`);
+            link.setAttribute("download", `${finalTitle}.html`);
             document.body.appendChild(link); link.click(); document.body.removeChild(link);
         });
 
