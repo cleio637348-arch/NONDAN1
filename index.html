@@ -227,13 +227,6 @@
         .chip-blue { background-color: #bfdbfe; }
         .chip-pink { background-color: #fbcfe8; }
 
-        /* 지우개 버튼 스타일 */
-        .btn-clear-hl {
-            font-size: 0.7rem !important; color: #ef4444 !important; border: 1px solid rgba(239, 68, 68, 0.3) !important;
-            padding: 1px 4px !important; margin-left: 2px;
-        }
-        .btn-clear-hl:hover { background: rgba(239, 68, 68, 0.2) !important; }
-
         .styler-divider { width: 1px; height: 14px; background: rgba(255,255,255,0.15); margin: 0 2px; }
 
         /* 하단 고정 반투명 히스토리 내비게이션 컨트롤러 */
@@ -381,7 +374,6 @@
         <span class="color-chip chip-green" data-cmd="hl-green"></span>
         <span class="color-chip chip-blue" data-cmd="hl-blue"></span>
         <span class="color-chip chip-pink" data-cmd="hl-pink"></span>
-        <button class="btn-clear-hl" data-cmd="clear-hl">지우개</button>
     </div>
 
     <div class="floating-history-panel">
@@ -602,15 +594,40 @@
                 const target = tabGroups[log.tab] || mainContainer; const isNarrator = narrator && log.name === narrator;
                 const isSys = log.tab === "시스템" || log.name === ""; const currentSpeaker = log.name;
 
-                let forceShowName = false;
-                if (!isSys && !isNarrator && (lastSpeakers[log.tab] === "__SYS__" || lastSpeakers[log.tab] === "__NARR__")) forceShowName = true;
-                if (!isNarrator && !isSys && lastSpeakers[log.tab] && lastSpeakers[log.tab] !== currentSpeaker) {
-                    const divider = document.createElement('div'); divider.className = "character-divider"; target.appendChild(divider);
+                // [수정 핵심] 이전 줄과 현재 줄의 성격 판단용 가상 ID 생성
+                let currentTypeID = currentSpeaker;
+                if (isSys) currentTypeID = "__SYS__";
+                else if (isNarrator) currentTypeID = "__NARR__";
+
+                let previousTypeID = lastSpeakers[log.tab] || "";
+
+                // 구분선을 그어야 하는 조건 판단 (이전 로그가 존재할 때)
+                if (previousTypeID) {
+                    let shouldAddDivider = false;
+                    
+                    // 1. 둘 다 일반 캐릭터인데 서로 다른 캐릭터인 경우
+                    if (!previousTypeID.startsWith("__") && !currentTypeID.startsWith("__") && previousTypeID !== currentTypeID) {
+                        shouldAddDivider = true;
+                    }
+                    // 2. 서술자 <-> 일반 캐릭터 간의 교체가 일어난 경우 (지문과 대사의 확실한 경계선 분리)
+                    else if ((previousTypeID === "__NARR__" && !currentTypeID.startsWith("__")) || 
+                             (!previousTypeID.startsWith("__") && currentTypeID === "__NARR__")) {
+                        shouldAddDivider = true;
+                    }
+
+                    if (shouldAddDivider) {
+                        const divider = document.createElement('div');
+                        divider.className = "character-divider";
+                        target.appendChild(divider);
+                    }
                 }
-                let isSameSpeaker = (!forceShowName && !isNarrator && !isSys && lastSpeakers[log.tab] === currentSpeaker);
-                if (isSys) lastSpeakers[log.tab] = "__SYS__"; else if (isNarrator) lastSpeakers[log.tab] = "__NARR__"; else lastSpeakers[log.tab] = currentSpeaker;
+
+                let isSameSpeaker = (!isNarrator && !isSys && previousTypeID === currentTypeID);
+                lastSpeakers[log.tab] = currentTypeID;
 
                 const row = document.createElement('div'); row.className = "notion-row"; row.dataset.speaker = currentSpeaker; row.dataset.tab = log.tab;
+                row.dataset.typeId = currentTypeID; // 변환 및 백업 데이터 추출용 마킹 추가
+                
                 let msgClass = "notion-block";
                 if(log.message.includes('🎲') || log.message.includes('->') || log.message.includes('성공') || log.message.includes('실패')) msgClass += " state-dice";
                 if(isSys) msgClass += " state-system"; if(isNarrator) msgClass += " state-narrator";
@@ -681,7 +698,6 @@
             });
         }
 
-        // 텍스트 스타일러 이벤트 위임 처리 (고장나지 않는 확실한 지우개 로직 교체)
         styler.addEventListener('mousedown', (e) => {
             const target = e.target.closest('[data-cmd]');
             if (!target) return;
@@ -693,17 +709,7 @@
             const selection = window.getSelection();
             if (!selection.rangeCount || selection.isCollapsed) return;
 
-            if (cmd === 'clear-hl') {
-                const range = selection.getRangeAt(0);
-                const container = document.createElement('div');
-                container.appendChild(range.cloneContents());
-                
-                // 정규식 기반 매칭 및 노드 내부 구조 수동 해제 방식으로 확실히 초기화
-                let rawHtml = container.innerHTML;
-                rawHtml = rawHtml.replace(/<mark class="hl-[^">]+">([\s\S]*?)<\/mark>/gi, '$1');
-                
-                document.execCommand('insertHTML', false, rawHtml);
-            } else if (cmd.startsWith('hl-')) {
+            if (cmd.startsWith('hl-')) {
                 document.execCommand('insertHTML', false, `<mark class="${cmd}">${selection.toString()}</mark>`);
             } else {
                 document.execCommand(cmd, false, null);
@@ -740,12 +746,25 @@
             </style></head><body><h1>${finalTitle}</h1><div class="script-box">`;
 
             function processContainer(nodes) {
-                let res = ""; let last = "";
+                let res = ""; let lastType = "";
                 nodes.forEach(el => {
                     if(el.classList.contains('character-divider')) { res += '<div class="divider"></div>'; return; }
+                    
                     const isNarr = el.querySelector('.state-narrator'); const isSys = el.querySelector('.state-system');
-                    const spk = el.dataset.speaker || ""; const same = (last === spk && !isNarr && !isSys);
-                    last = isNarr ? "__N__" : (isSys ? "__S__" : spk);
+                    const spk = el.dataset.speaker || "";
+                    const currentType = el.dataset.typeId || (isNarr ? "__NARR__" : (isSys ? "__SYS__" : spk));
+                    
+                    // 추출 파일 빌드 과정에서도 구분선 싱크가 완벽히 맞도록 배치 규칙 재설정
+                    if (lastType && lastType !== currentType) {
+                        if ((!lastType.startsWith("__") && !currentType.startsWith("__")) ||
+                            (lastType === "__NARR__" && !currentType.startsWith("__")) ||
+                            (!lastType.startsWith("__") && currentType === "__NARR__")) {
+                            res += '<div class="divider"></div>';
+                        }
+                    }
+
+                    const same = (lastType === currentType && !isNarr && !isSys);
+                    lastType = currentType;
 
                     res += '<div class="row">';
                     if(!isNarr && !isSys) {
