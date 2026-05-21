@@ -32,7 +32,7 @@
             font-family: var(--font-sans);
             max-width: 850px;
             margin: 0 auto;
-            padding: 30px 16px;
+            padding: 30px 16px 80px 16px; /* 하단 팝업 공간 확보를 위해 패딩 추가 */
             background-color: var(--bg-main);
             color: var(--text-main);
             -webkit-font-smoothing: antialiased;
@@ -186,16 +186,13 @@
             font-family: var(--current-font);
         }
         
-        /* 실시간 검색 하이라이트 전용 스타일 */
         mark.log-match { background: #fef08a; color: #000; border-radius: 2px; padding: 0 2px; }
 
-        /* [5번 구현] 내보내기용 인라인 스타일 대응 */
         .notion-block b, .msg b { font-weight: bold; }
         .notion-block i, .msg i { font-style: italic; }
         .notion-block s, .msg s { text-decoration: line-through; }
         .notion-block mark.user-mark, .msg mark.user-mark { background-color: #fef08a; color: #000; padding: 0 2px; border-radius: 2px; }
 
-        /* [5번 구현] 미니 텍스트 스타일러 툴바 디자인 */
         #textStyler {
             position: absolute; display: none; background: #2a2a2a; border: 1px solid rgba(255,255,255,0.15);
             border-radius: 6px; box-shadow: 0 4px 12px rgba(0,0,0,0.3); z-index: 9999; padding: 4px; gap: 2px;
@@ -205,6 +202,51 @@
             cursor: pointer; border-radius: 4px; font-weight: 600; transition: 0.1s;
         }
         #textStyler button:hover { background: rgba(255,255,255,0.15); }
+
+        /* 하단 고정 반투명 히스토리 내비게이션 컨트롤러 */
+        .floating-history-panel {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            background: rgba(32, 32, 32, 0.65); /* 반투명 다크 */
+            backdrop-filter: blur(8px); /* 노션 스타일 흐림 효과 */
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 30px;
+            padding: 6px 12px;
+            display: flex;
+            gap: 4px;
+            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.3);
+            z-index: 10000;
+            transition: all 0.2s ease;
+            opacity: 0.8;
+        }
+        .floating-history-panel:hover {
+            background: rgba(32, 32, 32, 0.9);
+            opacity: 1;
+            border-color: rgba(255, 255, 255, 0.2);
+        }
+        .history-btn {
+            background: none;
+            border: none;
+            color: rgba(255, 255, 255, 0.8);
+            font-size: 0.85rem;
+            font-weight: 600;
+            padding: 6px 12px;
+            cursor: pointer;
+            border-radius: 20px;
+            display: flex;
+            align-items: center;
+            gap: 4px;
+            transition: 0.1s;
+        }
+        .history-btn:hover:not(:disabled) {
+            background: rgba(255, 255, 255, 0.08);
+            color: #fff;
+        }
+        .history-btn:disabled {
+            color: rgba(255, 255, 255, 0.2);
+            cursor: not-allowed;
+        }
         
         .char-name { font-size: 0.8rem; font-weight: 700; margin-bottom: 1px; display: block; font-family: var(--font-sans); }
         .state-narrator { text-align: center; font-weight: 700; font-style: italic; color: var(--script-narrator) !important; width: 100%; margin: 4px 0; padding: 3px 10px; font-size: 0.9rem; }
@@ -304,6 +346,11 @@
         <button data-cmd="hilite">형광펜</button>
     </div>
 
+    <div class="floating-history-panel">
+        <button id="btnUndo" class="history-btn" disabled>↩ 뒤로</button>
+        <button id="btnRedo" class="history-btn" disabled>↪ 앞으로</button>
+    </div>
+
     <script>
         let rawLogData = [];
         let characterAvatars = {}; 
@@ -312,6 +359,11 @@
         let detectedCharacters = new Set(); 
         let currentFontType = "sans"; 
         let currentColorTheme = "roll20";
+
+        // 뒤로가기 / 앞으로가기 상태 제어용 스택 
+        let undoStack = [];
+        let redoStack = [];
+        let isHistoryAction = false; 
 
         const themeProfiles = {
             roll20: { bg: "#f3f3f3", text: "#111111", fallbackName: "#b51212", narrator: "#222222", sys: "#666666", border: "#dddddd" },
@@ -431,8 +483,68 @@
             });
         }
 
+        // 히스토리 상태 캡처 및 복원 시스템 함수
+        function saveHistoryState() {
+            if (isHistoryAction) return; 
+            const state = {
+                mainHTML: document.getElementById('mainContainer').innerHTML,
+                tabsHTML: document.getElementById('dynamicTabsOutput').innerHTML
+            };
+            undoStack.push(state);
+            redoStack = []; 
+            updateHistoryButtons();
+        }
+
+        function updateHistoryButtons() {
+            document.getElementById('btnUndo').disabled = undoStack.length === 0;
+            document.getElementById('btnRedo').disabled = redoStack.length === 0;
+        }
+
+        function restoreState(state) {
+            isHistoryAction = true;
+            document.getElementById('mainContainer').innerHTML = state.mainHTML;
+            document.getElementById('dynamicTabsOutput').innerHTML = state.tabsHTML;
+            
+            // 삭제 제어 이벤트 핸들러 및 돔 스캔 바인딩 리인덱싱
+            document.querySelectorAll('.row-control').forEach(btn => {
+                btn.onclick = function() {
+                    saveHistoryState();
+                    this.parentElement.parentElement.remove();
+                };
+            });
+            isHistoryAction = false;
+        }
+
+        document.getElementById('btnUndo').addEventListener('click', () => {
+            if (undoStack.length === 0) return;
+            const currentState = {
+                mainHTML: document.getElementById('mainContainer').innerHTML,
+                tabsHTML: document.getElementById('dynamicTabsOutput').innerHTML
+            };
+            redoStack.push(currentState);
+            const prevState = undoStack.pop();
+            restoreState(prevState);
+            updateHistoryButtons();
+        });
+
+        document.getElementById('btnRedo').addEventListener('click', () => {
+            if (redoStack.length === 0) return;
+            const currentState = {
+                mainHTML: document.getElementById('mainContainer').innerHTML,
+                tabsHTML: document.getElementById('dynamicTabsOutput').innerHTML
+            };
+            undoStack.push(currentState);
+            const nextState = redoStack.pop();
+            restoreState(nextState);
+            updateHistoryButtons();
+        });
+
         document.getElementById('btnProcess').addEventListener('click', () => {
             if(rawLogData.length === 0) return alert('파일을 먼저 업로드해 주세요.');
+            
+            // 초기화
+            undoStack = []; redoStack = []; updateHistoryButtons();
+
             const narrator = document.getElementById('narratorName').value.trim();
             const selectedTabs = Array.from(document.querySelectorAll('.tab-chk:checked')).map(c => c.value);
             const mainContainer = document.getElementById('mainContainer'); const dynamicTabsOutput = document.getElementById('dynamicTabsOutput');
@@ -478,13 +590,24 @@
                     const customColor = characterColors[currentSpeaker] || pProfile.fallbackName;
                     inner += `<div style="flex:1;">${!isSameSpeaker ? `<span class="char-name" style="color: ${customColor}">${currentSpeaker}</span>` : ''}<div class="${msgClass}" style="font-family: ${fontValue}" contenteditable="true" spellcheck="false">${escapeHtml(log.message)}</div></div>`;
                 } else { inner += `<div class="${msgClass}" style="font-family: ${fontValue}" contenteditable="true" spellcheck="false">${escapeHtml(log.message)}</div>`; }
-                inner += `</div><div class="control-cell"><button class="row-control" onclick="this.parentElement.parentElement.remove()">del</button></div>`;
+                
+                // 삭제 핸들러에 히스토리 상태 캡처 훅 추가
+                inner += `</div><div class="control-cell"><button class="row-control" onclick="saveHistoryState(); this.parentElement.parentElement.remove();">del</button></div>`;
                 row.innerHTML = inner; target.appendChild(row);
+
+                // 인라인 타이핑 텍스트 변경사항도 히스토리에 수집할 수 있도록 트리거 바인딩
+                row.querySelector('.notion-block').addEventListener('focus', function() {
+                    this.dataset.before = this.innerHTML;
+                });
+                row.querySelector('.notion-block').addEventListener('blur', function() {
+                    if (this.dataset.before !== this.innerHTML) {
+                        saveHistoryState();
+                    }
+                });
             });
-            initStylerEvents(); // 스타일러 마우스 감지 재활성화
+            initStylerEvents(); 
         });
 
-        // [1번 구현] 실시간 검색 및 하이라이트 핵심 로직
         document.getElementById('logSearchInput').addEventListener('input', (e) => {
             const query = e.target.value.trim().toLowerCase();
             const rows = document.querySelectorAll('.notion-row');
@@ -493,19 +616,13 @@
                 const block = row.querySelector('.notion-block');
                 if(!block) return;
                 
-                // 원본 유지를 위해 이전에 주입된 검색 전용 mark 제거
                 let rawText = block.innerHTML.replace(/<mark class="log-match">(.*?)<\/mark>/g, '$1');
-                
                 if(!query) {
-                    row.classList.remove('filtered-out');
-                    block.innerHTML = rawText;
-                    return;
+                    row.classList.remove('filtered-out'); block.innerHTML = rawText; return;
                 }
-
                 const visibleText = block.innerText.toLowerCase();
                 if(visibleText.includes(query)) {
                     row.classList.remove('filtered-out');
-                    // 대소문자 구분 없이 매칭된 문자열만 노란색 mark 태그 입히기
                     const regex = new RegExp(`(${query.replace(/[-\/\\^$*+?.()|[\]{}]/g, '\\$&')})`, 'gi');
                     block.innerHTML = rawText.replace(regex, '<mark class="log-match">$1</mark>');
                 } else {
@@ -514,7 +631,6 @@
             });
         });
 
-        // [5번 구현] 드래그 서식 지정 스타일러 자바스크립트 엔진
         const styler = document.getElementById('textStyler');
         function initStylerEvents() {
             document.addEventListener('selectionchange', () => {
@@ -523,7 +639,6 @@
                     styler.style.display = 'none'; return;
                 }
                 const range = selection.getRangeAt(0);
-                // 노션 블록 내부에서 텍스트를 잡았을 때만 작동바 띄우기
                 const block = range.commonAncestorContainer.parentElement?.closest('.notion-block');
                 if (!block) { styler.style.display = 'none'; return; }
 
@@ -536,7 +651,8 @@
 
         styler.querySelectorAll('button').forEach(btn => {
             btn.addEventListener('mousedown', (e) => {
-                e.preventDefault(); // 선택 텍스트 해제 방지
+                e.preventDefault();
+                saveHistoryState(); // 스타일 편집 전 현재 상태 캡처
                 const cmd = btn.dataset.cmd;
                 if(cmd === 'hilite') {
                     document.execCommand('insertHTML', false, `<mark class="user-mark">${window.getSelection().toString()}</mark>`);
@@ -589,7 +705,6 @@
                         const nameEl = el.querySelector('.char-name'); const inlineColor = nameEl ? nameEl.style.color : p.fallbackName;
                         if(!same) res += `<span class="name" style="color: ${inlineColor}">${spk}</span>`;
                         
-                        // [검색 흔적 정돈] 검색 결과 하이라이트(log-match mark)는 저장 시 깔끔히 가공하여 순수한 innerHTML 보존
                         let filteredHTML = el.querySelector('.notion-block').innerHTML.replace(/<mark class="log-match">(.*?)<\/mark>/g, '$1');
                         res += `<div class="msg">${filteredHTML}</div></div>`;
                     } else {
