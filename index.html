@@ -365,28 +365,34 @@
                 
                 document.getElementById('roomTitle').innerText = file.name.replace(/\.html$/i, "").replace(/\[all\]$/i, "").trim();
 
-                // 원본 파일 내 엘리먼트 기반으로 텍스트 및 인장 자산 통합 수집
-                const paragraphs = doc.querySelectorAll('p');
+                // p 태그가 없으면 span 등 대체 요소 수집 시도
+                let elements = doc.querySelectorAll('p');
+                if (elements.length === 0) {
+                    elements = doc.querySelectorAll('div, span');
+                }
+
                 rawLogData = [];
                 detectedTabs.clear();
 
-                paragraphs.forEach(p => {
-                    // 내부 아바타 이미지 src 엘리먼트 추적 보강
+                elements.forEach(p => {
+                    const text = p.textContent.trim();
+                    if(!text || text.length < 2) return;
+
+                    // 내부 아바타 이미지 추적
                     let avatarSrc = p.querySelector('img')?.getAttribute('src') || "";
                     if (!avatarSrc) {
-                        // 스팬이나 자식 노드 레벨에 숨어있는 아바타 백업용 노드 검사
-                        let embeddedImg = p.parentElement?.querySelector(`img[alt="${p.textContent.split(':')[0]}"]`);
+                        let embeddedImg = p.parentElement?.querySelector(`img`);
                         if(embeddedImg) avatarSrc = embeddedImg.getAttribute('src');
                     }
                     
-                    const text = p.textContent.trim();
-                    if(!text) return;
-
+                    // [정규식 완화] 대괄호 탭 이름이 없거나 띄어쓰기가 달라도 매칭되도록 보수
                     const match = text.match(/^\[([^\]]+)\]\s*([^:]+)\s*:\s*([\s\S]*)$/);
                     if (match) {
                         let tabName = match[1].trim();
                         let charName = match[2].trim();
                         let msgBody = match[3].trim();
+                        
+                        // 타임스탬프 제거
                         const timeMatch = msgBody.match(/\s*(\d{4}\/\d{2}\/\d{2}\s+\d{2}:\d{2}:\d{2}|\d{2}:\d{2})$/);
                         if(timeMatch) msgBody = msgBody.replace(timeMatch[0], "").trim();
 
@@ -398,9 +404,27 @@
                             if(avatarSrc && !characterAvatars[charName]) characterAvatars[charName] = avatarSrc;
                         }
                     } else {
-                        rawLogData.push({ tab: "시스템", name: "", message: text, avatar: "" });
+                        // 일반 형태(이름: 내용)이거나 구조가 무너진 경우에도 유실 방지를 위해 'Main' 혹은 '시스템'으로 자동 가공 처리
+                        const simpleMatch = text.match(/^([^:]+)\s*:\s*([\s\S]*)$/);
+                        if(simpleMatch) {
+                            let charName = simpleMatch[1].trim();
+                            let msgBody = simpleMatch[2].trim();
+                            detectedTabs.add("Main");
+                            rawLogData.push({ tab: "Main", name: charName, message: msgBody, avatar: avatarSrc });
+                        } else {
+                            rawLogData.push({ tab: "시스템", name: "", message: text, avatar: "" });
+                        }
                     }
                 });
+
+                if(rawLogData.length === 0) {
+                    alert("정밀 파싱에 실패했습니다. 파일 텍스트를 무조건 강제 로드합니다.");
+                    // 최후의 보루: 그냥 한줄씩 긁어서 시스템 메시지로 처리
+                    elements.forEach(p => {
+                        if(p.textContent.trim()) rawLogData.push({ tab: "Main", name: "로그", message: p.textContent.trim(), avatar: "" });
+                    });
+                    detectedTabs.add("Main");
+                }
 
                 buildFilters();
             };
@@ -410,6 +434,10 @@
         function buildFilters() {
             const container = document.getElementById('dynamicFilters');
             container.innerHTML = "";
+            if(detectedTabs.size === 0) {
+                container.innerHTML = `<p style="font-size: 0.8rem; color: var(--text-muted);">감지된 탭이 없습니다.</p>`;
+                return;
+            }
             Array.from(detectedTabs).sort().forEach(tab => {
                 const label = document.createElement('label');
                 label.className = "filter-item";
@@ -419,7 +447,7 @@
         }
 
         document.getElementById('btnProcess').addEventListener('click', () => {
-            if(rawLogData.length === 0) return alert('파일을 로드하세요.');
+            if(rawLogData.length === 0) return alert('파일을 먼저 업로드해 주세요.');
             
             const narrator = document.getElementById('narratorName').value.trim();
             const selectedTabs = Array.from(document.querySelectorAll('.tab-chk:checked')).map(c => c.value);
@@ -430,13 +458,14 @@
             dynamicTabsOutput.innerHTML = "";
 
             const tabGroups = {};
+            // 선택된 탭 정보 매핑 그룹핑 생성
             selectedTabs.forEach(t => {
-                if(t.includes('메인') || t.toLowerCase() === 'main') {
+                if(t.includes('메인') || t.toLowerCase() === 'main' || selectedTabs.length === 1) {
                     tabGroups[t] = mainContainer;
                 } else {
                     const card = document.createElement('div');
                     card.className = "notion-card";
-                    const id = `tab_sec_${t}`;
+                    const id = `tab_sec_${t.replace(/[^a-zA-Z0-9]/g, '_')}`;
                     card.innerHTML = `
                         <div class="accordion-header" onclick="toggleAccordion('${id}', 'arr_${id}')">
                             <div class="notion-label" style="margin-bottom:0;">[${t}] 채널 로그</div>
@@ -452,11 +481,12 @@
             const fontValue = currentFontType === "serif" ? "var(--font-serif)" : "var(--font-sans)";
 
             rawLogData.forEach(log => {
-                if(log.tab !== "시스템" && !selectedTabs.includes(log.tab)) return;
+                if(log.tab !== "시스템" && !selectedTabs.includes(log.tab) && selectedTabs.length > 0) return;
                 
+                // 지정 타겟 컨테이너 할당 분기 보정
                 const target = tabGroups[log.tab] || mainContainer;
                 const isNarrator = narrator && log.name === narrator;
-                const isSys = log.tab === "시스템";
+                const isSys = log.tab === "시스템" || log.name === "";
                 const currentSpeaker = log.name;
 
                 let forceShowName = false;
@@ -482,7 +512,7 @@
                 row.dataset.tab = log.tab;
 
                 let msgClass = "notion-block";
-                if(log.message.includes('🎲') || log.message.includes('->')) msgClass += " state-dice";
+                if(log.message.includes('🎲') || log.message.includes('->') || log.message.includes('성공') || log.message.includes('실패')) msgClass += " state-dice";
                 if(isSys) msgClass += " state-system";
                 if(isNarrator) msgClass += " state-narrator";
 
@@ -490,7 +520,6 @@
                 if(!isNarrator && !isSys) {
                     if(!isSameSpeaker) {
                         const avatar = characterAvatars[currentSpeaker] || log.avatar;
-                        // 이미지 소스가 있을 경우 엑스박스 방지 및 백업 바인딩 처리
                         inner += avatar ? `<img src="${avatar}" class="avatar-box" data-raw-src="${avatar}">` : `<div class="avatar-box" style="background:#ddd"></div>`;
                     } else {
                         inner += `<div class="avatar-placeholder"></div>`;
@@ -510,7 +539,7 @@
         });
 
         function buildFinal() {
-            const finalTitle = document.getElementById('roomTitle').innerText.trim();
+            const finalTitle = document.getElementById('roomTitle').innerText.trim() || "TRPG 로그 백업 스크립트";
             const chosenFontStack = currentFontType === "serif" ? `'Hina Mincho', 'Noto Serif KR', serif` : `'Noto Sans KR', sans-serif`;
             const p = themeProfiles[currentColorTheme];
 
@@ -539,7 +568,7 @@
                     const isNarr = el.querySelector('.state-narrator');
                     const isDice = el.querySelector('.state-dice');
                     const isSys = el.querySelector('.state-system');
-                    const spk = el.dataset.speaker;
+                    const spk = el.dataset.speaker || "";
                     const same = (last === spk && !isNarr && !isSys);
                     last = isNarr ? "__N__" : (isSys ? "__S__" : spk);
 
@@ -556,7 +585,8 @@
                         if(!same) res += `<span class="name">${spk}</span>`;
                         res += `<div class="msg ${isDice?'dice':''}">${el.querySelector('.notion-block').innerText}</div></div>`;
                     } else {
-                        res += `<div class="msg ${isNarr?'narrator':(isSys?'system':'')}">${el.querySelector('.notion-block').innerText}</div>`;
+                        const contentNode = el.querySelector('.notion-block');
+                        res += `<div class="msg ${isNarr?'narrator':(isSys?'system':'')}">${contentNode ? contentNode.innerText : el.textContent}</div>`;
                     }
                     res += '</div>';
                 });
@@ -568,7 +598,7 @@
             
             document.querySelectorAll('#dynamicTabsOutput > .notion-card').forEach(card => {
                 const title = card.querySelector('.notion-label').innerText;
-                const nodes = card.querySelectorAll('.accordion-content > div');
+                const nodes = card.querySelectorAll('.script-container > div');
                 output += `<details><summary>${title}</summary><div class="script-box" style="margin-top:8px;">${processContainer(nodes)}</div></details>`;
             });
 
@@ -584,7 +614,7 @@
             const blob = new Blob([buildFinal()], { type: 'text/html;charset=utf-8;' });
             const link = document.createElement("a");
             link.href = URL.createObjectURL(blob);
-            link.setAttribute("download", `${document.getElementById('roomTitle').innerText}.html`);
+            link.setAttribute("download", `${document.getElementById('roomTitle').innerText || 'log'}.html`);
             link.click();
         });
 
