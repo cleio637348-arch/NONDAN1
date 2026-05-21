@@ -198,31 +198,43 @@
         .notion-block i, .msg i { font-style: italic; }
         .notion-block s, .msg s { text-decoration: line-through; }
         
-        /* 사용자 지정 컬러 형광펜 클래스 대응 정의 */
+        /* 형광펜 클래스 정의 */
         .notion-block mark.hl-yellow, .msg mark.hl-yellow { background-color: #fef08a; color: #000; padding: 0 2px; border-radius: 2px; }
         .notion-block mark.hl-green, .msg mark.hl-green { background-color: #bbf7d0; color: #000; padding: 0 2px; border-radius: 2px; }
         .notion-block mark.hl-blue, .msg mark.hl-blue { background-color: #bfdbfe; color: #000; padding: 0 2px; border-radius: 2px; }
         .notion-block mark.hl-pink, .msg mark.hl-pink { background-color: #fbcfe8; color: #000; padding: 0 2px; border-radius: 2px; }
 
-        /* 미니 텍스트 스타일러 툴바 디자인 */
+        /* 텍스트 스타일러 툴바 */
         #textStyler {
             position: absolute; display: none; background: #2a2a2a; border: 1px solid rgba(255,255,255,0.15);
-            border-radius: 6px; box-shadow: 0 4px 12px rgba(0,0,0,0.3); z-index: 9999; padding: 4px; gap: 2px;
+            border-radius: 6px; box-shadow: 0 4px 12px rgba(0,0,0,0.3); z-index: 9999; padding: 6px 8px; gap: 6px;
             align-items: center;
         }
         #textStyler button {
-            background: none; border: none; color: #fff; font-size: 0.75rem; padding: 4px 8px;
+            background: none; border: none; color: #fff; font-size: 0.8rem; padding: 2px 6px;
             cursor: pointer; border-radius: 4px; font-weight: 600; transition: 0.1s;
         }
         #textStyler button:hover { background: rgba(255,255,255,0.15); }
         
-        /* 형광펜 개별 색상 버튼 스타일 */
-        #textStyler button.btn-hl-y { color: #fef08a; }
-        #textStyler button.btn-hl-g { color: #86efac; }
-        #textStyler button.btn-hl-b { color: #93c5fd; }
-        #textStyler button.btn-hl-p { color: #f472b6; }
+        /* 동그라미 색상 칩 스타일 */
+        .color-chip {
+            width: 14px; height: 14px; border-radius: 50%; cursor: pointer; display: inline-block;
+            border: 1px solid rgba(255, 255, 255, 0.2); transition: transform 0.1s;
+        }
+        .color-chip:hover { transform: scale(1.2); }
+        .chip-yellow { background-color: #fef08a; }
+        .chip-green { background-color: #bbf7d0; }
+        .chip-blue { background-color: #bfdbfe; }
+        .chip-pink { background-color: #fbcfe8; }
 
-        .styler-divider { width: 1px; height: 14px; background: rgba(255,255,255,0.15); margin: 0 4px; }
+        /* 지우개 버튼 스타일 */
+        .btn-clear-hl {
+            font-size: 0.7rem !important; color: #ef4444 !important; border: 1px solid rgba(239, 68, 68, 0.3) !important;
+            padding: 1px 4px !important; margin-left: 2px;
+        }
+        .btn-clear-hl:hover { background: rgba(239, 68, 68, 0.2) !important; }
+
+        .styler-divider { width: 1px; height: 14px; background: rgba(255,255,255,0.15); margin: 0 2px; }
 
         /* 하단 고정 반투명 히스토리 내비게이션 컨트롤러 */
         .floating-history-panel {
@@ -365,10 +377,11 @@
         <button data-cmd="italic"><i>I</i></button>
         <button data-cmd="strikeThrough"><s>S</s></button>
         <div class="styler-divider"></div>
-        <button class="btn-hl-y" data-cmd="hl-yellow">노랑</button>
-        <button class="btn-hl-g" data-cmd="hl-green">연두</button>
-        <button class="btn-hl-b" data-cmd="hl-blue">하늘</button>
-        <button class="btn-hl-p" data-cmd="hl-pink">분홍</button>
+        <span class="color-chip chip-yellow" data-cmd="hl-yellow"></span>
+        <span class="color-chip chip-green" data-cmd="hl-green"></span>
+        <span class="color-chip chip-blue" data-cmd="hl-blue"></span>
+        <span class="color-chip chip-pink" data-cmd="hl-pink"></span>
+        <button class="btn-clear-hl" data-cmd="clear-hl">지우개</button>
     </div>
 
     <div class="floating-history-panel">
@@ -663,24 +676,44 @@
 
                 const rect = range.getBoundingClientRect();
                 styler.style.display = 'flex';
-                styler.style.top = `${rect.top + window.scrollY - 35}px`;
+                styler.style.top = `${rect.top + window.scrollY - 40}px`;
                 styler.style.left = `${rect.left + window.scrollX}px`;
             });
         }
 
-        styler.querySelectorAll('button').forEach(btn => {
-            btn.addEventListener('mousedown', (e) => {
-                e.preventDefault();
-                saveHistoryState();
-                const cmd = btn.dataset.cmd;
+        // 텍스트 스타일러 이벤트 위임 처리 (버튼 및 색상 칩 전용)
+        styler.addEventListener('mousedown', (e) => {
+            const target = e.target.closest('[data-cmd]');
+            if (!target) return;
+            
+            e.preventDefault();
+            saveHistoryState();
+            
+            const cmd = target.dataset.cmd;
+            const selection = window.getSelection();
+            if (!selection.rangeCount || selection.isCollapsed) return;
+
+            if (cmd === 'clear-hl') {
+                // 형광펜 취소(지우개) 기능 로직
+                const range = selection.getRangeAt(0);
+                const container = document.createElement('div');
+                container.appendChild(range.cloneContents());
                 
-                // 형광펜 클래스 분기 처리 로직 (노랑, 연두, 하늘, 분홍)
-                if(cmd.startsWith('hl-')) {
-                    document.execCommand('insertHTML', false, `<mark class="${cmd}">${window.getSelection().toString()}</mark>`);
-                } else {
-                    document.execCommand(cmd, false, null);
-                }
-            });
+                // 선택 영역 내부의 모든 형광펜 mark 태그를 걷어내고 텍스트만 추출
+                const marks = container.querySelectorAll('mark[class^="hl-"]');
+                marks.forEach(m => {
+                    const textNode = document.createTextNode(m.textContent);
+                    m.parentNode.replaceChild(textNode, m);
+                });
+                
+                document.execCommand('insertHTML', false, container.innerHTML);
+            } else if (cmd.startsWith('hl-')) {
+                // 새로운 형광펜 적용
+                document.execCommand('insertHTML', false, `<mark class="${cmd}">${selection.toString()}</mark>`);
+            } else {
+                // 기본 스타일 속성 (B, I, S)
+                document.execCommand(cmd, false, null);
+            }
         });
 
         function buildFinal() {
@@ -700,7 +733,6 @@
                 .msg { font-family: ${chosenFontStack}; font-size:0.9rem; line-height:1.4; white-space:pre-wrap; word-break:break-all; flex:1; color:${p.text}; }
                 .msg b { font-weight: bold; } .msg i { font-style: italic; } .msg s { text-decoration: line-through; }
                 
-                /* 최종 저장 문서용 4색 형광펜 스타일 스펙 */
                 .msg mark.hl-yellow { background-color: #fef08a; color: #000; padding: 0 2px; border-radius: 2px; }
                 .msg mark.hl-green { background-color: #bbf7d0; color: #000; padding: 0 2px; border-radius: 2px; }
                 .msg mark.hl-blue { background-color: #bfdbfe; color: #000; padding: 0 2px; border-radius: 2px; }
