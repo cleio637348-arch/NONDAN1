@@ -164,10 +164,10 @@
         .btn-util { flex: 1; border-color: rgba(96, 165, 250, 0.2); color: var(--text-link); }
         .btn-util:hover { background: rgba(96, 165, 250, 0.1); }
 
-        /* 밤티 해소 및 노션 스타일 제안창 컴포넌트 */
+        /* 맞춤법 제안창 미니멀 정돈 디자인 */
         .spell-report-card {
             background: var(--bg-surface);
-            border: 1px solid rgba(239, 68, 68, 0.2);
+            border: 1px solid rgba(220, 38, 38, 0.4);
             border-radius: 8px;
             padding: 16px;
             margin-bottom: 20px;
@@ -184,49 +184,59 @@
         .spell-report-title {
             font-size: 0.85rem;
             font-weight: 700;
-            color: #f87171;
-            display: flex;
-            align-items: center;
-            gap: 6px;
+            color: #ef4444;
         }
         .spell-btn-all {
-            background: rgba(52, 211, 153, 0.15);
-            border: 1px solid rgba(52, 211, 153, 0.3);
-            color: #34d399;
+            background: rgba(16, 185, 129, 0.1);
+            border: 1px solid rgba(16, 185, 129, 0.3);
+            color: #10b981;
             border-radius: 4px;
-            padding: 4px 10px;
+            padding: 4px 12px;
             font-size: 0.75rem;
             font-weight: 600;
             cursor: pointer;
-            transition: 0.2s;
+            transition: 0.15s;
         }
-        .spell-btn-all:hover { background: rgba(52, 211, 153, 0.25); }
+        .spell-btn-all:hover { background: rgba(16, 185, 129, 0.2); }
         
         .spell-report-list {
-            max-height: 200px;
+            max-height: 250px;
             overflow-y: auto;
             font-size: 0.8rem;
             display: flex;
             flex-direction: column;
-            gap: 4px;
+            gap: 6px;
         }
         .spell-report-item {
             display: flex;
-            align-items: center;
+            align-items: flex-start;
             justify-content: space-between;
-            padding: 6px 10px;
-            background: rgba(0,0,0,0.15);
-            border-radius: 4px;
+            padding: 10px;
+            background: var(--bg-input);
+            border-radius: 6px;
             border: 1px solid var(--border-notion);
+            gap: 16px;
+        }
+        .spell-context-box {
+            line-height: 1.5;
+            color: rgba(255,255,255,0.7);
+        }
+        .spell-meta-tag {
+            color: var(--text-link);
+            font-size: 0.75rem;
+            font-weight: 700;
+            margin-bottom: 3px;
+            display: block;
         }
         .spell-fix-trigger {
-            background: rgba(255,255,255,0.06);
+            background: rgba(255,255,255,0.05);
             border: 1px solid rgba(255,255,255,0.1);
             color: #fff;
-            padding: 2px 8px;
+            padding: 4px 10px;
             font-size: 0.75rem;
             border-radius: 4px;
             cursor: pointer;
+            flex-shrink: 0;
             transition: 0.1s;
         }
         .spell-fix-trigger:hover { background: var(--text-link); border-color: var(--text-link); }
@@ -372,7 +382,7 @@
 
         <div class="grid-config">
             <div class="input-group" style="grid-column: span 2;">
-                <span>5. 맞춤법 검사 기능 사용 여부 (실행 시 실시간 분석)</span>
+                <span>5. 맞춤법 검사 기능 사용 여부</span>
                 <div class="switch-group">
                     <label class="switch-item">
                         <input type="radio" name="spellCheckToggle" value="off" checked> 기능 끄기 (Off)
@@ -412,7 +422,7 @@
 
     <div id="spellReportCard" class="spell-report-card">
         <div class="spell-report-header">
-            <div class="spell-report-title">📌 맞춤법 및 오탈자 수정 제안 피드백 리스트</div>
+            <div class="spell-report-title">맞춤법 및 오탈자 수정 제안 리스트</div>
             <button id="btnSpellFixAll" class="spell-btn-all">제안된 항목 모두 교정</button>
         </div>
         <div id="spellReportList" class="spell-report-list"></div>
@@ -643,7 +653,7 @@
             updateHistoryButtons();
         });
 
-        // 자동 실행 및 리포팅 추출 함수 설계
+        // 원본 컨텍스트 전체 문장을 불러오도록 엔진 고도화
         function runAutoSpellChecker() {
             const isEnabled = document.querySelector('input[name="spellCheckToggle"]:checked').value === "on";
             const reportCard = document.getElementById('spellReportCard');
@@ -653,7 +663,7 @@
             reportCard.style.display = "none";
             window.lastDetectedIssues = [];
 
-            if (!isEnabled) return; // 기능 꺼져있으면 스킵
+            if (!isEnabled) return;
 
             const blocks = document.querySelectorAll('.notion-block');
             if (blocks.length === 0) return;
@@ -684,14 +694,14 @@
                     const item = document.createElement('div');
                     item.className = "spell-report-item";
                     
-                    const currentText = issue.element.innerText;
-                    const matchWord = currentText.match(issue.wrongReg) ? currentText.match(issue.wrongReg)[0] : "의심 단어";
+                    // 문맥 안에서 매칭 단어를 찾아 시각적 변경 가이드라인 구성
+                    const fullText = issue.element.innerText;
+                    const highlightedContext = fullText.replace(issue.wrongReg, `<span style="text-decoration:line-through; color:#ef4444; margin:0 2px;">$&</span><span style="color:#10b981; font-weight:700; margin:0 2px;">${issue.rightText}</span>`);
 
                     item.innerHTML = `
-                        <div>
-                            <strong style="color:var(--text-link); font-size:0.75rem;">[${issue.lineNum}행 - ${issue.speaker}]</strong> 
-                            <span style="text-decoration:line-through; color:rgba(255,255,255,0.4); margin-left:6px;">${matchWord}</span> 
-                            <span style="color:#34d399; font-weight:bold;"> &rarr; ${issue.rightText}</span>
+                        <div class="spell-context-box">
+                            <span class="spell-meta-tag">${issue.lineNum}행 - ${issue.speaker}</span>
+                            <div>${highlightedContext}</div>
                         </div>
                         <button class="spell-fix-trigger" id="fix_btn_${index}">교정</button>
                     `;
@@ -718,7 +728,7 @@
             });
 
             const reportList = document.getElementById('spellReportList');
-            reportList.innerHTML = `<div style="padding: 10px; color: #34d399; font-weight: 600; text-align: center;">✅ 모든 제안 항목 일괄 교정이 완료되었습니다!</div>`;
+            reportList.innerHTML = `<div style="padding: 10px; color: #10b981; font-weight: 600; text-align: center;">모든 제안 항목 일괄 교정이 완료되었습니다.</div>`;
         });
 
         document.getElementById('btnProcess').addEventListener('click', () => {
@@ -806,7 +816,6 @@
             });
             initStylerEvents(); 
             
-            // 실행 버튼을 누를 때 On 상태이면 맞춤법 수집 함수가 함께 돌아갑니다.
             runAutoSpellChecker();
         });
 
