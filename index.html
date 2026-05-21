@@ -6,7 +6,7 @@
     <title>논단군 코코포 로그 백업기</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght=400;500;700&family=Noto+Serif+KR:wght=400;700&family=Hina+Mincho&family=Inter:wght=400;600&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;700&family=Noto+Serif+KR:wght@400;700&family=Hina+Mincho&family=Inter:wght@400;600&display=swap" rel="stylesheet">
     <style>
         :root {
             /* 기본 인터페이스 (노션 스타일 다크 모드) */
@@ -18,7 +18,7 @@
             --text-muted: rgba(255, 255, 255, 0.4);
             --text-link: #60a5fa;
 
-            /* 폰트 프리셋 (기본 고딕) */
+            /* 폰트 프리셋 기본 세팅 */
             --font-serif: "Hina Mincho", "Noto Serif KR", serif;
             --font-sans: "Noto Sans KR", "Inter", sans-serif;
             --current-font: var(--font-sans);
@@ -134,7 +134,22 @@
 
         .filter-container { display: grid; grid-template-columns: repeat(auto-fill, minmax(130px, 1fr)); gap: 8px; margin-top: 6px; }
         .filter-item { display: flex; align-items: center; gap: 6px; font-size: 0.85rem; cursor: pointer; }
-        .filter-item input { width: 15px; height: 15px; cursor: pointer; accent-color: var(--text-link); }
+        .filter-item input[type="checkbox"] { width: 15px; height: 15px; cursor: pointer; accent-color: var(--text-link); }
+
+        /* 캐릭터 컬러 지정 패널 전용 UI */
+        .color-picker-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            background: var(--bg-input);
+            padding: 6px 10px;
+            border-radius: 6px;
+            border: 1px solid var(--border-notion);
+            font-size: 0.85rem;
+        }
+        .color-picker-item input[type="color"] {
+            border: none; width: 22px; height: 22px; border-radius: 4px; cursor: pointer; background: transparent;
+        }
 
         .btn-group { display: flex; gap: 8px; margin-bottom: 20px; }
         .notion-btn {
@@ -189,10 +204,9 @@
             outline: none; 
             color: var(--script-text); 
             white-space: pre-wrap;
-            font-family: var(--current-font);
+            font-family: var(--current-font); /* 서체 유동적 결합 보장 */
         }
         
-        /* 캐릭터 이름 스타일 (기본 fallback 색상 지정, 스크립트에서 개별 색 주입) */
         .char-name { 
             font-size: 0.8rem; 
             font-weight: 700; 
@@ -290,6 +304,13 @@
                 <p style="font-size: 0.8rem; color: var(--text-muted);">파일을 먼저 업로드하세요.</p>
             </div>
         </div>
+
+        <div class="input-group" style="margin-top: 10px;">
+            <span>6. 캐릭터 고유 색상 지정</span>
+            <div id="characterColorsPanel" class="filter-container">
+                <p style="font-size: 0.8rem; color: var(--text-muted);">파일을 먼저 업로드하세요.</p>
+            </div>
+        </div>
     </div>
 
     <div class="btn-group">
@@ -309,8 +330,9 @@
     <script>
         let rawLogData = [];
         let characterAvatars = {}; 
-        let characterColors = {}; // [추가] 캐릭터별 고유 이름 색상 저장소
+        let characterColors = {}; 
         let detectedTabs = new Set();
+        let detectedCharacters = new Set(); // 캐릭터 목록 수집용
         let currentFontType = "sans"; 
         let currentColorTheme = "roll20";
 
@@ -322,6 +344,18 @@
                 bg: "#1a1a1a", text: "#ffffff", fallbackName: "#4da6ff", narrator: "#e0e0e0", sys: "#888888", border: "#2d2d2d"
             }
         };
+
+        // 색상 형식을 HEX 6자리로 안전하게 가공하는 헬퍼 함수
+        function rgbaToHex(orig) {
+            if(!orig) return "";
+            if(orig.startsWith('#')) return orig;
+            let rgb = orig.match(/^rgba?\((\d+),\s*(\d+),\s*(\d+)(?:,\s*([\d.]+))?\)$/);
+            if(!rgb) return "";
+            let r = parseInt(rgb[1]).toString(16).padStart(2, '0');
+            let g = parseInt(rgb[2]).toString(16).padStart(2, '0');
+            let b = parseInt(rgb[3]).toString(16).padStart(2, '0');
+            return "#" + r + g + b;
+        }
 
         function applyColorTheme(themeName) {
             const p = themeProfiles[themeName];
@@ -349,6 +383,7 @@
 
         applyColorTheme("roll20");
 
+        // [명조체 버그 수정] 본문 블록에 서체가 실시간 유기적으로 연동되도록 수정
         document.querySelectorAll('input[name="fontPreset"]').forEach(radio => {
             radio.addEventListener('change', (e) => {
                 currentFontType = e.target.value;
@@ -374,6 +409,7 @@
                 
                 rawLogData = [];
                 detectedTabs.clear();
+                detectedCharacters.clear();
 
                 lines.forEach(p => {
                     if (p.querySelector('p')) return; 
@@ -381,13 +417,12 @@
                     const text = p.textContent.trim();
                     if(!text) return;
 
-                    // [색상 추출 로직 보완] span 이나 인라인 color 속성이 박혀있을 경우 추출
                     let extractedColor = "";
                     let spanWithColor = p.querySelector('span[style*="color"]');
                     if (spanWithColor) {
-                        extractedColor = spanWithColor.style.color;
+                        extractedColor = rgbaToHex(spanWithColor.style.color);
                     } else if (p.getAttribute('style') && p.getAttribute('style').includes('color')) {
-                        extractedColor = p.style.color;
+                        extractedColor = rgbaToHex(p.style.color);
                     }
 
                     let avatarSrc = "";
@@ -409,6 +444,7 @@
                         if(charName.toUpperCase() === "SYSTEM" || charName === "시스템") {
                             rawLogData.push({ tab: "시스템", name: "", message: msgBody, avatar: "" });
                         } else {
+                            detectedCharacters.add(charName);
                             rawLogData.push({ tab: tabName, name: charName, message: msgBody, avatar: avatarSrc });
                             if(avatarSrc && !characterAvatars[charName]) characterAvatars[charName] = avatarSrc;
                             if(extractedColor && !characterColors[charName]) characterColors[charName] = extractedColor;
@@ -423,6 +459,7 @@
                             if(timeMatch) msgBody = msgBody.replace(timeMatch[0], "").trim();
 
                             detectedTabs.add("Main");
+                            detectedCharacters.add(charName);
                             rawLogData.push({ tab: "Main", name: charName, message: msgBody, avatar: avatarSrc });
                             if(avatarSrc && !characterAvatars[charName]) characterAvatars[charName] = avatarSrc;
                             if(extractedColor && !characterColors[charName]) characterColors[charName] = extractedColor;
@@ -445,6 +482,7 @@
                 }
 
                 buildFilters();
+                buildColorsPanel();
             };
             reader.readAsText(file, 'UTF-8');
         });
@@ -461,6 +499,32 @@
                 label.className = "filter-item";
                 label.innerHTML = `<input type="checkbox" class="tab-chk" value="${tab}" checked> <span>${tab}</span>`;
                 container.appendChild(label);
+            });
+        }
+
+        // [복구 및 강화] 캐릭터 컬러 선택기 빌더 패널 함수
+        function buildColorsPanel() {
+            const container = document.getElementById('characterColorsPanel');
+            container.innerHTML = "";
+            if(detectedCharacters.size === 0) {
+                container.innerHTML = `<p style="font-size: 0.8rem; color: var(--text-muted);">감지된 캐릭터가 없습니다.</p>`;
+                return;
+            }
+            const pProfile = themeProfiles[currentColorTheme];
+            Array.from(detectedCharacters).sort().forEach(char => {
+                const defaultColor = characterColors[char] || pProfile.fallbackName;
+                const div = document.createElement('div');
+                div.className = "color-picker-item";
+                div.innerHTML = `
+                    <input type="color" class="char-color-input" data-char="${char}" value="${defaultColor.startsWith('#') && defaultColor.length===7 ? defaultColor : '#b51212'}">
+                    <span>${char}</span>
+                `;
+                container.appendChild(div);
+
+                // 색상 변경 실시간 수집 연동
+                div.querySelector('input').addEventListener('input', (e) => {
+                    characterColors[char] = e.target.value;
+                });
             });
         }
 
@@ -542,7 +606,6 @@
                         inner += `<div class="avatar-placeholder"></div>`;
                     }
                     
-                    // [핵심 변경] 추출된 캐릭터 고유 색상이 있으면 입히고, 없으면 프리셋 기본 컬러 매칭
                     const customColor = characterColors[currentSpeaker] || pProfile.fallbackName;
 
                     inner += `<div style="flex:1;">
@@ -602,7 +665,6 @@
                         else res += `<div style="width:28px;flex-shrink:0"></div>`;
                         
                         res += '<div>';
-                        // [최종 추출 결과물 연동] 저장 파일 내부 태그 스캔 단계에서도 개별 주입 색상 연계 유지
                         const nameEl = el.querySelector('.char-name');
                         const inlineColor = nameEl ? nameEl.style.color : p.fallbackName;
 
