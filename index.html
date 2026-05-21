@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>논단군 스크립트 정리 Pro - Studio Edition</title>
+    <title>논단군 코코포 로그 백업</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;700&family=Noto+Serif+KR:wght@400;700&family=Hina+Mincho&family=Inter:wght@400;600&display=swap" rel="stylesheet">
@@ -25,7 +25,7 @@
             --font-sans: "Noto Sans KR", "Inter", sans-serif;
             
             /* 기본값은 세리프(명조)로 설정 */
-            --current-font: var(--font-serif);
+            --current-font: var(--font-sans-serif);
         }
 
         body {
@@ -214,26 +214,26 @@
 <body>
 
     <header>
-        <h1>논단군 스크립트 정리 Pro</h1>
-        <p>Roll20 Layout & Font Customizer</p>
+        <h1>논단군 코코포리아 로그 백업</h1>
+        <p>코코포리아 로그 백업기</p>
     </header>
 
     <div class="notion-card">
-        <div class="notion-label">설정 센터</div>
+        <div class="notion-label">설정</div>
         <div class="grid-config" style="margin-bottom: 12px;">
             <div class="input-group">
                 <span>1. 로그 파일 업로드 (.html)</span>
                 <input id="logFile" type="file" accept=".html">
             </div>
             <div class="input-group">
-                <span>2. 지문 서술자 이름 지정</span>
+                <span>2. 서술자 이름 지정</span>
                 <input id="narratorName" type="text" placeholder="예: GM 또는 서술자">
             </div>
         </div>
 
         <div class="grid-config">
             <div class="input-group">
-                <span>3. 스크립트 출력 서체 선택</span>
+                <span>3. 서체 선택</span>
                 <div class="font-switch-group">
                     <label class="font-switch-item">
                         <input type="radio" name="fontPreset" value="serif" checked> 고급 명조체 (Serif)
@@ -246,7 +246,7 @@
         </div>
         
         <div class="input-group" style="margin-top: 10px;">
-            <span>4. 추출할 탭 필터링</span>
+            <span>4. 추출 탭</span>
             <div id="dynamicFilters" class="filter-container">
                 <p style="font-size: 0.8rem; color: var(--text-muted);">파일을 먼저 업로드하세요.</p>
             </div>
