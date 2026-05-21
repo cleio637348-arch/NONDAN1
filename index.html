@@ -9,7 +9,6 @@
     <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;700&family=Noto+Serif+KR:wght@400;700&family=Hina+Mincho&family=Inter:wght@400;600&display=swap" rel="stylesheet">
     <style>
         :root {
-            /* 기본 인터페이스 (노션 스타일 다크 모드) */
             --bg-main: #191919;
             --bg-surface: #202020;
             --bg-input: #252525;
@@ -18,12 +17,10 @@
             --text-muted: rgba(255, 255, 255, 0.4);
             --text-link: #60a5fa;
 
-            /* 폰트 프리셋 기본 세팅 */
             --font-serif: "Hina Mincho", "Noto Serif KR", serif;
             --font-sans: "Noto Sans KR", "Inter", sans-serif;
             --current-font: var(--font-sans);
 
-            /* 스크립트 색상 스택 초기화 변수 */
             --script-bg: #f3f3f3;
             --script-text: #111111;
             --script-narrator: #222222;
@@ -107,7 +104,7 @@
         .input-group { display: flex; flex-direction: column; gap: 6px; margin-bottom: 12px; }
         .input-group span { font-size: 0.8rem; color: var(--text-muted); font-weight: 600; }
 
-        input[type="text"], input[type="file"] {
+        input[type="text"], input[type="file"], input[type="search"] {
             width: 100%; background-color: var(--bg-input); border: 1px solid var(--border-notion);
             border-radius: 6px; color: var(--text-main); font-size: 0.85rem; padding: 10px; box-sizing: border-box; outline: none;
         }
@@ -127,16 +124,12 @@
             font-size: 0.85rem;
             cursor: pointer;
         }
-        .switch-item input {
-            accent-color: var(--text-link);
-            cursor: pointer;
-        }
+        .switch-item input { accent-color: var(--text-link); cursor: pointer; }
 
         .filter-container { display: grid; grid-template-columns: repeat(auto-fill, minmax(130px, 1fr)); gap: 8px; margin-top: 6px; }
         .filter-item { display: flex; align-items: center; gap: 6px; font-size: 0.85rem; cursor: pointer; }
         .filter-item input[type="checkbox"] { width: 15px; height: 15px; cursor: pointer; accent-color: var(--text-link); }
 
-        /* 캐릭터 컬러 지정 패널 전용 UI */
         .color-picker-item {
             display: flex;
             align-items: center;
@@ -180,77 +173,49 @@
             border-radius: 4px;
             position: relative;
         }
-        .notion-row:hover {
-            background: rgba(128, 128, 128, 0.05);
-        }
+        .notion-row.filtered-out { display: none !important; }
+        .notion-row:hover { background: rgba(128, 128, 128, 0.05); }
 
-        .content-cell {
-            display: flex;
-            align-items: flex-start;
-            gap: 8px;
-            flex: 1;
-        }
-        
+        .content-cell { display: flex; align-items: flex-start; gap: 8px; flex: 1; }
         .avatar-box { width: 28px; height: 28px; border-radius: 4px; object-fit: cover; flex-shrink: 0; border: 1px solid rgba(0,0,0,0.1); background: #ddd; }
         .avatar-placeholder { width: 28px; flex-shrink: 0; }
         
         .notion-block {
-            flex: 1; 
-            padding: 2px 4px; 
-            border-radius: 4px; 
-            font-size: 0.9rem; 
-            line-height: 1.4; 
-            word-break: break-all; 
-            outline: none; 
-            color: var(--script-text); 
-            white-space: pre-wrap;
-            font-family: var(--current-font); /* 서체 유동적 결합 보장 */
+            flex: 1; padding: 2px 4px; border-radius: 4px; font-size: 0.9rem; line-height: 1.4; 
+            word-break: break-all; outline: none; color: var(--script-text); white-space: pre-wrap;
+            font-family: var(--current-font);
         }
         
-        .char-name { 
-            font-size: 0.8rem; 
-            font-weight: 700; 
-            margin-bottom: 1px; 
-            display: block; 
-            font-family: var(--font-sans);
-        }
+        /* 실시간 검색 하이라이트 전용 스타일 */
+        mark.log-match { background: #fef08a; color: #000; border-radius: 2px; padding: 0 2px; }
 
-        .state-narrator { 
-            text-align: center; 
-            font-weight: 700; 
-            font-style: italic; 
-            color: var(--script-narrator) !important; 
-            width: 100%; 
-            margin: 4px 0; 
-            padding: 3px 10px; 
-            font-size: 0.9rem; 
+        /* [5번 구현] 내보내기용 인라인 스타일 대응 */
+        .notion-block b, .msg b { font-weight: bold; }
+        .notion-block i, .msg i { font-style: italic; }
+        .notion-block s, .msg s { text-decoration: line-through; }
+        .notion-block mark.user-mark, .msg mark.user-mark { background-color: #fef08a; color: #000; padding: 0 2px; border-radius: 2px; }
+
+        /* [5번 구현] 미니 텍스트 스타일러 툴바 디자인 */
+        #textStyler {
+            position: absolute; display: none; background: #2a2a2a; border: 1px solid rgba(255,255,255,0.15);
+            border-radius: 6px; box-shadow: 0 4px 12px rgba(0,0,0,0.3); z-index: 9999; padding: 4px; gap: 2px;
         }
+        #textStyler button {
+            background: none; border: none; color: #fff; font-size: 0.75rem; padding: 4px 8px;
+            cursor: pointer; border-radius: 4px; font-weight: 600; transition: 0.1s;
+        }
+        #textStyler button:hover { background: rgba(255,255,255,0.15); }
         
+        .char-name { font-size: 0.8rem; font-weight: 700; margin-bottom: 1px; display: block; font-family: var(--font-sans); }
+        .state-narrator { text-align: center; font-weight: 700; font-style: italic; color: var(--script-narrator) !important; width: 100%; margin: 4px 0; padding: 3px 10px; font-size: 0.9rem; }
         .state-system { font-family: var(--font-sans); font-size: 0.8rem; color: var(--script-sys) !important; }
         .state-dice { background-color: transparent !important; color: var(--script-text) !important; border-left: none !important; padding: 2px 4px !important; }
 
-        .control-cell {
-            flex-shrink: 0;
-            display: flex;
-            align-items: center;
-        }
-
-        .row-control { 
-            background: rgba(0,0,0,0.04); 
-            border: 1px solid rgba(0,0,0,0.08); 
-            color: #e05656; 
-            cursor: pointer; 
-            font-size: 0.7rem; 
-            font-weight: bold;
-            padding: 2px 5px;
-            border-radius: 3px;
-            transition: all 0.1s;
-            font-family: var(--font-sans);
-        }
+        .control-cell { flex-shrink: 0; display: flex; align-items: center; }
+        .row-control { background: rgba(0,0,0,0.04); border: 1px solid rgba(0,0,0,0.08); color: #e05656; cursor: pointer; font-size: 0.7rem; font-weight: bold; padding: 2px 5px; border-radius: 3px; transition: all 0.1s; font-family: var(--font-sans); }
         .row-control:hover { color: #fff; background: #ff4d4d; border-color: #ff4d4d; }
         
         .character-divider { border-top: 1px solid rgba(0, 0, 0, 0.05); margin: 4px 0 2px 0; width: 100%; }
-        .hidden { display: none !important; }
     </style>
 </head>
 <body>
@@ -311,6 +276,11 @@
                 <p style="font-size: 0.8rem; color: var(--text-muted);">파일을 먼저 업로드하세요.</p>
             </div>
         </div>
+
+        <div class="input-group" style="margin-top: 10px;">
+            <span>🔍 로그 내용 실시간 검색 (하이라이트)</span>
+            <input id="logSearchInput" type="search" placeholder="찾고 싶은 대사나 단어를 입력하면 실시간으로 필터링됩니다...">
+        </div>
     </div>
 
     <div class="btn-group">
@@ -327,30 +297,30 @@
 
     <div id="dynamicTabsOutput"></div>
 
+    <div id="textStyler">
+        <button data-cmd="bold"><b>B</b></button>
+        <button data-cmd="italic"><i>I</i></button>
+        <button data-cmd="strikeThrough"><s>S</s></button>
+        <button data-cmd="hilite">형광펜</button>
+    </div>
+
     <script>
         let rawLogData = [];
         let characterAvatars = {}; 
         let characterColors = {}; 
         let detectedTabs = new Set();
-        let detectedCharacters = new Set(); // 캐릭터 목록 수집용
+        let detectedCharacters = new Set(); 
         let currentFontType = "sans"; 
         let currentColorTheme = "roll20";
 
         const themeProfiles = {
-            roll20: {
-                bg: "#f3f3f3", text: "#111111", fallbackName: "#b51212", narrator: "#222222", sys: "#666666", border: "#dddddd"
-            },
-            ccfolia: {
-                bg: "#1a1a1a", text: "#ffffff", fallbackName: "#4da6ff", narrator: "#e0e0e0", sys: "#888888", border: "#2d2d2d"
-            }
+            roll20: { bg: "#f3f3f3", text: "#111111", fallbackName: "#b51212", narrator: "#222222", sys: "#666666", border: "#dddddd" },
+            ccfolia: { bg: "#1a1a1a", text: "#ffffff", fallbackName: "#4da6ff", narrator: "#e0e0e0", sys: "#888888", border: "#2d2d2d" }
         };
 
-        // 색상 형식을 HEX 6자리로 안전하게 가공하는 헬퍼 함수
         function rgbaToHex(orig) {
-            if(!orig) return "";
-            if(orig.startsWith('#')) return orig;
-            let rgb = orig.match(/^rgba?\((\d+),\s*(\d+),\s*(\d+)(?:,\s*([\d.]+))?\)$/);
-            if(!rgb) return "";
+            if(!orig) return ""; if(orig.startsWith('#')) return orig;
+            let rgb = orig.match(/^rgba?\((\d+),\s*(\d+),\s*(\d+)(?:,\s*([\d.]+))?\)$/); if(!rgb) return "";
             let r = parseInt(rgb[1]).toString(16).padStart(2, '0');
             let g = parseInt(rgb[2]).toString(16).padStart(2, '0');
             let b = parseInt(rgb[3]).toString(16).padStart(2, '0');
@@ -368,22 +338,15 @@
         }
 
         function toggleAccordion(contentId, arrowId) {
-            const content = document.getElementById(contentId);
-            content.classList.toggle('open');
-            const arrow = document.getElementById(arrowId);
-            arrow.innerText = content.classList.contains('open') ? '▼' : '▶';
+            const content = document.getElementById(contentId); content.classList.toggle('open');
+            const arrow = document.getElementById(arrowId); arrow.innerText = content.classList.contains('open') ? '▼' : '▶';
         }
 
         document.querySelectorAll('input[name="colorTheme"]').forEach(radio => {
-            radio.addEventListener('change', (e) => {
-                currentColorTheme = e.target.value;
-                applyColorTheme(currentColorTheme);
-            });
+            radio.addEventListener('change', (e) => { currentColorTheme = e.target.value; applyColorTheme(currentColorTheme); });
         });
-
         applyColorTheme("roll20");
 
-        // [명조체 버그 수정] 본문 블록에 서체가 실시간 유기적으로 연동되도록 수정
         document.querySelectorAll('input[name="fontPreset"]').forEach(radio => {
             radio.addEventListener('change', (e) => {
                 currentFontType = e.target.value;
@@ -394,52 +357,30 @@
         });
 
         document.getElementById('logFile').addEventListener('change', (e) => {
-            const file = e.target.files[0];
-            if (!file) return;
-
+            const file = e.target.files[0]; if (!file) return;
             const reader = new FileReader();
             reader.onload = function(event) {
-                const parser = new DOMParser();
-                const doc = parser.parseFromString(event.target.result, 'text/html');
-                
+                const parser = new DOMParser(); const doc = parser.parseFromString(event.target.result, 'text/html');
                 document.getElementById('roomTitle').innerText = file.name.replace(/\.html$/i, "").replace(/\[all\]$/i, "").trim();
-
-                let lines = doc.querySelectorAll('p, .msg, .chat-line');
-                if(lines.length === 0) lines = doc.querySelectorAll('body > div');
-                
-                rawLogData = [];
-                detectedTabs.clear();
-                detectedCharacters.clear();
+                let lines = doc.querySelectorAll('p, .msg, .chat-line'); if(lines.length === 0) lines = doc.querySelectorAll('body > div');
+                rawLogData = []; detectedTabs.clear(); detectedCharacters.clear();
 
                 lines.forEach(p => {
-                    if (p.querySelector('p')) return; 
-
-                    const text = p.textContent.trim();
-                    if(!text) return;
-
+                    if (p.querySelector('p')) return; const text = p.textContent.trim(); if(!text) return;
                     let extractedColor = "";
                     let spanWithColor = p.querySelector('span[style*="color"]');
-                    if (spanWithColor) {
-                        extractedColor = rgbaToHex(spanWithColor.style.color);
-                    } else if (p.getAttribute('style') && p.getAttribute('style').includes('color')) {
-                        extractedColor = rgbaToHex(p.style.color);
-                    }
+                    if (spanWithColor) extractedColor = rgbaToHex(spanWithColor.style.color);
+                    else if (p.getAttribute('style') && p.getAttribute('style').includes('color')) extractedColor = rgbaToHex(p.style.color);
 
                     let avatarSrc = "";
                     let imgEl = p.querySelector('img') || p.previousElementSibling?.querySelector('img') || p.parentElement?.querySelector('img');
-                    if (imgEl && imgEl.getAttribute('src')) {
-                        avatarSrc = imgEl.getAttribute('src');
-                    }
+                    if (imgEl && imgEl.getAttribute('src')) avatarSrc = imgEl.getAttribute('src');
 
                     const match = text.match(/^\[([^\]]+)\]\s*([^:]+)\s*:\s*([\s\S]*)$/);
                     if (match) {
-                        let tabName = match[1].trim();
-                        let charName = match[2].trim();
-                        let msgBody = match[3].trim();
-                        
+                        let tabName = match[1].trim(); let charName = match[2].trim(); let msgBody = match[3].trim();
                         const timeMatch = msgBody.match(/\s*(\d{4}\/\d{2}\/\d{2}\s+\d{2}:\d{2}:\d{2}|\d{2}:\d{2})$/);
                         if(timeMatch) msgBody = msgBody.replace(timeMatch[0], "").trim();
-
                         detectedTabs.add(tabName);
                         if(charName.toUpperCase() === "SYSTEM" || charName === "시스템") {
                             rawLogData.push({ tab: "시스템", name: "", message: msgBody, avatar: "" });
@@ -452,174 +393,156 @@
                     } else {
                         const simpleMatch = text.match(/^([^:]+)\s*:\s*([\s\S]*)$/);
                         if(simpleMatch) {
-                            let charName = simpleMatch[1].trim();
-                            let msgBody = simpleMatch[2].trim();
-                            
+                            let charName = simpleMatch[1].trim(); let msgBody = simpleMatch[2].trim();
                             const timeMatch = msgBody.match(/\s*(\d{4}\/\d{2}\/\d{2}\s+\d{2}:\d{2}:\d{2}|\d{2}:\d{2})$/);
                             if(timeMatch) msgBody = msgBody.replace(timeMatch[0], "").trim();
-
-                            detectedTabs.add("Main");
-                            detectedCharacters.add(charName);
+                            detectedTabs.add("Main"); detectedCharacters.add(charName);
                             rawLogData.push({ tab: "Main", name: charName, message: msgBody, avatar: avatarSrc });
                             if(avatarSrc && !characterAvatars[charName]) characterAvatars[charName] = avatarSrc;
                             if(extractedColor && !characterColors[charName]) characterColors[charName] = extractedColor;
                         } else {
-                            if(!text.startsWith("http")) {
-                                rawLogData.push({ tab: "시스템", name: "", message: text, avatar: "" });
-                            }
+                            if(!text.startsWith("http")) rawLogData.push({ tab: "시스템", name: "", message: text, avatar: "" });
                         }
                     }
                 });
-
-                if(rawLogData.length === 0) {
-                    let fallbacks = doc.querySelectorAll('body *');
-                    fallbacks.forEach(f => {
-                        if(f.children.length === 0 && f.textContent.trim().length > 1) {
-                            rawLogData.push({ tab: "Main", name: "로그", message: f.textContent.trim(), avatar: "" });
-                        }
-                    });
-                    detectedTabs.add("Main");
-                }
-
-                buildFilters();
-                buildColorsPanel();
+                buildFilters(); buildColorsPanel();
             };
             reader.readAsText(file, 'UTF-8');
         });
 
         function buildFilters() {
-            const container = document.getElementById('dynamicFilters');
-            container.innerHTML = "";
-            if(detectedTabs.size === 0) {
-                container.innerHTML = `<p style="font-size: 0.8rem; color: var(--text-muted);">감지된 탭이 없습니다.</p>`;
-                return;
-            }
+            const container = document.getElementById('dynamicFilters'); container.innerHTML = "";
             Array.from(detectedTabs).sort().forEach(tab => {
-                const label = document.createElement('label');
-                label.className = "filter-item";
+                const label = document.createElement('label'); label.className = "filter-item";
                 label.innerHTML = `<input type="checkbox" class="tab-chk" value="${tab}" checked> <span>${tab}</span>`;
                 container.appendChild(label);
             });
         }
 
-        // [복구 및 강화] 캐릭터 컬러 선택기 빌더 패널 함수
         function buildColorsPanel() {
-            const container = document.getElementById('characterColorsPanel');
-            container.innerHTML = "";
-            if(detectedCharacters.size === 0) {
-                container.innerHTML = `<p style="font-size: 0.8rem; color: var(--text-muted);">감지된 캐릭터가 없습니다.</p>`;
-                return;
-            }
+            const container = document.getElementById('characterColorsPanel'); container.innerHTML = "";
             const pProfile = themeProfiles[currentColorTheme];
             Array.from(detectedCharacters).sort().forEach(char => {
                 const defaultColor = characterColors[char] || pProfile.fallbackName;
-                const div = document.createElement('div');
-                div.className = "color-picker-item";
-                div.innerHTML = `
-                    <input type="color" class="char-color-input" data-char="${char}" value="${defaultColor.startsWith('#') && defaultColor.length===7 ? defaultColor : '#b51212'}">
-                    <span>${char}</span>
-                `;
+                const div = document.createElement('div'); div.className = "color-picker-item";
+                div.innerHTML = `<input type="color" class="char-color-input" data-char="${char}" value="${defaultColor.startsWith('#') && defaultColor.length===7 ? defaultColor : '#b51212'}"> <span>${char}</span>`;
                 container.appendChild(div);
-
-                // 색상 변경 실시간 수집 연동
-                div.querySelector('input').addEventListener('input', (e) => {
-                    characterColors[char] = e.target.value;
-                });
+                div.querySelector('input').addEventListener('input', (e) => { characterColors[char] = e.target.value; });
             });
         }
 
         document.getElementById('btnProcess').addEventListener('click', () => {
             if(rawLogData.length === 0) return alert('파일을 먼저 업로드해 주세요.');
-            
             const narrator = document.getElementById('narratorName').value.trim();
             const selectedTabs = Array.from(document.querySelectorAll('.tab-chk:checked')).map(c => c.value);
-            
-            const mainContainer = document.getElementById('mainContainer');
-            const dynamicTabsOutput = document.getElementById('dynamicTabsOutput');
-            mainContainer.innerHTML = "";
-            dynamicTabsOutput.innerHTML = "";
+            const mainContainer = document.getElementById('mainContainer'); const dynamicTabsOutput = document.getElementById('dynamicTabsOutput');
+            mainContainer.innerHTML = ""; dynamicTabsOutput.innerHTML = "";
 
             const tabGroups = {};
             selectedTabs.forEach(t => {
-                if(t.includes('메인') || t.toLowerCase() === 'main' || selectedTabs.length === 1) {
-                    tabGroups[t] = mainContainer;
-                } else {
-                    const card = document.createElement('div');
-                    card.className = "notion-card";
-                    const id = `tab_sec_${t.replace(/[^a-zA-Z0-9]/g, '_')}`;
-                    card.innerHTML = `
-                        <div class="accordion-header" onclick="toggleAccordion('${id}', 'arr_${id}')">
-                            <div class="notion-label" style="margin-bottom:0;">[${t}] 채널 로그</div>
-                            <div class="accordion-icon" id="arr_${id}">▶</div>
-                        </div>
-                        <div id="${id}" class="accordion-content script-container" style="margin-top:10px;"></div>`;
-                    dynamicTabsOutput.appendChild(card);
-                    tabGroups[t] = card.querySelector('.accordion-content');
+                if(t.includes('메인') || t.toLowerCase() === 'main' || selectedTabs.length === 1) { tabGroups[t] = mainContainer; } 
+                else {
+                    const card = document.createElement('div'); card.className = "notion-card"; const id = `tab_sec_${t.replace(/[^a-zA-Z0-9]/g, '_')}`;
+                    card.innerHTML = `<div class="accordion-header" onclick="toggleAccordion('${id}', 'arr_${id}')"><div class="notion-label" style="margin-bottom:0;">[${t}] 채널 로그</div><div class="accordion-icon" id="arr_${id}">▶</div></div><div id="${id}" class="accordion-content script-container" style="margin-top:10px;"></div>`;
+                    dynamicTabsOutput.appendChild(card); tabGroups[t] = card.querySelector('.accordion-content');
                 }
             });
 
-            let lastSpeakers = {}; 
-            const fontValue = currentFontType === "serif" ? "var(--font-serif)" : "var(--font-sans)";
+            let lastSpeakers = {}; const fontValue = currentFontType === "serif" ? "var(--font-serif)" : "var(--font-sans)";
             const pProfile = themeProfiles[currentColorTheme];
 
             rawLogData.forEach(log => {
                 if(log.tab !== "시스템" && !selectedTabs.includes(log.tab) && selectedTabs.length > 0) return;
-                
-                const target = tabGroups[log.tab] || mainContainer;
-                const isNarrator = narrator && log.name === narrator;
-                const isSys = log.tab === "시스템" || log.name === "";
-                const currentSpeaker = log.name;
+                const target = tabGroups[log.tab] || mainContainer; const isNarrator = narrator && log.name === narrator;
+                const isSys = log.tab === "시스템" || log.name === ""; const currentSpeaker = log.name;
 
                 let forceShowName = false;
-                if (!isSys && !isNarrator && (lastSpeakers[log.tab] === "__SYS__" || lastSpeakers[log.tab] === "__NARR__")) {
-                    forceShowName = true;
-                }
-
+                if (!isSys && !isNarrator && (lastSpeakers[log.tab] === "__SYS__" || lastSpeakers[log.tab] === "__NARR__")) forceShowName = true;
                 if (!isNarrator && !isSys && lastSpeakers[log.tab] && lastSpeakers[log.tab] !== currentSpeaker) {
-                    const divider = document.createElement('div');
-                    divider.className = "character-divider";
-                    target.appendChild(divider);
+                    const divider = document.createElement('div'); divider.className = "character-divider"; target.appendChild(divider);
                 }
-
                 let isSameSpeaker = (!forceShowName && !isNarrator && !isSys && lastSpeakers[log.tab] === currentSpeaker);
-                
-                if (isSys) lastSpeakers[log.tab] = "__SYS__";
-                else if (isNarrator) lastSpeakers[log.tab] = "__NARR__";
-                else lastSpeakers[log.tab] = currentSpeaker;
+                if (isSys) lastSpeakers[log.tab] = "__SYS__"; else if (isNarrator) lastSpeakers[log.tab] = "__NARR__"; else lastSpeakers[log.tab] = currentSpeaker;
 
-                const row = document.createElement('div');
-                row.className = "notion-row";
-                row.dataset.speaker = currentSpeaker;
-                row.dataset.tab = log.tab;
-
+                const row = document.createElement('div'); row.className = "notion-row"; row.dataset.speaker = currentSpeaker; row.dataset.tab = log.tab;
                 let msgClass = "notion-block";
                 if(log.message.includes('🎲') || log.message.includes('->') || log.message.includes('성공') || log.message.includes('실패')) msgClass += " state-dice";
-                if(isSys) msgClass += " state-system";
-                if(isNarrator) msgClass += " state-narrator";
+                if(isSys) msgClass += " state-system"; if(isNarrator) msgClass += " state-narrator";
 
                 let inner = `<div class="content-cell">`;
                 if(!isNarrator && !isSys) {
                     if(!isSameSpeaker) {
                         const avatar = characterAvatars[currentSpeaker] || log.avatar;
                         inner += avatar ? `<img src="${avatar}" class="avatar-box" data-raw-src="${avatar}">` : `<div class="avatar-box" style="background:#ddd"></div>`;
-                    } else {
-                        inner += `<div class="avatar-placeholder"></div>`;
-                    }
-                    
+                    } else { inner += `<div class="avatar-placeholder"></div>`; }
                     const customColor = characterColors[currentSpeaker] || pProfile.fallbackName;
+                    inner += `<div style="flex:1;">${!isSameSpeaker ? `<span class="char-name" style="color: ${customColor}">${currentSpeaker}</span>` : ''}<div class="${msgClass}" style="font-family: ${fontValue}" contenteditable="true" spellcheck="false">${escapeHtml(log.message)}</div></div>`;
+                } else { inner += `<div class="${msgClass}" style="font-family: ${fontValue}" contenteditable="true" spellcheck="false">${escapeHtml(log.message)}</div>`; }
+                inner += `</div><div class="control-cell"><button class="row-control" onclick="this.parentElement.parentElement.remove()">del</button></div>`;
+                row.innerHTML = inner; target.appendChild(row);
+            });
+            initStylerEvents(); // 스타일러 마우스 감지 재활성화
+        });
 
-                    inner += `<div style="flex:1;">
-                        ${!isSameSpeaker ? `<span class="char-name" style="color: ${customColor}">${currentSpeaker}</span>` : ''}
-                        <div class="${msgClass}" style="font-family: ${fontValue}" contenteditable="true" spellcheck="false">${escapeHtml(log.message)}</div>
-                    </div>`;
-                } else {
-                    inner += `<div class="${msgClass}" style="font-family: ${fontValue}" contenteditable="true" spellcheck="false">${escapeHtml(log.message)}</div>`;
-                }
-                inner += `</div>`;
+        // [1번 구현] 실시간 검색 및 하이라이트 핵심 로직
+        document.getElementById('logSearchInput').addEventListener('input', (e) => {
+            const query = e.target.value.trim().toLowerCase();
+            const rows = document.querySelectorAll('.notion-row');
+            
+            rows.forEach(row => {
+                const block = row.querySelector('.notion-block');
+                if(!block) return;
                 
-                inner += `<div class="control-cell"><button class="row-control" onclick="this.parentElement.parentElement.remove()">del</button></div>`;
-                row.innerHTML = inner;
-                target.appendChild(row);
+                // 원본 유지를 위해 이전에 주입된 검색 전용 mark 제거
+                let rawText = block.innerHTML.replace(/<mark class="log-match">(.*?)<\/mark>/g, '$1');
+                
+                if(!query) {
+                    row.classList.remove('filtered-out');
+                    block.innerHTML = rawText;
+                    return;
+                }
+
+                const visibleText = block.innerText.toLowerCase();
+                if(visibleText.includes(query)) {
+                    row.classList.remove('filtered-out');
+                    // 대소문자 구분 없이 매칭된 문자열만 노란색 mark 태그 입히기
+                    const regex = new RegExp(`(${query.replace(/[-\/\\^$*+?.()|[\]{}]/g, '\\$&')})`, 'gi');
+                    block.innerHTML = rawText.replace(regex, '<mark class="log-match">$1</mark>');
+                } else {
+                    row.classList.add('filtered-out');
+                }
+            });
+        });
+
+        // [5번 구현] 드래그 서식 지정 스타일러 자바스크립트 엔진
+        const styler = document.getElementById('textStyler');
+        function initStylerEvents() {
+            document.addEventListener('selectionchange', () => {
+                const selection = window.getSelection();
+                if (!selection.rangeCount || selection.isCollapsed) {
+                    styler.style.display = 'none'; return;
+                }
+                const range = selection.getRangeAt(0);
+                // 노션 블록 내부에서 텍스트를 잡았을 때만 작동바 띄우기
+                const block = range.commonAncestorContainer.parentElement?.closest('.notion-block');
+                if (!block) { styler.style.display = 'none'; return; }
+
+                const rect = range.getBoundingClientRect();
+                styler.style.display = 'flex';
+                styler.style.top = `${rect.top + window.scrollY - 35}px`;
+                styler.style.left = `${rect.left + window.scrollX}px`;
+            });
+        }
+
+        styler.querySelectorAll('button').forEach(btn => {
+            btn.addEventListener('mousedown', (e) => {
+                e.preventDefault(); // 선택 텍스트 해제 방지
+                const cmd = btn.dataset.cmd;
+                if(cmd === 'hilite') {
+                    document.execCommand('insertHTML', false, `<mark class="user-mark">${window.getSelection().toString()}</mark>`);
+                } else {
+                    document.execCommand(cmd, false, null);
+                }
             });
         });
 
@@ -638,6 +561,8 @@
                 .avatar { width:28px; height:28px; border-radius:4px; object-fit:cover; flex-shrink:0; border:1px solid rgba(0,0,0,0.1); background:#ddd; }
                 .name { font-size:0.8rem; font-weight:700; margin-bottom:1px; display:block; font-family: 'Noto Sans KR', sans-serif; }
                 .msg { font-family: ${chosenFontStack}; font-size:0.9rem; line-height:1.4; white-space:pre-wrap; word-break:break-all; flex:1; color:${p.text}; }
+                .msg b { font-weight: bold; } .msg i { font-style: italic; } .msg s { text-decoration: line-through; }
+                .msg mark.user-mark { background-color: #fef08a; color: #000; padding: 0 2px; border-radius: 2px; }
                 .narrator { text-align:center; font-weight:700; font-style:italic; padding:3px 10px; font-size:0.9rem; margin: 8px 0; color:${p.narrator}; }
                 .system { color:${p.sys}; font-size:0.8rem; font-family: 'Noto Sans KR', sans-serif; }
                 .divider { border-top: 1px solid rgba(0,0,0,0.05); margin:4px 0 2px 0; }
@@ -649,59 +574,49 @@
                 let res = ""; let last = "";
                 nodes.forEach(el => {
                     if(el.classList.contains('character-divider')) { res += '<div class="divider"></div>'; return; }
-                    const isNarr = el.querySelector('.state-narrator');
-                    const isSys = el.querySelector('.state-system');
-                    const spk = el.dataset.speaker || "";
-                    const same = (last === spk && !isNarr && !isSys);
+                    const isNarr = el.querySelector('.state-narrator'); const isSys = el.querySelector('.state-system');
+                    const spk = el.dataset.speaker || ""; const same = (last === spk && !isNarr && !isSys);
                     last = isNarr ? "__N__" : (isSys ? "__S__" : spk);
 
                     res += '<div class="row">';
                     if(!isNarr && !isSys) {
-                        const imgBox = el.querySelector('.avatar-box');
-                        const img = imgBox?.getAttribute('src') || imgBox?.dataset.rawSrc;
-                        
+                        const imgBox = el.querySelector('.avatar-box'); const img = imgBox?.getAttribute('src') || imgBox?.dataset.rawSrc;
                         if(img && !same) res += `<img src="${img}" class="avatar">`;
                         else if(!same) res += `<div class="avatar" style="background:#ddd"></div>`;
                         else res += `<div style="width:28px;flex-shrink:0"></div>`;
                         
                         res += '<div>';
-                        const nameEl = el.querySelector('.char-name');
-                        const inlineColor = nameEl ? nameEl.style.color : p.fallbackName;
-
+                        const nameEl = el.querySelector('.char-name'); const inlineColor = nameEl ? nameEl.style.color : p.fallbackName;
                         if(!same) res += `<span class="name" style="color: ${inlineColor}">${spk}</span>`;
-                        res += `<div class="msg">${el.querySelector('.notion-block').innerText}</div></div>`;
+                        
+                        // [검색 흔적 정돈] 검색 결과 하이라이트(log-match mark)는 저장 시 깔끔히 가공하여 순수한 innerHTML 보존
+                        let filteredHTML = el.querySelector('.notion-block').innerHTML.replace(/<mark class="log-match">(.*?)<\/mark>/g, '$1');
+                        res += `<div class="msg">${filteredHTML}</div></div>`;
                     } else {
-                        const contentNode = el.querySelector('.notion-block');
-                        res += `<div class="msg ${isNarr?'narrator':(isSys?'system':'')}">${contentNode ? contentNode.innerText : el.textContent}</div>`;
+                        let filteredHTML = el.querySelector('.notion-block').innerHTML.replace(/<mark class="log-match">(.*?)<\/mark>/g, '$1');
+                        res += `<div class="msg ${isNarr?'narrator':(isSys?'system':'')}">${filteredHTML}</div>`;
                     }
                     res += '</div>';
                 });
                 return res;
             }
 
-            output += processContainer(document.querySelectorAll('#mainContainer > div'));
-            output += '</div>';
-            
+            output += processContainer(document.querySelectorAll('#mainContainer > div')); output += '</div>';
             document.querySelectorAll('#dynamicTabsOutput > .notion-card').forEach(card => {
-                const title = card.querySelector('.notion-label').innerText;
-                const nodes = card.querySelectorAll('.script-container > div');
+                const title = card.querySelector('.notion-label').innerText; const nodes = card.querySelectorAll('.script-container > div');
                 output += `<details><summary>${title}</summary><div class="script-box" style="margin-top:8px;">${processContainer(nodes)}</div></details>`;
             });
-
-            output += '</body></html>';
-            return output;
+            output += '</body></html>'; return output;
         }
 
         document.getElementById('btnCopy').addEventListener('click', () => {
-            navigator.clipboard.writeText(buildFinal()).then(() => alert('코드가 복사되었습니다.'));
+            navigator.clipboard.writeText(buildFinal()).then(() => alert('스타일이 포함된 전체 코드가 복사되었습니다.'));
         });
 
         document.getElementById('btnDownload').addEventListener('click', () => {
             const blob = new Blob([buildFinal()], { type: 'text/html;charset=utf-8;' });
-            const link = document.createElement("a");
-            link.href = URL.createObjectURL(blob);
-            link.setAttribute("download", `${document.getElementById('roomTitle').innerText || 'log'}.html`);
-            link.click();
+            const link = document.createElement("a"); link.href = URL.createObjectURL(blob);
+            link.setAttribute("download", `${document.getElementById('roomTitle').innerText || 'log'}.html`); link.click();
         });
 
         function escapeHtml(t) { return t.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;").replace(/'/g, "&#039;"); }
