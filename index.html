@@ -6,7 +6,7 @@
     <title>논단군 코코포 로그 백업기</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;700&family=Noto+Serif+KR:wght@400;700&family=Hina+Mincho&family=Inter:wght@400;600&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght=400;500;700&family=Noto+Serif+KR:wght=400;700&family=Hina+Mincho&family=Inter:wght=400;600&display=swap" rel="stylesheet">
     <style>
         :root {
             /* 기본 인터페이스 (노션 스타일 다크 모드) */
@@ -26,7 +26,6 @@
             /* 스크립트 색상 스택 초기화 변수 */
             --script-bg: #f3f3f3;
             --script-text: #111111;
-            --script-name: #b51212;
             --script-narrator: #222222;
             --script-sys: #666666;
             --script-border: #dddddd;
@@ -147,7 +146,6 @@
         .btn-util { flex: 1; border-color: rgba(96, 165, 250, 0.2); color: var(--text-link); }
         .btn-util:hover { background: rgba(96, 165, 250, 0.1); }
 
-        /* 동적 테마를 지원하는 본문 상자 */
         .script-container {
             display: flex;
             flex-direction: column;
@@ -158,7 +156,6 @@
             border: 1px solid var(--script-border);
         }
 
-        /* [구조 보정] 대화 박스와 삭제 공간의 안정적인 배치 조율 */
         .notion-row { 
             display: flex; 
             align-items: center; 
@@ -195,16 +192,15 @@
             font-family: var(--current-font);
         }
         
+        /* 캐릭터 이름 스타일 (기본 fallback 색상 지정, 스크립트에서 개별 색 주입) */
         .char-name { 
             font-size: 0.8rem; 
             font-weight: 700; 
             margin-bottom: 1px; 
             display: block; 
-            color: var(--script-name); 
             font-family: var(--font-sans);
         }
 
-        /* 상태 템플릿 색상 연동 */
         .state-narrator { 
             text-align: center; 
             font-weight: 700; 
@@ -219,7 +215,6 @@
         .state-system { font-family: var(--font-sans); font-size: 0.8rem; color: var(--script-sys) !important; }
         .state-dice { background-color: transparent !important; color: var(--script-text) !important; border-left: none !important; padding: 2px 4px !important; }
 
-        /* [요구사항 기반] 우측에 깔끔하게 정렬된 del 칸 배치 */
         .control-cell {
             flex-shrink: 0;
             display: flex;
@@ -314,16 +309,17 @@
     <script>
         let rawLogData = [];
         let characterAvatars = {}; 
+        let characterColors = {}; // [추가] 캐릭터별 고유 이름 색상 저장소
         let detectedTabs = new Set();
         let currentFontType = "sans"; 
         let currentColorTheme = "roll20";
 
         const themeProfiles = {
             roll20: {
-                bg: "#f3f3f3", text: "#111111", name: "#b51212", narrator: "#222222", sys: "#666666", border: "#dddddd"
+                bg: "#f3f3f3", text: "#111111", fallbackName: "#b51212", narrator: "#222222", sys: "#666666", border: "#dddddd"
             },
             ccfolia: {
-                bg: "#1a1a1a", text: "#ffffff", name: "#4da6ff", narrator: "#e0e0e0", sys: "#888888", border: "#2d2d2d"
+                bg: "#1a1a1a", text: "#ffffff", fallbackName: "#4da6ff", narrator: "#e0e0e0", sys: "#888888", border: "#2d2d2d"
             }
         };
 
@@ -332,7 +328,6 @@
             const root = document.documentElement;
             root.style.setProperty('--script-bg', p.bg);
             root.style.setProperty('--script-text', p.text);
-            root.style.setProperty('--script-name', p.name);
             root.style.setProperty('--script-narrator', p.narrator);
             root.style.setProperty('--script-sys', p.sys);
             root.style.setProperty('--script-border', p.border);
@@ -363,7 +358,6 @@
             });
         });
 
-        /* [파싱 엔진 핵심 수정] 중복 태그 스캔을 탈피하고 알맹이 데이터만 정밀 필터링 */
         document.getElementById('logFile').addEventListener('change', (e) => {
             const file = e.target.files[0];
             if (!file) return;
@@ -375,7 +369,6 @@
                 
                 document.getElementById('roomTitle').innerText = file.name.replace(/\.html$/i, "").replace(/\[all\]$/i, "").trim();
 
-                // p나 div 등 본문이 들어있는 핵심 대화 단락들만 중복 없이 수집
                 let lines = doc.querySelectorAll('p, .msg, .chat-line');
                 if(lines.length === 0) lines = doc.querySelectorAll('body > div');
                 
@@ -383,11 +376,19 @@
                 detectedTabs.clear();
 
                 lines.forEach(p => {
-                    // 최하위 텍스트 덩어리를 가진 엘리먼트가 아니거나 공백이면 스킵
                     if (p.querySelector('p')) return; 
 
                     const text = p.textContent.trim();
                     if(!text) return;
+
+                    // [색상 추출 로직 보완] span 이나 인라인 color 속성이 박혀있을 경우 추출
+                    let extractedColor = "";
+                    let spanWithColor = p.querySelector('span[style*="color"]');
+                    if (spanWithColor) {
+                        extractedColor = spanWithColor.style.color;
+                    } else if (p.getAttribute('style') && p.getAttribute('style').includes('color')) {
+                        extractedColor = p.style.color;
+                    }
 
                     let avatarSrc = "";
                     let imgEl = p.querySelector('img') || p.previousElementSibling?.querySelector('img') || p.parentElement?.querySelector('img');
@@ -395,7 +396,6 @@
                         avatarSrc = imgEl.getAttribute('src');
                     }
 
-                    // 정규식 매칭 분석 고도화: [탭이름] 이름 : 본문대사
                     const match = text.match(/^\[([^\]]+)\]\s*([^:]+)\s*:\s*([\s\S]*)$/);
                     if (match) {
                         let tabName = match[1].trim();
@@ -411,9 +411,9 @@
                         } else {
                             rawLogData.push({ tab: tabName, name: charName, message: msgBody, avatar: avatarSrc });
                             if(avatarSrc && !characterAvatars[charName]) characterAvatars[charName] = avatarSrc;
+                            if(extractedColor && !characterColors[charName]) characterColors[charName] = extractedColor;
                         }
                     } else {
-                        // 일반적인 이름 : 대사 포맷 처리
                         const simpleMatch = text.match(/^([^:]+)\s*:\s*([\s\S]*)$/);
                         if(simpleMatch) {
                             let charName = simpleMatch[1].trim();
@@ -425,8 +425,8 @@
                             detectedTabs.add("Main");
                             rawLogData.push({ tab: "Main", name: charName, message: msgBody, avatar: avatarSrc });
                             if(avatarSrc && !characterAvatars[charName]) characterAvatars[charName] = avatarSrc;
+                            if(extractedColor && !characterColors[charName]) characterColors[charName] = extractedColor;
                         } else {
-                            // 단순 시스템 공지/알림 텍스트
                             if(!text.startsWith("http")) {
                                 rawLogData.push({ tab: "시스템", name: "", message: text, avatar: "" });
                             }
@@ -434,7 +434,6 @@
                     }
                 });
 
-                // 만약 특수한 포맷이라 아무것도 안 잡혔을 경우 예외 구조 처리
                 if(rawLogData.length === 0) {
                     let fallbacks = doc.querySelectorAll('body *');
                     fallbacks.forEach(f => {
@@ -497,6 +496,7 @@
 
             let lastSpeakers = {}; 
             const fontValue = currentFontType === "serif" ? "var(--font-serif)" : "var(--font-sans)";
+            const pProfile = themeProfiles[currentColorTheme];
 
             rawLogData.forEach(log => {
                 if(log.tab !== "시스템" && !selectedTabs.includes(log.tab) && selectedTabs.length > 0) return;
@@ -541,8 +541,12 @@
                     } else {
                         inner += `<div class="avatar-placeholder"></div>`;
                     }
+                    
+                    // [핵심 변경] 추출된 캐릭터 고유 색상이 있으면 입히고, 없으면 프리셋 기본 컬러 매칭
+                    const customColor = characterColors[currentSpeaker] || pProfile.fallbackName;
+
                     inner += `<div style="flex:1;">
-                        ${!isSameSpeaker ? `<span class="char-name">${currentSpeaker}</span>` : ''}
+                        ${!isSameSpeaker ? `<span class="char-name" style="color: ${customColor}">${currentSpeaker}</span>` : ''}
                         <div class="${msgClass}" style="font-family: ${fontValue}" contenteditable="true" spellcheck="false">${escapeHtml(log.message)}</div>
                     </div>`;
                 } else {
@@ -550,7 +554,6 @@
                 }
                 inner += `</div>`;
                 
-                // 우측 삭제 독립 버튼 칸 정렬 보정 완료
                 inner += `<div class="control-cell"><button class="row-control" onclick="this.parentElement.parentElement.remove()">del</button></div>`;
                 row.innerHTML = inner;
                 target.appendChild(row);
@@ -570,7 +573,7 @@
                 .script-box { display: flex; flex-direction: column; gap: 2px; background:${p.bg}; padding:12px; border-radius:6px; border:1px solid ${p.border}; }
                 .row { display:flex; align-items:flex-start; gap:8px; padding: 2px 4px; }
                 .avatar { width:28px; height:28px; border-radius:4px; object-fit:cover; flex-shrink:0; border:1px solid rgba(0,0,0,0.1); background:#ddd; }
-                .name { font-size:0.8rem; font-weight:700; margin-bottom:1px; display:block; color:${p.name}; font-family: 'Noto Sans KR', sans-serif; }
+                .name { font-size:0.8rem; font-weight:700; margin-bottom:1px; display:block; font-family: 'Noto Sans KR', sans-serif; }
                 .msg { font-family: ${chosenFontStack}; font-size:0.9rem; line-height:1.4; white-space:pre-wrap; word-break:break-all; flex:1; color:${p.text}; }
                 .narrator { text-align:center; font-weight:700; font-style:italic; padding:3px 10px; font-size:0.9rem; margin: 8px 0; color:${p.narrator}; }
                 .system { color:${p.sys}; font-size:0.8rem; font-family: 'Noto Sans KR', sans-serif; }
@@ -599,7 +602,11 @@
                         else res += `<div style="width:28px;flex-shrink:0"></div>`;
                         
                         res += '<div>';
-                        if(!same) res += `<span class="name">${spk}</span>`;
+                        // [최종 추출 결과물 연동] 저장 파일 내부 태그 스캔 단계에서도 개별 주입 색상 연계 유지
+                        const nameEl = el.querySelector('.char-name');
+                        const inlineColor = nameEl ? nameEl.style.color : p.fallbackName;
+
+                        if(!same) res += `<span class="name" style="color: ${inlineColor}">${spk}</span>`;
                         res += `<div class="msg">${el.querySelector('.notion-block').innerText}</div></div>`;
                     } else {
                         const contentNode = el.querySelector('.notion-block');
