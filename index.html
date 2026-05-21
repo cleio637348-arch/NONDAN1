@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>논단군 스크립트 정리 Pro</title>
     <style>
-        /* 제공된 다크 프리미엄 테마 적용 */
+        /* 다크 프리미엄 테마 */
         :root {
             --bg-main: #191919;
             --bg-surface: #202020;
@@ -13,18 +13,10 @@
             --border-notion: rgba(255, 255, 255, 0.07);
             --text-main: rgba(255, 255, 255, 0.85);
             --text-muted: rgba(255, 255, 255, 0.4);
-            
-            /* 하이라이트 컬러 */
-            --bg-kp: rgba(28, 131, 100, 0.15); 
             --text-kp: #4ade80;
-            
-            --bg-check: rgba(239, 68, 68, 0.15); 
             --text-check: #f87171;
-            
-            --bg-handout: rgba(234, 179, 8, 0.12); 
-            --text-handout: #fde047;
-            --bg-link: rgba(59, 130, 246, 0.15); 
             --text-link: #60a5fa;
+            --bg-check: rgba(239, 68, 68, 0.15); 
         }
 
         body {
@@ -40,16 +32,20 @@
 
         header {
             margin-bottom: 30px;
-            border-bottom: 1px solid var(--border-notion);
+            border-bottom: 2px solid var(--border-notion);
             padding-bottom: 20px;
         }
 
+        /* [요구사항] 룸 이름 명조 계열의 고급지고 굵은 글씨 스타일링 */
         header h1 {
-            font-size: 1.8rem;
-            font-weight: 700;
-            color: rgba(255, 255, 255, 0.9);
-            margin: 0 0 6px 0;
-            letter-spacing: -0.03em;
+            font-family: "Nanum Myeongjo", "Georgia", serif;
+            font-size: 2.2rem;
+            font-weight: 800;
+            color: #ffffff;
+            margin: 0 0 8px 0;
+            letter-spacing: -0.02em;
+            line-height: 1.3;
+            text-shadow: 0 2px 4px rgba(0,0,0,0.5);
             outline: none;
         }
 
@@ -76,7 +72,7 @@
             text-transform: uppercase;
         }
 
-        /* 접고 펼치기 가능한 헤더 스타일 */
+        /* 접고 펼치기 헤더 */
         .accordion-header {
             display: flex;
             justify-content: space-between;
@@ -95,7 +91,7 @@
             transition: max-height 0.25s ease-out, margin-top 0.2s ease;
         }
         .accordion-content.open {
-            max-height: 3000px; 
+            max-height: 4000px; 
             margin-top: 14px;
             overflow-y: auto;
         }
@@ -110,180 +106,77 @@
             .grid-config { grid-template-columns: repeat(2, 1fr); }
         }
 
-        .input-group {
-            display: flex;
-            flex-direction: column;
-            gap: 6px;
-        }
-
-        .input-group span {
-            font-size: 0.75rem;
-            color: var(--text-muted);
-            font-weight: 600;
-        }
+        .input-group { display: flex; flex-direction: column; gap: 6px; }
+        .input-group span { font-size: 0.75rem; color: var(--text-muted); font-weight: 600; }
 
         input[type="text"], input[type="file"], input[type="color"] {
-            width: 100%;
-            background-color: var(--bg-input);
-            border: 1px solid var(--border-notion);
-            border-radius: 4px;
-            color: var(--text-main);
-            font-size: 0.85rem;
-            padding: 10px 12px;
-            box-sizing: border-box;
-            outline: none;
+            width: 100%; background-color: var(--bg-input); border: 1px solid var(--border-notion);
+            border-radius: 4px; color: var(--text-main); font-size: 0.85rem; padding: 10px 12px; box-sizing: border-box; outline: none;
         }
-
         input[type="file"] { padding: 7px 12px; cursor: pointer; }
         input[type="color"] { padding: 2px; height: 34px; cursor: pointer; }
 
         .color-setting-row {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            background: var(--bg-input);
-            padding: 6px 12px;
-            border-radius: 4px;
-            border: 1px solid var(--border-notion);
+            display: flex; align-items: center; gap: 10px; background: var(--bg-input);
+            padding: 6px 12px; border-radius: 4px; border: 1px solid var(--border-notion);
         }
-        .color-setting-row span {
-            font-size: 0.85rem;
-            flex: 1;
-            overflow: hidden;
-            text-overflow: ellipsis;
-            white-space: nowrap;
-        }
+        .color-setting-row span { font-size: 0.85rem; flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
         .color-setting-row input[type="color"] { width: 45px; flex-shrink: 0; }
 
-        .btn-group {
-            display: flex;
-            gap: 8px;
-            margin-bottom: 20px;
-        }
-
+        .btn-group { display: flex; gap: 8px; margin-bottom: 20px; }
         .notion-btn {
-            background: none;
-            border: 1px solid var(--border-notion);
-            color: var(--text-main);
-            border-radius: 4px;
-            cursor: pointer;
-            padding: 11px 16px;
-            font-size: 0.85rem;
-            transition: background 0.1s;
-            font-weight: 600;
+            background: none; border: 1px solid var(--border-notion); color: var(--text-main);
+            border-radius: 4px; cursor: pointer; padding: 11px 16px; font-size: 0.85rem; transition: background 0.1s; font-weight: 600;
         }
-
         .btn-submit { background: rgba(255, 255, 255, 0.04); border-color: rgba(255, 255, 255, 0.15); flex: 2; }
         .btn-submit:hover { background: rgba(255, 255, 255, 0.08); }
-
         .btn-copy { background: rgba(16, 185, 129, 0.1); border-color: rgba(16, 185, 129, 0.25); color: var(--text-kp); flex: 1; }
         .btn-copy:hover { background: rgba(16, 185, 129, 0.15); }
-
         .btn-download { background: rgba(96, 165, 250, 0.1); border-color: rgba(96, 165, 250, 0.25); color: var(--text-link); flex: 1; }
         .btn-download:hover { background: rgba(96, 165, 250, 0.15); }
 
-        /* 출력 행 구조 */
-        .notion-row {
-            display: flex;
-            align-items: flex-start;
-            gap: 12px;
-            margin-bottom: 4px;
-            border-bottom: 1px solid rgba(255, 255, 255, 0.01);
-            padding-bottom: 4px;
-        }
-
-        .avatar-box {
-            width: 36px;
-            height: 36px;
-            border-radius: 4px;
-            object-fit: cover;
-            flex-shrink: 0;
-            background-color: var(--bg-input);
-            border: 1px solid var(--border-notion);
-        }
+        /* 출력 행 디자인 */
+        .notion-row { display: flex; align-items: flex-start; gap: 12px; margin-bottom: 4px; border-bottom: 1px solid rgba(255, 255, 255, 0.01); padding-bottom: 4px; }
+        .avatar-box { width: 36px; height: 36px; border-radius: 4px; object-fit: cover; flex-shrink: 0; background-color: var(--bg-input); border: 1px solid var(--border-notion); }
         .avatar-placeholder { width: 36px; flex-shrink: 0; }
-
-        .notion-block {
-            flex: 1;
-            padding: 6px 10px;
-            border-radius: 4px;
-            font-size: 0.9rem;
-            line-height: 1.6;
-            word-break: break-all;
-            outline: none;
-            color: var(--text-main);
-            white-space: pre-wrap; 
-        }
-        .notion-block:focus {
-            background: var(--bg-input);
-            box-shadow: inset 0 0 0 1px rgba(255,255,255,0.1);
-        }
-
-        .char-name {
-            font-size: 0.85rem;
-            font-weight: 700;
-            margin-bottom: 4px;
-            display: block;
-        }
-
-        /* 서술자 스타일 */
-        .state-narrator { 
-            text-align: center; 
-            font-weight: bold; 
-            font-style: italic; 
-            color: rgba(255, 255, 255, 0.75); 
-            width: 100%; 
-            margin: 4px 0; 
-            padding: 4px 10px;
-            font-size: 0.95rem;
-        }
-
-        /* [요구사항] 시스템 메시지 고딕 및 차단 컬러링 가공 */
-        .state-system { 
-            font-family: ui-sans-serif, system-ui, sans-serif; 
-            font-size: 0.8rem; 
-            color: #888888; 
-            background-color: transparent; 
-            border-left: 2px solid rgba(255, 255, 255, 0.1);
-            padding: 2px 10px;
-            opacity: 0.85;
-        }
         
+        .notion-block {
+            flex: 1; padding: 6px 10px; border-radius: 4px; font-size: 0.9rem; line-height: 1.6;
+            word-break: break-all; outline: none; color: var(--text-main); white-space: pre-wrap;
+        }
+        .notion-block:focus { background: var(--bg-input); box-shadow: inset 0 0 0 1px rgba(255,255,255,0.1); }
+        .char-name { font-size: 0.85rem; font-weight: 700; margin-bottom: 4px; display: block; }
+
+        /* 간격 좁힌 서술자 */
+        .state-narrator { text-align: center; font-weight: bold; font-style: italic; color: rgba(255, 255, 255, 0.75); width: 100%; margin: 4px 0; padding: 4px 10px; font-size: 0.95rem; }
+
+        /* 시스템 스타일 (완전 무명화 고딕) */
+        .state-system { font-family: ui-sans-serif, system-ui, sans-serif; font-size: 0.8rem; color: #888888; background-color: transparent; border-left: 2px solid rgba(255, 255, 255, 0.1); padding: 2px 10px; opacity: 0.85; }
         .state-dice { background-color: var(--bg-check); color: var(--text-check); border-left: 3px solid var(--text-check); font-weight: 500; }
 
-        .row-control {
-            padding: 4px 8px;
-            border: 1px solid var(--border-notion);
-            background: rgba(255,255,255,0.02);
-            color: var(--text-check);
-            border-radius: 4px;
-            cursor: pointer;
-            font-size: 0.7rem;
-            margin-top: 4px;
-        }
-        .row-control:hover { background: rgba(239, 68, 68, 0.1); }
-
-        .character-divider {
-            border-top: 1px dashed var(--border-notion);
-            margin: 12px 0 8px 0;
-            width: 100%;
-        }
-
+        .row-control { padding: 4px 8px; border: 1px solid var(--border-notion); background: rgba(255,255,255,0.02); color: var(--text-check); border-radius: 4px; cursor: pointer; font-size: 0.7rem; margin-top: 4px; }
+        .character-divider { border-top: 1px dashed var(--border-notion); margin: 12px 0 8px 0; width: 100%; }
         .hidden { display: none !important; }
+
+        /* [신규 프리미엄] 맞춤법 배지 스타일 */
+        .checker-badge {
+            display: inline-block; font-size: 0.7rem; background: rgba(234, 179, 8, 0.15); color: #fde047;
+            padding: 1px 5px; border-radius: 3px; border: 1px solid rgba(234, 179, 8, 0.3); margin-bottom: 4px;
+        }
     </style>
 </head>
 <body>
 
     <header>
-        <h1 id="roomTitle" contenteditable="true" spellcheck="false">논단군 스크립트 정리</h1>
-        <p>TRPG 텍스트 자동 정리 시스템</p>
+        <h1 id="roomTitle" contenteditable="true" spellcheck="false">파일을 로드해 주세요</h1>
+        <p>TRPG 스크립트 엔진 (맞춤법 검수 기능 빌트인)</p>
     </header>
 
     <div class="notion-card">
-        <div class="notion-label">기본 제어 설정</div>
+        <div class="notion-label">설정 센터</div>
         <div class="grid-config">
             <div class="input-group">
-                <span>1. 로그 원본 파일 (.html)</span>
+                <span>1. 로그 파일 업로드 (.html)</span>
                 <input id="logFile" type="file" accept=".html">
             </div>
             <div class="input-group">
@@ -302,23 +195,21 @@
     </div>
 
     <div class="btn-group">
-        <button id="btnProcess" class="notion-btn btn-submit">스크립트 변환</button>
+        <button id="btnProcess" class="notion-btn btn-submit">스크립트 가공 실행</button>
         <button id="btnCopy" class="notion-btn btn-copy">코드 복사</button>
         <button id="btnDownload" class="notion-btn btn-download">파일 저장</button>
     </div>
 
     <div class="notion-card">
-        <div class="panel-header">
-            <div class="notion-label" id="statusLabel">메인 세션록 정렬창</div>
-        </div>
+        <div class="panel-header"><div class="notion-label" id="statusLabel">메인 세션록</div></div>
         <div id="editorContainer">
-            <p style="color: var(--text-muted); text-align: center; font-size: 0.85rem; padding: 40px 0;">파일을 등록하면 정렬창이 활성화됩니다.</p>
+            <p style="color: var(--text-muted); text-align: center; font-size: 0.85rem; padding: 40px 0;">로그가 비어있습니다.</p>
         </div>
     </div>
 
     <div id="tabSubCard" class="notion-card hidden">
         <div class="accordion-header" onclick="toggleAccordion('subChatSection', 'subArrow')">
-            <div class="notion-label" style="margin-bottom: 0;">💬 기타 데이터 로그 (잡담 채널)</div>
+            <div class="notion-label" style="margin-bottom: 0;">💬 잡담 채널 데이터</div>
             <div class="accordion-icon" id="subArrow">▶</div>
         </div>
         <div id="subChatSection" class="accordion-content"></div>
@@ -326,7 +217,7 @@
 
     <div id="tabInfoCard" class="notion-card hidden">
         <div class="accordion-header" onclick="toggleAccordion('subInfoSection', 'infoArrow')">
-            <div class="notion-label" style="margin-bottom: 0;">💡 기타 데이터 로그 (정보 채널)</div>
+            <div class="notion-label" style="margin-bottom: 0;">💡 정보 채널 데이터</div>
             <div class="accordion-icon" id="infoArrow">▶</div>
         </div>
         <div id="subInfoSection" class="accordion-content"></div>
@@ -334,7 +225,7 @@
 
     <div id="tabPrivateCard" class="notion-card hidden">
         <div class="accordion-header" onclick="toggleAccordion('subPrivateSection', 'privateArrow')">
-            <div class="notion-label" style="margin-bottom: 0;">🔒 기타 데이터 로그 (프라이빗 채널)</div>
+            <div class="notion-label" style="margin-bottom: 0;">🔒 프라이빗 채널 데이터</div>
             <div class="accordion-icon" id="privateArrow">▶</div>
         </div>
         <div id="subPrivateSection" class="accordion-content"></div>
@@ -345,19 +236,26 @@
         let characterColors = {}; 
         let characterAvatars = {}; 
 
+        // 자주 틀리는 맞춤법 사전 (클라이언트 사이드 검수용)
+        const spellRules = [
+            { regex: /됫/g, fix: "됐" }, { regex: /됬/g, fix: "됐" }, { regex: /되바라다/g, fix: "돼바라다" },
+            { regex: /않하고/g, fix: "안 하고" }, { regex: /않돼/g, fix: "안 돼" }, { regex: /안돼고/g, fix: "안 되고" },
+            { regex: /어의없/g, fix: "어처구니없" }, { regex: /연애치중/g, fix: "연예치중" }, { regex: /뭵/g, fix: "" },
+            { regex: /할께요/g, fix: "할게요" }, { regex: /갈께/g, fix: "갈게" }, { regex: /바라 바램/g, fix: "바람" },
+            { regex: /무난히/g, fix: "무난하게" }, { regex: /구지/g, fix: "굳이" }, { regex: /마추다/g, fix: "맞추다" }
+        ];
+
         function toggleAccordion(contentId, arrowId) {
             const content = document.getElementById(contentId);
             const arrow = document.getElementById(arrowId);
             if (content.classList.contains('open')) {
-                content.classList.remove('open');
-                arrow.innerText = '▶';
+                content.classList.remove('open'); arrow.innerText = '▶';
             } else {
-                content.classList.add('open');
-                arrow.innerText = '▼';
+                content.classList.add('open'); arrow.innerText = '▼';
             }
         }
 
-        // 1. 코코포리아 파일 로드 및 정밀 예외 처리 분석기
+        // [요구사항 가공] 코코포리아 파일 업로드 및 메타데이터, 캐릭터 이미지 주소 추출
         document.getElementById('logFile').addEventListener('change', (e) => {
             const file = e.target.files[0];
             if (!file) return;
@@ -367,6 +265,7 @@
                 const parser = new DOMParser();
                 const doc = parser.parseFromString(event.target.result, 'text/html');
                 
+                // [요구사항] 코코포리아 룸 이름 타이틀 태그에서 정밀 추출
                 const titleNode = doc.querySelector('title');
                 if(titleNode && titleNode.innerText.trim()) {
                     document.getElementById('roomTitle').innerText = titleNode.innerText.trim();
@@ -379,6 +278,7 @@
                 const uniqueCharacters = new Set();
 
                 paragraphs.forEach(p => {
+                    // [이미지 링크 추출] 외부 주소 혹은 내장 Blob 데이터 완전 보존
                     let avatarSrc = "";
                     const img = p.querySelector('img');
                     if(img) avatarSrc = img.getAttribute('src') || "";
@@ -390,19 +290,19 @@
                     const text = p.textContent.trim();
                     if(!text) return;
 
-                    // [버그 수정] 정규식 예외 필터: 특수문자 벽이나 기호형 분리선 대사 유실 방지
+                    // 코코포리아 시그니처 정규 매칭 패턴
                     const match = text.match(/^\[([^\]]+)\]\s*([^:]+)\s*:\s*([\s\S]*)$/);
+                    
                     if (match) {
                         let tabName = match[1].trim();
                         let charName = match[2].trim();
                         let msgBody = match[3].trim();
 
                         const timeMatch = msgBody.match(/\s*(\d{4}\/\d{2}\/\d{2}\s+\d{2}:\d{2}:\d{2}|\d{2}:\d{2})$/);
-                        if(timeMatch) {
-                            msgBody = msgBody.replace(timeMatch[0], "").trim();
-                        }
+                        if(timeMatch) msgBody = msgBody.replace(timeMatch[0], "").trim();
 
-                        if(charName === "SYSTEM") {
+                        // [요구사항 완벽 반영] 시스템 텍스트는 이름 자체를 무조건 완벽 삭제 소거
+                        if(charName.toUpperCase() === "SYSTEM" || charName === "시스템") {
                             rawLogData.push({ tab: "시스템", name: "", message: msgBody, rawColor: "", avatar: "" });
                         } else {
                             rawLogData.push({ tab: tabName, name: charName, message: msgBody, rawColor: color, avatar: avatarSrc });
@@ -411,13 +311,13 @@
                             if(avatarSrc && !characterAvatars[charName]) characterAvatars[charName] = avatarSrc;
                         }
                     } else {
-                        // 패턴 탈락 대사(방제목, 절취선 등)는 유실시키지 않고 시스템 형태의 순수 텍스트 블록으로 흡수 처리
+                        // 구분선, 타이틀 텍스트도 시스템으로 판정하여 이름 출력 차단
                         rawLogData.push({ tab: "시스템", name: "", message: text, rawColor: "", avatar: "" });
                     }
                 });
 
                 buildColorSettings(uniqueCharacters);
-                document.getElementById('statusLabel').innerText = `메인 세션록 정렬창 (총 ${rawLogData.length}행 로드됨)`;
+                document.getElementById('statusLabel').innerText = `메인 세션록 (총 ${rawLogData.length}행 로드)`;
             };
             reader.readAsText(file, 'UTF-8');
         });
@@ -441,27 +341,29 @@
             if(!rgb.startsWith('rgb')) return rgb;
             const rgbValues = rgb.match(/\d+/g);
             if(!rgbValues || rgbValues.length < 3) return null;
-            return "#" + rgbValues.slice(0, 3).map(x => {
-                const hex = parseInt(x).toString(16);
-                return hex.length === 1 ? "0" + hex : hex;
-            }).join('');
+            return "#" + rgbValues.slice(0, 3).map(x => { const hex = parseInt(x).toString(16); return hex.length === 1 ? "0" + hex : hex; }).join('');
         }
 
-        // 2. 메인/잡담/정보/프라이빗 개별 분류 렌더링 엔진
+        // [요구사항] 브라우저 내장 실시간 맞춤법 셀프 체커 헬퍼
+        function checkSpellErrors(text) {
+            let suggestions = [];
+            spellRules.forEach(rule => {
+                if(rule.regex.test(text)) { suggestions.push(`'${rule.fix}' 추천`); }
+            });
+            return suggestions.length > 0 ? `<span class="checker-badge" draggable="false">⚠️ ${suggestions.join(', ')}</span>` : '';
+        }
+
+        // 스크립트 배치 생성 프로세서
         document.getElementById('btnProcess').addEventListener('click', () => {
-            if(rawLogData.length === 0) return alert('정리할 스크립트 파일을 먼저 업로드해 주세요.');
+            if(rawLogData.length === 0) return alert('파일을 먼저 업ロード해 주세요.');
             
             const narrator = document.getElementById('narratorName').value.trim();
-            
             const mainContainer = document.getElementById('editorContainer');
             const subChatContainer = document.getElementById('subChatSection');
             const subInfoContainer = document.getElementById('subInfoSection');
             const subPrivContainer = document.getElementById('subPrivateSection');
             
-            mainContainer.innerHTML = ""; 
-            subChatContainer.innerHTML = "";
-            subInfoContainer.innerHTML = "";
-            subPrivContainer.innerHTML = "";
+            mainContainer.innerHTML = ""; subChatContainer.innerHTML = ""; subInfoContainer.innerHTML = ""; subPrivContainer.innerHTML = "";
 
             let lastChar = "";
 
@@ -505,11 +407,13 @@
                     const chosenColor = characterColors[log.name] || log.rawColor || 'inherit';
                     const chosenAvatar = characterAvatars[log.name] || log.avatar;
 
+                    // 맞춤법 검수 배지 생성 연동
+                    const spellBadge = checkSpellErrors(log.message);
+
                     if (isSys) {
-                        // [요구사항 반영] 만약 이름이 남더라도 완전 동화되도록 컬러 #191919 셋업
+                        // [SYSTEM 완전 배제 패킹] 이름 태그 자체를 생성하지 않음
                         innerStructure += `
                             <div style="flex: 1;">
-                                <span class="char-name" style="color: #191919; font-size:0px; display:none;">SYSTEM</span>
                                 <div class="${msgClass}" contenteditable="true" spellcheck="false">${escapeHtml(log.message)}</div>
                             </div>
                         `;
@@ -525,6 +429,7 @@
                         innerStructure += `
                             <div style="flex: 1;">
                                 ${!isSameSpeaker ? `<span class="char-name" style="color: ${chosenColor}">${log.name}</span>` : ''}
+                                ${spellBadge}
                                 <div class="${msgClass}" contenteditable="true" spellcheck="false">${escapeHtml(log.message)}</div>
                             </div>
                         `;
@@ -538,13 +443,12 @@
                 targetContainer.appendChild(row);
             });
 
-            // 데이터가 있는 경우에만 하단 개별 토글 노출
             if(subChatContainer.children.length > 0) document.getElementById('tabSubCard').classList.remove('hidden');
             if(subInfoContainer.children.length > 0) document.getElementById('tabInfoCard').classList.remove('hidden');
             if(subPrivContainer.children.length > 0) document.getElementById('tabPrivateCard').classList.remove('hidden');
         });
 
-        // 3. 복사 및 다운로드 통합 아카이브 빌더 (개별 토글 구조 100% 대응)
+        // 최종 HTML 아카이브 소스 빌더 (복사/저장 공용)
         function buildFinalHtml() {
             const finalTitle = document.getElementById('roomTitle').innerText.trim();
             const mainRows = document.querySelectorAll('#editorContainer > .notion-row, #editorContainer > .character-divider');
@@ -559,8 +463,12 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>${finalTitle}</title>
     <style>
+        @import url('https://fonts.googleapis.com/css2?family=Nanum+Myeongjo:wght@700;800&display=swap');
         body { background-color: #191919; color: rgba(255, 255, 255, 0.85); font-family: ui-sans-serif, -apple-system, system-ui, sans-serif; max-width: 700px; margin: 0 auto; padding: 40px 16px; }
-        h1 { font-size: 1.6rem; font-weight: 700; color: #fff; border-bottom: 1px solid rgba(255,255,255,0.07); padding-bottom: 12px; margin-bottom: 24px; }
+        
+        /* 고급 타이틀 세팅 */
+        h1 { font-family: "Nanum Myeongjo", serif; font-size: 2rem; font-weight: 800; color: #fff; border-bottom: 2px solid rgba(255,255,255,0.07); padding-bottom: 14px; margin-bottom: 24px; text-shadow: 0 2px 4px rgba(0,0,0,0.5); }
+        
         .section-title { font-size: 1.1rem; font-weight: 700; color: #60a5fa; margin: 30px 0 15px 0; border-bottom: 1px solid rgba(255,255,255,0.1); padding-bottom: 6px; }
         .row { display: flex; align-items: flex-start; gap: 12px; margin-bottom: 8px; }
         .avatar { width: 36px; height: 36px; border-radius: 4px; object-fit: cover; flex-shrink: 0; }
@@ -577,17 +485,14 @@
 </head>
 <body>
     <h1>${finalTitle}</h1>
-    
     <div class="section-title">Main Session</div>
     <div style="display: flex; flex-direction: column;">\n`;
 
             function compileRows(nodeList) {
-                let segment = "";
-                let lastSpeakerName = "";
+                let segment = ""; let lastSpeakerName = "";
                 nodeList.forEach(element => {
                     if(element.classList.contains('character-divider')) {
-                        segment += `        <div class="divider"></div>\n`;
-                        return;
+                        segment += `        <div class="divider"></div>\n`; return;
                     }
                     const isBlockNarrator = element.querySelector('.state-narrator');
                     const isBlockDice = element.querySelector('.state-dice');
@@ -607,6 +512,7 @@
                         if(!isBlockSys) lastSpeakerName = currentSpeaker;
 
                         if (isBlockSys) {
+                            // 출력 저장 코드에서도 시스템명 꼬리표 전면 원천 배제
                             segment += `            <div style="flex: 1;"${containerClass}>\n`;
                             segment += `                <div class="msg">${escapeHtml(element.querySelector('.notion-block').innerText)}</div>\n`;
                             segment += `            </div>\n`;
@@ -635,28 +541,16 @@
                 return segment;
             }
 
-            fileOutput += compileRows(mainRows);
-            fileOutput += `    </div>\n`;
+            fileOutput += compileRows(mainRows) + `    </div>\n`;
 
-            // [요구사항 가공] 하단 개별 독립 토글 팩킹 (잡담)
             if(subChatRows.length > 0) {
-                fileOutput += `    <details>\n        <summary>💬 잡담 채널 스크립트</summary>\n        <div style="display: flex; flex-direction: column; margin-top:12px;">\n`;
-                fileOutput += compileRows(subChatRows);
-                fileOutput += `        </div>\n    </details>\n`;
+                fileOutput += `    <details>\n        <summary>💬 잡담 채널 스크립트</summary>\n        <div style="display: flex; flex-direction: column; margin-top:12px;">\n` + compileRows(subChatRows) + `        </div>\n    </details>\n`;
             }
-
-            // [요구사항 가공] 하단 개별 독립 토글 팩킹 (정보)
             if(subInfoRows.length > 0) {
-                fileOutput += `    <details>\n        <summary>💡 정보 채널 스크립트</summary>\n        <div style="display: flex; flex-direction: column; margin-top:12px;">\n`;
-                fileOutput += compileRows(subInfoRows);
-                fileOutput += `        </div>\n    </details>\n`;
+                fileOutput += `    <details>\n        <summary>💡 정보 채널 스크립트</summary>\n        <div style="display: flex; flex-direction: column; margin-top:12px;">\n` + compileRows(subInfoRows) + `        </div>\n    </details>\n`;
             }
-
-            // [요구사항 가공] 하단 개별 독립 토글 팩킹 (프라이빗)
             if(subPrivRows.length > 0) {
-                fileOutput += `    <details>\n        <summary>🔒 프라이빗 채널 스크립트</summary>\n        <div style="display: flex; flex-direction: column; margin-top:12px;">\n`;
-                fileOutput += compileRows(subPrivRows);
-                fileOutput += `        </div>\n    </details>\n`;
+                fileOutput += `    <details>\n        <summary>🔒 프라이빗 채널 스크립트</summary>\n        <div style="display: flex; flex-direction: column; margin-top:12px;">\n` + compileRows(subPrivRows) + `        </div>\n    </details>\n`;
             }
 
             fileOutput += `\n</body>\n</html>`;
@@ -665,11 +559,7 @@
 
         document.getElementById('btnCopy').addEventListener('click', () => {
             const htmlContent = buildFinalHtml();
-            navigator.clipboard.writeText(htmlContent).then(() => {
-                alert('모든 채널(토글 포함)의 정제본 HTML 코드가 복사되었습니다.');
-            }).catch(err => {
-                alert('복사 권한 오류가 발생했습니다.');
-            });
+            navigator.clipboard.writeText(htmlContent).then(() => alert('정제본 코드가 클립보드에 복사되었습니다.')).catch(() => alert('복사 권한 오류 발생'));
         });
 
         document.getElementById('btnDownload').addEventListener('click', () => {
@@ -678,19 +568,12 @@
             const blob = new Blob([htmlContent], { type: 'text/html;charset=utf-8;' });
             const link = document.createElement("a");
             link.href = URL.createObjectURL(blob);
-            link.setAttribute("download", `${finalTitle}_완성정리본.html`);
-            document.body.appendChild(link);
-            link.click();
-            document.body.removeChild(link);
+            link.setAttribute("download", `${finalTitle}_완성본.html`);
+            document.body.appendChild(link); link.click(); document.body.removeChild(link);
         });
 
         function escapeHtml(text) {
-            return text
-                .replace(/&/g, "&amp;")
-                .replace(/</g, "&lt;")
-                .replace(/>/g, "&gt;")
-                .replace(/"/g, "&quot;")
-                .replace(/'/g, "&#039;");
+            return text.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;").replace(/'/g, "&#039;");
         }
     </script>
 </body>
