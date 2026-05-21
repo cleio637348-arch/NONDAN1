@@ -3,10 +3,10 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>논단군 스크립트 정리 Pro - Aesthetic Edition</title>
+    <title>논단군 스크립트 정리 Pro - Studio Edition</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Noto+Serif+KR:wght@400;700&family=Hina+Mincho&family=Inter:wght@400;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;700&family=Noto+Serif+KR:wght@400;700&family=Hina+Mincho&family=Inter:wght@400;600&display=swap" rel="stylesheet">
     <style>
         :root {
             --bg-main: #191919;
@@ -19,16 +19,20 @@
             --text-check: #f87171;
             --text-link: #60a5fa;
             --bg-check: rgba(239, 68, 68, 0.15); 
-            /* 서리프/명조체 스택 (한자 전용 서체 포함) */
+            
+            /* 서체 기본 프리셋 */
             --font-serif: "Hina Mincho", "Noto Serif KR", serif;
-            --font-sans: "Inter", ui-sans-serif, system-ui, sans-serif;
+            --font-sans: "Noto Sans KR", "Inter", sans-serif;
+            
+            /* 기본값은 세리프(명조)로 설정 */
+            --current-font: var(--font-serif);
         }
 
         body {
             font-family: var(--font-sans);
             max-width: 850px;
             margin: 0 auto;
-            padding: 40px 16px;
+            padding: 30px 16px;
             background-color: var(--bg-main);
             color: var(--text-main);
             -webkit-font-smoothing: antialiased;
@@ -36,25 +40,25 @@
         }
 
         header {
-            margin-bottom: 30px;
+            margin-bottom: 24px;
             border-bottom: 1px solid var(--border-notion);
-            padding-bottom: 20px;
+            padding-bottom: 16px;
         }
 
         header h1 {
-            font-size: 1.8rem;
+            font-size: 1.7rem;
             font-weight: 700;
             color: rgba(255, 255, 255, 0.9);
             margin: 0 0 6px 0;
-            letter-spacing: -0.03em;
+            letter-spacing: -0.02em;
         }
 
         .notion-card {
             background: var(--bg-surface);
             border: 1px solid var(--border-notion);
             border-radius: 8px;
-            padding: 20px;
-            margin-bottom: 24px;
+            padding: 16px;
+            margin-bottom: 20px;
         }
 
         .notion-label {
@@ -66,16 +70,15 @@
             text-transform: uppercase;
         }
 
-        /* 결과 출력창 룸 제목 - 한자가 섞여도 고급지게 */
         .output-room-title {
-            font-family: var(--font-serif);
-            font-size: 1.8rem;
+            font-family: var(--current-font);
+            font-size: 1.6rem;
             font-weight: 700;
             color: #ffffff;
-            margin: 0 0 20px 0;
+            margin: 0 0 16px 0;
             outline: none;
             border-bottom: 1px solid rgba(255, 255, 255, 0.1);
-            padding-bottom: 12px;
+            padding-bottom: 10px;
         }
 
         .accordion-header {
@@ -83,73 +86,146 @@
             justify-content: space-between;
             align-items: center;
             cursor: pointer;
-            padding: 4px 0;
+            padding: 2px 0;
         }
         .accordion-icon { font-size: 0.8rem; transition: transform 0.2s; color: var(--text-muted); }
         .accordion-content { max-height: 0; overflow: hidden; transition: max-height 0.3s ease-out; }
-        .accordion-content.open { max-height: none; margin-top: 16px; }
+        .accordion-content.open { max-height: none; margin-top: 14px; }
 
-        .input-group { display: flex; flex-direction: column; gap: 8px; margin-bottom: 16px; }
+        .grid-config {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 12px;
+        }
+        @media (min-width: 600px) {
+            .grid-config { grid-template-columns: repeat(2, 1fr); }
+        }
+
+        .input-group { display: flex; flex-direction: column; gap: 6px; margin-bottom: 12px; }
         .input-group span { font-size: 0.8rem; color: var(--text-muted); font-weight: 600; }
 
         input[type="text"], input[type="file"], input[type="color"] {
             width: 100%; background-color: var(--bg-input); border: 1px solid var(--border-notion);
-            border-radius: 6px; color: var(--text-main); font-size: 0.9rem; padding: 12px; box-sizing: border-box; outline: none;
+            border-radius: 6px; color: var(--text-main); font-size: 0.85rem; padding: 10px; box-sizing: border-box; outline: none;
         }
 
-        /* 추출 필터 체크박스 */
-        .filter-container { display: grid; grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); gap: 10px; margin-top: 8px; }
-        .filter-item { display: flex; align-items: center; gap: 8px; font-size: 0.85rem; cursor: pointer; }
-        .filter-item input { width: 16px; height: 16px; cursor: pointer; accent-color: var(--text-link); }
+        /* 서체 스위치 라디오 스타일 */
+        .font-switch-group {
+            display: flex;
+            gap: 16px;
+            background: var(--bg-input);
+            padding: 10px 14px;
+            border-radius: 6px;
+            border: 1px solid var(--border-notion);
+        }
+        .font-switch-item {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            font-size: 0.85rem;
+            cursor: pointer;
+        }
+        .font-switch-item input {
+            accent-color: var(--text-link);
+            cursor: pointer;
+        }
 
-        .btn-group { display: flex; gap: 10px; margin-bottom: 24px; }
+        .filter-container { display: grid; grid-template-columns: repeat(auto-fill, minmax(130px, 1fr)); gap: 8px; margin-top: 6px; }
+        .filter-item { display: flex; align-items: center; gap: 6px; font-size: 0.85rem; cursor: pointer; }
+        .filter-item input { width: 15px; height: 15px; cursor: pointer; accent-color: var(--text-link); }
+
+        .btn-group { display: flex; gap: 8px; margin-bottom: 20px; }
         .notion-btn {
             background: none; border: 1px solid var(--border-notion); color: var(--text-main);
-            border-radius: 6px; cursor: pointer; padding: 12px 20px; font-size: 0.9rem; transition: 0.2s; font-weight: 600;
+            border-radius: 6px; cursor: pointer; padding: 10px 16px; font-size: 0.85rem; transition: 0.2s; font-weight: 600;
         }
         .btn-submit { background: rgba(255, 255, 255, 0.05); border-color: rgba(255, 255, 255, 0.1); flex: 2; }
         .btn-submit:hover { background: rgba(255, 255, 255, 0.1); }
         .btn-util { flex: 1; border-color: rgba(96, 165, 250, 0.2); color: var(--text-link); }
         .btn-util:hover { background: rgba(96, 165, 250, 0.1); }
 
-        /* [요구사항] 스크립트 본문 명조체(세리프) 강화 및 가독성 레이아웃 */
-        .notion-row { display: flex; align-items: flex-start; gap: 14px; margin-bottom: 6px; padding-bottom: 6px; border-bottom: 1px solid rgba(255, 255, 255, 0.02); }
-        .avatar-box { width: 40px; height: 40px; border-radius: 6px; object-fit: cover; flex-shrink: 0; border: 1px solid var(--border-notion); }
-        .avatar-placeholder { width: 40px; flex-shrink: 0; }
+        /* -------------------------------------------------------------
+           [롤20 컴팩트 스펙 레이아웃] 문장 거리, 마진 최소화 작업 
+        ------------------------------------------------------------- */
+        .script-container {
+            display: flex;
+            flex-direction: column;
+            gap: 2px; /* 문장 사이의 간격을 대폭 축소 */
+        }
+
+        .notion-row { 
+            display: flex; 
+            align-items: flex-start; 
+            gap: 8px; 
+            padding: 2px 4px; /* 위아래 패딩을 줄여 빽빽하게 구현 */
+            margin-bottom: 0px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.01); 
+        }
+        
+        .avatar-box { width: 28px; height: 28px; border-radius: 4px; object-fit: cover; flex-shrink: 0; border: 1px solid var(--border-notion); }
+        .avatar-placeholder { width: 28px; flex-shrink: 0; }
         
         .notion-block {
-            flex: 1; padding: 6px 10px; border-radius: 4px; font-size: 0.95rem; line-height: 1.7;
-            word-break: break-all; outline: none; color: var(--text-main); white-space: pre-wrap;
-            /* 한자가 섞여도 고급스러운 분위기 연출 */
-            font-family: var(--font-serif);
+            flex: 1; 
+            padding: 2px 4px; 
+            border-radius: 4px; 
+            font-size: 0.9rem; 
+            line-height: 1.4; /* 줄간격을 롤20 스타일에 가깝게 조밀화 (기존 1.7 -> 1.4) */
+            word-break: break-all; 
+            outline: none; 
+            color: var(--text-main); 
+            white-space: pre-wrap;
+            font-family: var(--current-font);
         }
         .notion-block:focus { background: var(--bg-input); }
-        .char-name { font-size: 0.85rem; font-weight: 700; margin-bottom: 5px; display: block; color: var(--text-link); }
+        
+        /* 롤20 스타일의 컴팩트한 이름 표시 */
+        .char-name { 
+            font-size: 0.8rem; 
+            font-weight: 700; 
+            margin-bottom: 1px; 
+            display: block; 
+            color: var(--text-link); 
+            font-family: var(--font-sans);
+        }
 
         /* 지문/진행 모드 */
-        .state-narrator { text-align: center; font-weight: 600; font-style: italic; color: rgba(255, 255, 255, 0.7); width: 100%; margin: 6px 0; padding: 6px 20px; font-size: 1rem; border: none !important; }
+        .state-narrator { 
+            text-align: center; 
+            font-weight: 600; 
+            font-style: italic; 
+            color: rgba(255, 255, 255, 0.65); 
+            width: 100%; 
+            margin: 4px 0; 
+            padding: 3px 10px; 
+            font-size: 0.9rem; 
+            border: none !important; 
+        }
         
-        /* 시스템 모드 (왼쪽 바 제거) */
-        .state-system { font-family: var(--font-sans); font-size: 0.85rem; color: #888888; background-color: transparent; padding: 2px 10px; border: none !important; }
-        .state-dice { background-color: var(--bg-check); color: var(--text-check); border-left: 3px solid var(--text-check) !important; font-weight: 500; font-family: var(--font-sans); }
+        /* 시스템 및 주사위 롤20 최적화 */
+        .state-system { font-family: var(--font-sans); font-size: 0.8rem; color: #777777; background-color: transparent; padding: 1px 4px; border: none !important; }
+        .state-dice { background-color: var(--bg-check); color: var(--text-check); border-left: 2px solid var(--text-check) !important; font-weight: 500; font-family: var(--font-sans); padding: 2px 6px; }
 
-        .row-control { padding: 4px 10px; border: 1px solid var(--border-notion); background: rgba(255,255,255,0.02); color: var(--text-check); border-radius: 4px; cursor: pointer; font-size: 0.75rem; margin-top: 4px; }
-        .character-divider { border-top: 1px dashed var(--border-notion); margin: 16px 0 12px 0; width: 100%; }
+        .row-control { padding: 1px 6px; border: 1px solid var(--border-notion); background: rgba(255,255,255,0.02); color: var(--text-check); border-radius: 4px; cursor: pointer; font-size: 0.65rem; align-self: center; margin-left: 4px; opacity: 0.3; transition: opacity 0.2s; }
+        .notion-row:hover .row-control { opacity: 1; }
+        
+        /* 롤20 대화 분기 구분선 가볍게 변경 */
+        .character-divider { border-top: 1px solid rgba(255, 255, 255, 0.04); margin: 4px 0 2px 0; width: 100%; }
         .hidden { display: none !important; }
 
-        .checker-badge { display: inline-block; font-size: 0.7rem; background: rgba(234, 179, 8, 0.15); color: #fde047; padding: 1px 6px; border-radius: 3px; border: 1px solid rgba(234, 179, 8, 0.3); margin-bottom: 6px; font-family: var(--font-sans); }
+        .checker-badge { display: inline-block; font-size: 0.65rem; background: rgba(234, 179, 8, 0.12); color: #eab308; padding: 0px 4px; border-radius: 3px; border: 1px solid rgba(234, 179, 8, 0.2); margin-bottom: 2px; font-family: var(--font-sans); }
     </style>
 </head>
 <body>
 
     <header>
         <h1>논단군 스크립트 정리 Pro</h1>
-        <p>Aesthetic TRPG Log Engine</p>
+        <p>Roll20 Layout & Font Customizer</p>
     </header>
 
     <div class="notion-card">
         <div class="notion-label">설정 센터</div>
-        <div class="grid-config">
+        <div class="grid-config" style="margin-bottom: 12px;">
             <div class="input-group">
                 <span>1. 로그 파일 업로드 (.html)</span>
                 <input id="logFile" type="file" accept=".html">
@@ -159,9 +235,23 @@
                 <input id="narratorName" type="text" placeholder="예: GM 또는 서술자">
             </div>
         </div>
+
+        <div class="grid-config">
+            <div class="input-group">
+                <span>3. 스크립트 출력 서체 선택</span>
+                <div class="font-switch-group">
+                    <label class="font-switch-item">
+                        <input type="radio" name="fontPreset" value="serif" checked> ✨ 고급 명조체 (Serif)
+                    </label>
+                    <label class="font-switch-item">
+                        <input type="radio" name="fontPreset" value="sans"> 📱 깔끔 고딕체 (Gothic)
+                    </label>
+                </div>
+            </div>
+        </div>
         
         <div class="input-group" style="margin-top: 10px;">
-            <span>3. 추출할 탭 필터링 (자동 감지됨)</span>
+            <span>4. 추출할 탭 필터링</span>
             <div id="dynamicFilters" class="filter-container">
                 <p style="font-size: 0.8rem; color: var(--text-muted);">파일을 먼저 업로드하세요.</p>
             </div>
@@ -173,11 +263,11 @@
             <div class="notion-label" style="margin-bottom: 0;">캐릭터 대사 색상 설정</div>
             <div class="accordion-icon" id="accordionArrow">▶</div>
         </div>
-        <div id="colorSettingsContainer" class="accordion-content grid-config" style="grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));"></div>
+        <div id="colorSettingsContainer" class="accordion-content grid-config" style="grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); margin-top: 0;"></div>
     </div>
 
     <div class="btn-group">
-        <button id="btnProcess" class="notion-btn btn-submit">실행</button>
+        <button id="btnProcess" class="notion-btn btn-submit">스크립트 가공 및 분류 실행</button>
         <button id="btnCopy" class="notion-btn btn-util">전체 코드 복사</button>
         <button id="btnDownload" class="notion-btn btn-util">파일로 저장</button>
     </div>
@@ -185,7 +275,7 @@
     <div id="mainOutputCard" class="notion-card">
         <div class="notion-label">메인 세션 로그 (Main)</div>
         <h2 id="roomTitle" class="output-room-title" contenteditable="true" spellcheck="false">파일을 기다리는 중...</h2>
-        <div id="mainContainer"></div>
+        <div id="mainContainer" class="script-container"></div>
     </div>
 
     <div id="dynamicTabsOutput"></div>
@@ -195,6 +285,7 @@
         let characterColors = {}; 
         let characterAvatars = {}; 
         let detectedTabs = new Set();
+        let currentFontType = "serif"; // 현재 폰트 유형 캐싱
 
         const spellRules = [
             { regex: /됫/g, fix: "됐" }, { regex: /됬/g, fix: "됐" }, { regex: /않하고/g, fix: "안 하고" }, 
@@ -208,7 +299,22 @@
             arrow.innerText = content.classList.contains('open') ? '▼' : '▶';
         }
 
-        // 파일 로드 및 탭/캐릭터 자동 인식
+        // 라디오 버튼 조작 시 실시간 폰트 적용 바인딩
+        document.querySelectorAll('input[name="fontPreset"]').forEach(radio => {
+            radio.addEventListener('change', (e) => {
+                currentFontType = e.target.value;
+                const fontValue = currentFontType === "serif" ? "var(--font-serif)" : "var(--font-sans)";
+                document.documentElement.style.setProperty('--current-font', fontValue);
+                
+                // 이미 화면에 렌더링된 요소들의 스타일도 즉시 업데이트
+                document.querySelectorAll('.notion-block').forEach(el => {
+                    el.style.fontFamily = fontValue;
+                });
+                document.getElementById('roomTitle').style.fontFamily = fontValue;
+            });
+        });
+
+        // 파일 선택기 동작
         document.getElementById('logFile').addEventListener('change', (e) => {
             const file = e.target.files[0];
             if (!file) return;
@@ -218,7 +324,6 @@
                 const parser = new DOMParser();
                 const doc = parser.parseFromString(event.target.result, 'text/html');
                 
-                // 파일명 정제 (제목)
                 document.getElementById('roomTitle').innerText = file.name.replace(/\.html$/i, "").replace(/\[all\]$/i, "").trim();
 
                 const paragraphs = doc.querySelectorAll('p');
@@ -290,7 +395,13 @@
             return parts ? "#" + parts.slice(0,3).map(x => parseInt(x).toString(16).padStart(2, '0')).join('') : "#ffffff";
         }
 
-        // [핵심] 캐릭터 이름 유실 방지 및 다중 탭 토글 렌더링
+        function checkSpellErrors(text) {
+            let suggestions = [];
+            spellRules.forEach(rule => { if(rule.regex.test(text)) suggestions.push(`'${rule.fix}' 추천`); });
+            return suggestions.length > 0 ? `<span class="checker-badge" draggable="false">⚠️ ${suggestions.join(', ')}</span>` : '';
+        }
+
+        // 가공 프로세스 실행
         document.getElementById('btnProcess').addEventListener('click', () => {
             if(rawLogData.length === 0) return alert('파일을 로드하세요.');
             
@@ -302,7 +413,6 @@
             mainContainer.innerHTML = "";
             dynamicTabsOutput.innerHTML = "";
 
-            // 탭별 컨테이너 생성
             const tabGroups = {};
             selectedTabs.forEach(t => {
                 if(t.includes('메인') || t.toLowerCase() === 'main') {
@@ -316,13 +426,14 @@
                             <div class="notion-label" style="margin-bottom:0;">[${t}] 채널 로그</div>
                             <div class="accordion-icon" id="arr_${id}">▶</div>
                         </div>
-                        <div id="${id}" class="accordion-content"></div>`;
+                        <div id="${id}" class="accordion-content script-container"></div>`;
                     dynamicTabsOutput.appendChild(card);
                     tabGroups[t] = card.querySelector('.accordion-content');
                 }
             });
 
-            let lastSpeakers = {}; // 탭별 직전 발화자 추적
+            let lastSpeakers = {}; 
+            const fontValue = currentFontType === "serif" ? "var(--font-serif)" : "var(--font-sans)";
 
             rawLogData.forEach(log => {
                 if(log.tab !== "시스템" && !selectedTabs.includes(log.tab)) return;
@@ -332,8 +443,6 @@
                 const isSys = log.tab === "시스템";
                 const currentSpeaker = log.name;
 
-                // [요구사항] 지문 사이에 캐릭터가 껴도 이름이 표시되도록 로직 강화
-                // 직전 발화자가 시스템이거나 지문이었으면, 다시 이름을 강제로 표시함
                 let forceShowName = false;
                 if (!isSys && !isNarrator && (lastSpeakers[log.tab] === "__SYS__" || lastSpeakers[log.tab] === "__NARR__")) {
                     forceShowName = true;
@@ -347,7 +456,6 @@
 
                 let isSameSpeaker = (!forceShowName && !isNarrator && !isSys && lastSpeakers[log.tab] === currentSpeaker);
                 
-                // 상태 업데이트
                 if (isSys) lastSpeakers[log.tab] = "__SYS__";
                 else if (isNarrator) lastSpeakers[log.tab] = "__NARR__";
                 else lastSpeakers[log.tab] = currentSpeaker;
@@ -372,10 +480,11 @@
                     }
                     inner += `<div style="flex:1;">
                         ${!isSameSpeaker ? `<span class="char-name" style="color:${characterColors[currentSpeaker] || 'inherit'}">${currentSpeaker}</span>` : ''}
-                        <div class="${msgClass}" contenteditable="true" spellcheck="false">${escapeHtml(log.message)}</div>
+                        ${checkSpellErrors(log.message)}
+                        <div class="${msgClass}" style="font-family: ${fontValue}" contenteditable="true" spellcheck="false">${escapeHtml(log.message)}</div>
                     </div>`;
                 } else {
-                    inner += `<div class="${msgClass}" contenteditable="true" spellcheck="false">${escapeHtml(log.message)}</div>`;
+                    inner += `<div class="${msgClass}" style="font-family: ${fontValue}" contenteditable="true" spellcheck="false">${escapeHtml(log.message)}</div>`;
                 }
                 
                 inner += `<button class="row-control" onclick="this.parentElement.remove()">✕</button>`;
@@ -384,30 +493,30 @@
             });
         });
 
-        // 결과 빌드 (수정된 제목 및 모든 탭 포함)
+        // 다운로드용 최종 통합본 마크업 빌더 (선택한 서체 세팅 박제 복사됨)
         function buildFinal() {
             const finalTitle = document.getElementById('roomTitle').innerText.trim();
-            const sections = document.querySelectorAll('.notion-card');
+            const chosenFontStack = currentFontType === "serif" ? `'Hina Mincho', 'Noto Serif KR', serif` : `'Noto Sans KR', sans-serif`;
             
             let output = `<!DOCTYPE html><html><head><meta charset="UTF-8"><title>${finalTitle}</title>
             <style>
-                @import url('https://fonts.googleapis.com/css2?family=Noto+Serif+KR:wght@400;700&family=Hina+Mincho&display=swap');
-                body { background:#191919; color:rgba(255,255,255,0.85); font-family: sans-serif; max-width:750px; margin:0 auto; padding:40px 20px; }
-                h1 { font-family: "Hina Mincho", "Noto Serif KR", serif; font-size:2rem; border-bottom:1px solid rgba(255,255,255,0.1); padding-bottom:15px; margin-bottom:30px; }
-                .tab-title { font-size:0.8rem; font-weight:700; color:#60a5fa; text-transform:uppercase; margin:40px 0 10px 0; opacity:0.6; }
-                .row { display:flex; align-items:flex-start; gap:12px; margin-bottom:8px; }
-                .avatar { width:36px; height:36px; border-radius:4px; object-fit:cover; flex-shrink:0; }
-                .name { font-size:0.85rem; font-weight:700; margin-bottom:4px; display:block; }
-                .msg { font-family: "Hina Mincho", "Noto Serif KR", serif; font-size:0.95rem; line-height:1.7; white-space:pre-wrap; word-break:break-all; flex:1; }
-                .narrator { text-align:center; font-weight:600; font-style:italic; opacity:0.8; padding:10px 0; }
-                .system { color:#888; font-size:0.85rem; font-family: sans-serif; }
-                .dice { background:rgba(239,68,68,0.1); color:#f87171; border-left:3px solid #f87171; padding:4px 10px; border-radius:4px; font-family: sans-serif; }
-                .divider { border-top:1px dashed rgba(255,255,255,0.1); margin:15px 0; }
-                details { background:#222; border:1px solid rgba(255,255,255,0.05); border-radius:8px; padding:15px; margin-top:20px; }
-                summary { font-size:0.9rem; font-weight:700; color:rgba(255,255,255,0.5); cursor:pointer; }
-            </style></head><body><h1>${finalTitle}</h1>`;
+                @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;700&family=Noto+Serif+KR:wght@400;700&family=Hina+Mincho&display=swap');
+                body { background:#191919; color:rgba(255,255,255,0.85); font-family: 'Noto Sans KR', sans-serif; max-width:750px; margin:0 auto; padding:30px 20px; }
+                h1 { font-family: ${chosenFontStack}; font-size:1.8rem; border-bottom:1px solid rgba(255,255,255,0.1); padding-bottom:12px; margin-bottom:20px; }
+                .script-box { display: flex; flex-direction: column; gap: 2px; }
+                .row { display:flex; align-items:flex-start; gap:8px; padding: 2px 4px; }
+                .avatar { width:28px; height:28px; border-radius:4px; object-fit:cover; flex-shrink:0; }
+                .name { font-size:0.8rem; font-weight:700; margin-bottom:1px; display:block; font-family: 'Noto Sans KR', sans-serif; }
+                .msg { font-family: ${chosenFontStack}; font-size:0.9rem; line-height:1.4; white-space:pre-wrap; word-break:break-all; flex:1; }
+                .narrator { text-align:center; font-weight:600; font-style:italic; opacity:0.7; padding:4px 0; font-size:0.9rem; }
+                .system { color:#777; font-size:0.8rem; font-family: 'Noto Sans KR', sans-serif; }
+                .dice { background:rgba(239,68,68,0.1); color:#f87171; border-left:2px solid #f87171; padding:2px 6px; border-radius:4px; font-family: 'Noto Sans KR', sans-serif; }
+                .divider { border-top:1px solid rgba(255,255,255,0.04); margin:4px 0 2px 0; }
+                details { background:#222; border:1px solid rgba(255,255,255,0.05); border-radius:8px; padding:12px; margin-top:16px; }
+                summary { font-size:0.85rem; font-weight:700; color:rgba(255,255,255,0.5); cursor:pointer; }
+            </style></head><body><h1>${finalTitle}</h1><div class="script-box">`;
 
-            function processContainer(nodes, isDetail = false) {
+            function processContainer(nodes) {
                 let res = ""; let last = "";
                 nodes.forEach(el => {
                     if(el.classList.contains('character-divider')) { res += '<div class="divider"></div>'; return; }
@@ -423,7 +532,7 @@
                         const img = el.querySelector('.avatar-box')?.src;
                         if(img && !same) res += `<img src="${img}" class="avatar">`;
                         else if(!same) res += `<div class="avatar" style="background:#333"></div>`;
-                        else res += `<div style="width:36px;flex-shrink:0"></div>`;
+                        else res += `<div style="width:28px;flex-shrink:0"></div>`;
                         res += '<div>';
                         if(!same) res += `<span class="name" style="color:${el.querySelector('.char-name')?.style.color}">${spk}</span>`;
                         res += `<div class="msg ${isDice?'dice':''}">${el.querySelector('.notion-block').innerText}</div></div>`;
@@ -436,11 +545,12 @@
             }
 
             output += processContainer(document.querySelectorAll('#mainContainer > div'));
+            output += '</div>'; // 메인 스크립트 박스 닫기
             
             document.querySelectorAll('#dynamicTabsOutput > .notion-card').forEach(card => {
                 const title = card.querySelector('.notion-label').innerText;
                 const nodes = card.querySelectorAll('.accordion-content > div');
-                output += `<details><summary>${title}</summary>${processContainer(nodes)}</details>`;
+                output += `<details><summary>${title}</summary><div class="script-box" style="margin-top:8px;">${processContainer(nodes)}</div></details>`;
             });
 
             output += '</body></html>';
@@ -448,7 +558,7 @@
         }
 
         document.getElementById('btnCopy').addEventListener('click', () => {
-            navigator.clipboard.writeText(buildFinal()).then(() => alert('복사되었습니다.'));
+            navigator.clipboard.writeText(buildFinal()).then(() => alert('Roll20 컴팩트 스타일 코드가 복사되었습니다.'));
         });
 
         document.getElementById('btnDownload').addEventListener('click', () => {
