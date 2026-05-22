@@ -1266,7 +1266,7 @@
             if(document.querySelectorAll('#dynamicTabsOutput > .notion-card').length === 0) return alert('먼저 실행 버튼을 눌러 로그를 변환하세요.');
             const embedCode = buildFinal('embed');
             navigator.clipboard.writeText(embedCode).then(() => {
-                alert('코드가 클립보드에 복사되었습니다.');
+                alert('클립보드에 복사되었습니다.');
             }).catch(err => {
                 alert('복사 실패: ' + err);
             });
