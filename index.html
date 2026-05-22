@@ -203,7 +203,6 @@
         .btn-submit:hover { background: rgba(255,255,255,0.15); border-color: rgba(255,255,255,0.4); }
         .btn-util { flex: 1; min-width: 80px; }
 
-        /* 맞춤법 리포트 카드 */
         .spell-report-card {
             background: var(--bg-card); border: 1px solid rgba(255,255,255,0.2);
             border-radius: var(--radius-lg); padding: 18px 20px; display: none;
@@ -276,22 +275,49 @@
         .script-container.collapsed { display: none !important; }
 
         .notion-row { 
-            display: flex; align-items: center; justify-content: space-between; gap: 12px; 
-            padding: 5px 8px; border-radius: var(--radius-sm); position: relative;
+            display: flex; align-items: flex-start; justify-content: space-between; gap: 12px; 
+            padding: 6px 8px; border-radius: var(--radius-sm); position: relative;
             transition: background-color 0.15s ease; width: 100%;
+            user-select: none; cursor: pointer;
         }
         .notion-row.filtered-out { display: none !important; }
         .notion-row:hover { background: rgba(255, 255, 255, 0.04); }
         .notion-row.row-flash { background-color: rgba(255,255,255,0.15) !important; }
+        
+        .notion-row.bg-custom-light .notion-block { color: #1a1a1a !important; }
+        .notion-row.bg-custom-light .char-name-wrapper { filter: brightness(0.15) contrast(1.2); }
+        .notion-row.bg-custom-light .state-narrator { color: #1a1a1a !important; }
 
-        .content-cell { display: flex; align-items: flex-start; gap: 10px; flex: 1; width: 100%; overflow: hidden; }
+        .notion-row.bg-custom-dark .notion-block { color: #e3e3e3 !important; }
+        .notion-row.bg-custom-dark .char-name-wrapper { filter: brightness(1.2); }
+        .notion-row.bg-custom-dark .state-narrator { color: #e3e3e3 !important; }
+
+        .bg-color-btn {
+            position: absolute; left: 6px; bottom: 4px;
+            width: 14px; height: 14px; border-radius: 0px;
+            border: 1px solid rgba(255,255,255,0.3); cursor: pointer;
+            padding: 0; background: transparent; flex-shrink: 0;
+            opacity: 0; transition: opacity 0.15s; z-index: 6;
+        }
+        .notion-row.bg-custom-light .bg-color-btn,
+        .notion-row.bg-custom-dark .bg-color-btn { opacity: 0.5; }
+        .notion-row:hover .bg-color-btn { opacity: 1 !important; }
+        .bg-color-btn input[type="color"] {
+            position: absolute; inset: 0; width: 100%; height: 100%;
+            opacity: 0; cursor: pointer; border: none; padding: 0;
+        }
+
+        .content-cell { display: flex; align-items: flex-start; gap: 6px; flex: 1; width: 100%; overflow: hidden; }
         .avatar-box { width: 28px; height: 28px; border-radius: 0px; object-fit: cover; flex-shrink: 0; border: 1px solid rgba(255,255,255,0.1); background: #333; }
         .avatar-placeholder { width: 28px; flex-shrink: 0; }
         
+        .char-name-wrapper { width: auto; min-width: 0; max-width: 150px; flex-shrink: 0; text-align: left; padding-right: 4px; font-family: var(--font-ui); display: block; overflow: hidden; }
+        .char-name { font-size: 0.85rem; font-weight: 700; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; display: block; }
+
         .notion-block {
-            flex: 1; padding: 1px 4px; border-radius: 0px; font-size: 0.95rem; line-height: 1.55; 
+            flex: 1; padding: 1px 0; border-radius: 0px; font-size: 0.95rem; line-height: 1.6; 
             word-break: break-word; outline: none; color: var(--script-text) !important; white-space: pre-wrap;
-            font-family: var(--current-font); width: 100%;
+            font-family: var(--current-font); min-width: 0;
         }
 
         .notion-block button.del, .notion-block .row-control, .notion-block .del { display: none !important; }
@@ -300,7 +326,7 @@
         .notion-row:hover .control-cell { opacity: 1; }
         .row-control { 
             background: rgba(255,255,255,0.08); border: 1px solid rgba(255,255,255,0.2); 
-            color: #ffffff; cursor: pointer; font-size: 0.7 ramp; font-weight: bold; 
+            color: #ffffff; cursor: pointer; font-size: 0.75rem; font-weight: bold; 
             padding: 2px 7px; border-radius: 0px; transition: 0.15s;
         }
         .row-control:hover { background: #ffffff; color: #000000; border-color: #ffffff; }
@@ -338,11 +364,9 @@
         .history-btn:disabled { opacity: 0.25; cursor: not-allowed; }
         .btn-scroll-top { border-left: 1px solid rgba(255,255,255,0.15); margin-left: 2px; padding-left: 14px; }
         
-        .char-name { font-size: 0.85rem; font-weight: 700; margin-bottom: 2px; display: block; font-family: var(--font-ui); }
+        .state-narrator { text-align: center; font-weight: 700; font-style: italic; color: var(--script-narrator) !important; width: 100%; margin: 2px 0; padding: 2px 10px; font-size: 0.89rem; transition: color 0.3s ease; }
+        .state-system { font-family: var(--font-ui); font-size: 0.82rem; color: var(--script-sys) !important; text-align: center !important; width: 100% !important; font-style: normal !important; display: block; padding: 6px 0; margin: 0 auto; }
         
-        /* 서술자 텍스트 크기 1px 축소 (0.95rem -> 0.89rem) */
-        .state-narrator { text-align: center; font-weight: 700; font-style: italic; color: var(--script-narrator) !important; width: 100%; margin: 2px 0; padding: 2px 10px; font-size: 0.89rem; }
-        .state-system { font-family: var(--font-ui); font-size: 0.85rem; color: var(--script-sys) !important; }
         .character-divider { border-top: 1px solid rgba(255, 255, 255, 0.05); margin: 4px 0 2px 0; width: 100%; }
 
         ::-webkit-scrollbar { width: 5px; height: 5px; }
@@ -357,12 +381,12 @@
         <header>
             <div class="header-badge">TRPG 로그 백업기</div>
             <h1>논단군 코코포 로그 백업기</h1>
-            <p>간단하게 로그를 백업합시다</p>
+            <p>직관적이고 편한 로그 백업기</p>
         </header>
 
         <div class="notion-card">
             <div class="card-header">
-                <div class="notion-label">설정</div>
+                <div class="notion-label">설정 센터</div>
             </div>
             <div class="grid-config">
                 <div class="input-group">
@@ -400,9 +424,9 @@
                 </div>
             </div>
             <div class="input-group" style="margin-top: 10px;">
-                <span class="input-label">6. 캐릭터별 색상 지정</span>
+                <span class="input-label">6. 캐릭터별 개별 색상 지정 (로그 색상 자동 추출)</span>
                 <div id="characterColorPanel" class="color-picker-panel">
-                    <span style="color: var(--text-muted); font-size: 0.83rem;"> </span>
+                    <span style="color: var(--text-muted); font-size: 0.83rem;">파일을 업로드하면 고유 색상이 자동으로 추출됩니다.</span>
                 </div>
             </div>
             <div class="input-group" style="margin-top: 10px;">
@@ -425,6 +449,7 @@
             <div class="spell-report-header">
                 <div class="spell-report-meta">
                     <div class="spell-report-title">맞춤법 교정 리포트</div>
+                    <div class="spell-report-sub">TRPG 세션 특화 고정밀 엔진</div>
                 </div>
                 <div class="spell-report-actions">
                     <button id="btnSpellFixAll" class="spell-btn-all">모두 교정</button>
@@ -452,13 +477,13 @@
     <div class="floating-history-panel">
         <button id="btnUndo" class="history-btn" disabled>뒤로</button>
         <button id="btnRedo" class="history-btn" disabled>앞으로</button>
-        <button id="btnScrollTop" class="history-btn btn-scroll-top">↑</button>
+        <button id="btnScrollTop" class="history-btn btn-scroll-top">↑ Top</button>
     </div>
 
     <script>
         let rawLogData = [];
         let detectedTabs = new Set();
-        let detectedCharacters = new Set(); 
+        let characterColorMap = {}; 
         let currentFontType = "sans"; 
         let currentColorTheme = "ccfolia"; 
         let undoStack = [];
@@ -470,7 +495,7 @@
             { wrong: /됬됐다/g, right: "됐다", cat: "맞춤법" },
             { wrong: /됬어/g, right: "됐어", cat: "맞춤법" },
             { wrong: /됬/g, right: "됐", cat: "맞춤법" },
-            { wrong: /되었다/g, right: "됐다", cat: "맞춤법" },
+            { wrong: /되었습니다/g, right: "됐다", cat: "맞춤법" },
             { wrong: /되었어/g, right: "됐어", cat: "맞춤법" },
             { wrong: /되었고/g, right: "됐고", cat: "맞춤법" },
             { wrong: /되었니/g, right: "됐니", cat: "맞춤법" },
@@ -487,16 +512,20 @@
             { wrong: /않먹/g, right: "안 먹", cat: "맞춤법" },
             { wrong: /않오/g, right: "안 오", cat: "맞춤법" },
             { wrong: /않좋/g, right: "안 좋", cat: "맞춤법" },
-            { wrong: /안되나요/g, right: "안 되나요", cat: "띄어쓰기" },
-            { wrong: /안되죠/g, right: "안 되죠", cat: "띄어쓰기" },
-            { wrong: /안되는/g, right: "안 되는", cat: "띄어쓰기" },
-            { wrong: /안된다/g, right: "안 된다", cat: "띄어쓰기" },
-            { wrong: /안된/g, right: "안 된", cat: "띄어쓰기" },
-            { wrong: /안해/g, right: "안 해", cat: "띄어쓰기" },
-            { wrong: /안봐/g, right: "안 봐", cat: "띄어쓰기" },
-            { wrong: /안와/g, right: "안 와", cat: "띄어쓰기" },
-            { wrong: /안가/g, right: "안 가", cat: "띄어쓰기" },
-            { wrong: /안좋은/g, right: "안 좋은", cat: "띄어쓰기" },
+            { wrong: /안돼고/g, right: "안 되고", cat: "맞춤법" },
+            { wrong: /안돼서/g, right: "안 돼서", cat: "맞춤법" },
+            { wrong: /안돼면/g, right: "안 되면", cat: "맞춤법" },
+            { wrong: /안돼나요/g, right: "안 되나요", cat: "맞춤법" },
+            { wrong: /할려구/g, right: "하려구", cat: "맞춤법" },
+            { wrong: /할려고/g, right: "하려고", cat: "맞춤법" },
+            { wrong: /할래야/g, right: "하려야", cat: "맞춤법" },
+            { wrong: /갈려고/g, right: "가려고", cat: "맞춤법" },
+            { wrong: /먹을려고/g, right: "먹으려고", cat: "맞춤법" },
+            { wrong: /잡을려고/g, right: "잡으려고", cat: "맞춤법" },
+            { wrong: /볼려고/g, right: "보려고", cat: "맞춤법" },
+            { wrong: /것 같아/g, right: "것 같아", cat: "공백" },
+            { wrong: /할 수/g, right: "할 수", cat: "공백" },
+            { wrong: /있을 것/g, right: "있을 것", cat: "공백" },
             { wrong: /안좋아/g, right: "안 좋아", cat: "띄어쓰기" },
             { wrong: /어의없/g, right: "어처구니없", cat: "맞춤법" },
             { wrong: /바램/g, right: "바람", cat: "맞춤법" },
@@ -518,85 +547,75 @@
             { wrong: /몆일/g, right: "며칠", cat: "맞춤법" },
             { wrong: /왠지모르/g, right: "왠지 모르", cat: "맞춤법" },
             { wrong: /웬지/g, right: "왠지", cat: "맞춤법" },
-            { wrong: /웬만하면/g, right: "웬만하면", cat: "웬만하면" },
-            { wrong: /어떻하/g, right: "어떡하", cat: "맞춤법" },
-            { wrong: /틀리다/g, right: "다르다", cat: "맞춤법" }, 
-            { wrong: /재밋/g, right: "재밌", cat: "맞춤법" },
-            { wrong: /낳은/g, right: "나은", cat: "맞춤법" }, 
-            { wrong: /더낳은/g, right: "더 나은", cat: "띄어쓰기" },
-            { wrong: /낳아/g, right: "나아", cat: "맞춤법" },
-            { wrong: /설레임/g, right: "설렘", cat: "맞춤법" },
-            { wrong: /바래어/g, right: "바라어", cat: "맞춤법" },
-            { wrong: /희안한/g, right: "희한한", cat: "맞춤법" },
-            { wrong: /희안하/g, right: "희한하", cat: "맞춤법" },
-            { wrong: /할거야/g, right: "할 거야", cat: "띄어쓰기" },
-            { wrong: /할거에요/g, right: "할 거예요", cat: "띄어쓰기" },
-            { wrong: /할수/g, right: "할 수", cat: "띄어쓰기" },
-            { wrong: /할수있다/g, right: "할 수 있다", cat: "띄어쓰기" },
-            { wrong: /할수없는/g, right: "할 수 없는", cat: "띄어쓰기" },
-            { wrong: /했는 대/g, right: "했는데", cat: "띄어쓰기" },
-            { wrong: /맞는것/g, right: "맞는 것", cat: "띄어쓰기" },
-            { wrong: /하는것/g, right: "하는 것", cat: "띄어쓰기" },
-            { wrong: /이런것/g, right: "이런 것", cat: "띄어쓰기" },
-            { wrong: /그런것/g, right: "그런 것", cat: "띄어쓰기" },
-            { wrong: /저런것/g, right: "저런 것", cat: "띄어쓰기" },
-            { wrong: /있는것/g, right: "있는 것", cat: "띄어쓰기" },
-            { wrong: /없는것/g, right: "없는 것", cat: "띄어쓰기" },
-            { wrong: /못해/g, right: "못 해", cat: "띄어쓰기" },
-            { wrong: /못하는/g, right: "못 하는", cat: "띄어쓰기" },
-            { wrong: /못봐/g, right: "못 봐", cat: "띄어쓰기" },
-            { wrong: /못가/g, right: "못 가", cat: "띄어쓰기" },
-            { wrong: /해볼까/g, right: "해 볼까", cat: "띄어쓰기" },
-            { wrong: /해볼게/g, right: "해 볼게", cat: "띄어쓰기" },
-            { wrong: /해보자/g, right: "해 보자", cat: "띄어쓰기" },
-            { wrong: /해 보면/g, right: "해 보면", cat: "띄어쓰기" },
-            { wrong: /해봐/g, right: "해 봐", cat: "띄어쓰기" },
-            { wrong: /가볼까/g, right: "가 볼까", cat: "띄어쓰기" },
-            { wrong: /가봐야/g, right: "가 봐야", cat: "띄어쓰기" },
-            { wrong: /내꺼/g, right: "내 것", cat: "맞춤법" },
-            { wrong: /니꺼/g, right: "네 것", cat: "맞춤법" },
-            { wrong: /네꺼/g, right: "네 것", cat: "맞춤법" },
-            { wrong: /먹을때/g, right: "먹을 때", cat: "띄어쓰기" },
-            { wrong: /갈때/g, right: "갈 때", cat: "띄어쓰기" },
-            { wrong: /할때/g, right: "할 때", cat: "띄어쓰기" },
-            { wrong: /했을때/g, right: "했을 때", cat: "띄어쓰기" },
-            { wrong: /던젼/g, right: "던전", cat: "맞춤법" },
-            { wrong: /케릭터/g, right: "캐릭터", cat: "맞춤법" },
-            { wrong: /보스몹/g, right: "보스 몹", cat: "띄어쓰기" },
-            { wrong: /아이템창/g, right: "아이템 창", cat: "띄어쓰기" },
-            { wrong: /다이스롤/g, right: "다이스 롤", cat: "띄어쓰기" },
-            { wrong: /크리티컬히트/g, right: "크리티컬 히트", cat: "띄어쓰기" },
-            { wrong: /-(이)에요$/g, right: "예요", cat: "맞춤법" },
-            { wrong: /이예요/g, right: "이에요", cat: "맞춤법" },
-            { wrong: /할려구/g, right: "하려고", cat: "맞춤법" },
-            { wrong: /할려고/g, right: "하려고", cat: "맞춤법" },
-            { wrong: /먹을려고/g, right: "먹으려고", cat: "맞춤법" },
-            { wrong: /하는 지/g, right: "하는지", cat: "띄어쓰기" },
-            { wrong: /했는 지/g, right: "했는지", cat: "띄어쓰기" }
+            { wrong: /\.\.\./g, right: "...", cat: "" }
         ].filter(r => r.cat !== "");
 
         const themeProfiles = {
-            roll20: { bg: "#e9eced", text: "#232323", fallbackName: "#454545", narrator: "#232323", sys: "#666666", border: "#dcdfe0", title: "#232323", titleBg: "#e9eced", titleBorder: "rgba(0,0,0,0.1)" },
-            ccfolia: { bg: "#111111", text: "#e3e3e3", fallbackName: "#cccccc", narrator: "#e3e3e3", sys: "#888888", border: "#222222", title: "#e3e3e3", titleBg: "#222222", titleBorder: "rgba(255,255,255,0.15)" }
+            roll20: {
+                bg: "#e9eced", text: "#232323", fallbackName: "#454545", narrator: "#232323",
+                sys: "#666666", border: "#dcdfe0", title: "#232323", titleBg: "#e9eced", titleBorder: "rgba(0,0,0,0.15)"
+            },
+            ccfolia: {
+                bg: "#1a1a1a", text: "#e3e3e3", fallbackName: "#888888", narrator: "#ffffff",
+                sys: "#888888", border: "rgba(255,255,255,0.06)", title: "#e3e3e3", titleBg: "#222222", titleBorder: "rgba(255,255,255,0.15)"
+            }
         };
 
-        function applyColorTheme(themeName) {
-            const p = themeProfiles[themeName];
+        function applyColorTheme(themeKey) {
             const root = document.documentElement;
-            root.style.setProperty('--script-bg', p.bg);
-            root.style.setProperty('--script-text', p.text);
-            root.style.setProperty('--script-narrator', p.narrator);
-            root.style.setProperty('--script-sys', p.sys);
-            root.style.setProperty('--script-border', p.border);
-            root.style.setProperty('--title-color', p.title);
-            root.style.setProperty('--title-bg', p.titleBg);
-            root.style.setProperty('--title-border', p.titleBorder);
+            if (themeKey === 'roll20') {
+                root.style.setProperty('--script-bg', '#e9eced');
+                root.style.setProperty('--script-text', '#232323');
+                root.style.setProperty('--script-narrator', '#232323');
+                root.style.setProperty('--script-sys', '#666666');
+                root.style.setProperty('--script-border', '#dcdfe0');
+                root.style.setProperty('--title-color', '#232323');
+                root.style.setProperty('--title-bg', '#e9eced');
+                root.style.setProperty('--title-border', 'rgba(0,0,0,0.15)');
+            } else {
+                root.style.setProperty('--script-bg', '#111111');
+                root.style.setProperty('--script-text', '#e3e3e3');
+                root.style.setProperty('--script-narrator', '#ffffff');
+                root.style.setProperty('--script-sys', '#888888');
+                root.style.setProperty('--script-border', '#222222');
+                root.style.setProperty('--title-color', '#e3e3e3');
+                root.style.setProperty('--title-bg', '#222222');
+                root.style.setProperty('--title-border', 'rgba(255,255,255,0.15)');
+            }
+            document.querySelectorAll('.notion-row').forEach(row => {
+                if (row.dataset.custombg) {
+                    const currentMode = themeKey === 'roll20' ? 'dark' : 'light';
+                    row.dataset.custombg = currentMode;
+                    row.classList.remove('bg-custom-light', 'bg-custom-dark');
+                    row.classList.add(currentMode === 'light' ? 'bg-custom-light' : 'bg-custom-dark');
+                    applyRowCustomBg(row);
+                }
+            });
+        }
+
+        function applyRowCustomBg(row) {
+            const isLight = row.classList.contains('bg-custom-light');
+            const baseColor = row.dataset.custombgColor || '#aaaaaa';
+            if (isLight) {
+                row.style.backgroundColor = '#ffffff';
+                row.style.border = `1px solid ${baseColor}`;
+            } else {
+                row.style.backgroundColor = '#1a1a1a';
+                row.style.border = `1px solid ${baseColor}`;
+            }
+            const pInput = row.querySelector('.bg-color-btn input[type="color"]');
+            if (pInput) pInput.value = baseColor;
+            const pBtn = row.querySelector('.bg-color-btn');
+            if (pBtn) pBtn.style.backgroundColor = baseColor;
         }
 
         document.querySelectorAll('input[name="colorTheme"]').forEach(radio => {
-            radio.addEventListener('change', (e) => { currentColorTheme = e.target.value; applyColorTheme(currentColorTheme); });
+            radio.addEventListener('change', (e) => {
+                currentColorTheme = e.target.value;
+                applyColorTheme(currentColorTheme);
+            });
         });
-        applyColorTheme("ccfolia"); 
+        applyColorTheme("ccfolia");
 
         document.querySelectorAll('input[name="fontPreset"]').forEach(radio => {
             radio.addEventListener('change', (e) => {
@@ -609,127 +628,260 @@
 
         document.getElementById('btnScrollTop').addEventListener('click', () => window.scrollTo({ top: 0, behavior: 'smooth' }));
 
+        function rgbToHex(col) {
+            if (!col) return null;
+            col = col.trim();
+            if (col.startsWith('#')) {
+                if (col.length === 4) {
+                    return '#' + col[1] + col[1] + col[2] + col[2] + col[3] + col[3];
+                }
+                return col.toLowerCase();
+            }
+            const matches = col.match(/^rgba?\((\d+),\s*(\d+),\s*(\d+)/i);
+            if (matches) {
+                const r = parseInt(matches[1]).toString(16).padStart(2, '0');
+                const g = parseInt(matches[2]).toString(16).padStart(2, '0');
+                const b = parseInt(matches[3]).toString(16).padStart(2, '0');
+                return `#${r}${g}${b}`.toLowerCase();
+            }
+            return null;
+        }
+
         document.getElementById('logFile').addEventListener('change', (e) => {
-            const file = e.target.files[0]; if (!file) return;
+            const file = e.target.files[0];
+            if (!file) return;
             const reader = new FileReader();
             reader.onload = function(event) {
-                const parser = new DOMParser(); const doc = parser.parseFromString(event.target.result, 'text/html');
+                const parser = new DOMParser();
+                const doc = parser.parseFromString(event.target.result, 'text/html');
                 globalRoomTitle = file.name.replace(/\.html$/i, "").replace(/\[all\]$/i, "").trim();
-                
-                let lines = doc.querySelectorAll('p, .msg, .chat-line'); if(lines.length === 0) lines = doc.querySelectorAll('body > div');
-                rawLogData = []; detectedTabs.clear(); detectedCharacters.clear();
-                
+                let lines = doc.querySelectorAll('p, .msg, .chat-line');
+                if(lines.length === 0) lines = doc.querySelectorAll('body > div');
+                rawLogData = [];
+                detectedTabs.clear();
+                characterColorMap = {};
+
                 lines.forEach(p => {
-                    if (p.querySelector('p')) return; const text = p.textContent.trim(); if(!text) return;
+                    if (p.querySelector('p')) return;
+                    const text = p.textContent.trim();
+                    if(!text) return;
                     let avatarSrc = p.querySelector('img')?.getAttribute('src') || "";
-                    const match = text.match(/^\[([^\]]+)\]\s*([^:]+)\s*:\s*([\s\S]*)$/);
-                    if (match) {
-                        let tabName = match[1].trim(); let charName = match[2].trim(); let msgBody = match[3].trim();
-                        detectedTabs.add(tabName); detectedCharacters.add(charName);
-                        rawLogData.push({ tab: tabName, name: charName, message: msgBody, avatar: avatarSrc });
+                    
+                    let extractedColor = null;
+                    const IGNORE_COLORS = new Set(['#888888', '#000000', '#222222', '#111111', '#333333']);
+                    if (p.style && p.style.color) {
+                        const c = rgbToHex(p.style.color);
+                        if (c && !IGNORE_COLORS.has(c)) extractedColor = c;
+                    }
+                    if (!extractedColor) {
+                        const childSpans = p.querySelectorAll('span');
+                        for (let s of childSpans) {
+                            if (s.style && s.style.color) {
+                                const c = rgbToHex(s.style.color);
+                                if (c && !IGNORE_COLORS.has(c)) { extractedColor = c; break; }
+                            }
+                        }
+                    }
+
+                    const tabAttr = p.getAttribute('data-tab') || p.closest('[data-tab]')?.getAttribute('data-tab');
+                    const nameAttr = p.getAttribute('data-name') || p.closest('[data-name]')?.getAttribute('data-name');
+                    
+                    if (tabAttr || nameAttr) {
+                        let tName = (tabAttr || "Main").trim();
+                        let cName = (nameAttr || "").trim();
+                        detectedTabs.add(tName);
+                        if (cName && cName !== '-') {
+                            if (!characterColorMap[cName]) characterColorMap[cName] = extractedColor || '#aaaaaa';
+                        }
+                        let mBody = p.innerHTML;
+                        const blockClone = p.cloneNode(true);
+                        const nEl = blockClone.querySelector('.char-name-wrapper, .name, strong');
+                        if(nEl) nEl.remove();
+                        mBody = blockClone.innerHTML.replace(/^[:\s\-]+/, "").trim();
+                        rawLogData.push({ tab: tName, name: cName, message: mBody, avatar: avatarSrc });
                     } else {
-                        const simpleMatch = text.match(/^([^:]+)\s*:\s*([\s\S]*)$/);
-                        if(simpleMatch) {
-                            let charName = simpleMatch[1].trim(); let msgBody = simpleMatch[2].trim();
-                            detectedTabs.add("Main"); detectedCharacters.add(charName);
-                            rawLogData.push({ tab: "Main", name: charName, message: msgBody, avatar: avatarSrc });
+                        const match = text.match(/^\[([^\]]+)\]\s*([^:]+)\s*:\s*([\s\S]*)$/);
+                        if (match) {
+                            let tName = match[1].trim();
+                            let cName = match[2].trim();
+                            let mBody = match[3].trim();
+                            detectedTabs.add(tName);
+                            if (cName && cName !== '-') {
+                                if (!characterColorMap[cName]) characterColorMap[cName] = extractedColor || '#aaaaaa';
+                            }
+                            rawLogData.push({ tab: tName, name: cName, message: mBody, avatar: avatarSrc });
                         } else {
-                            rawLogData.push({ tab: "시스템", name: "", message: text, avatar: "" });
+                            const simpleMatch = text.match(/^([^:]+)\s*:\s*([\s\S]*)$/);
+                            if(simpleMatch) {
+                                let cName = simpleMatch[1].trim();
+                                let mBody = simpleMatch[2].trim();
+                                detectedTabs.add("Main");
+                                if (cName && cName !== '-') {
+                                    if (!characterColorMap[cName]) characterColorMap[cName] = extractedColor || '#aaaaaa';
+                                }
+                                rawLogData.push({ tab: "Main", name: cName, message: mBody, avatar: avatarSrc });
+                            } else {
+                                rawLogData.push({ tab: "시스템", name: "", message: text, avatar: "" });
+                            }
                         }
                     }
                 });
-                buildFilters(); buildCharacterColorPicker();
+                buildFilters();
+                buildCharacterColorPicker();
             };
             reader.readAsText(file, 'UTF-8');
         });
 
         function buildFilters() {
-            const container = document.getElementById('dynamicFilters'); container.innerHTML = "";
+            const container = document.getElementById('dynamicFilters');
+            container.innerHTML = "";
             const sortedTabs = Array.from(detectedTabs).sort((a, b) => {
                 if (a.toLowerCase() === 'main') return -1;
                 if (b.toLowerCase() === 'main') return 1;
                 return a.localeCompare(b);
             });
             sortedTabs.forEach(tab => {
-                const label = document.createElement('label'); label.className = "filter-item";
+                const label = document.createElement('label');
+                label.className = "filter-item";
                 label.innerHTML = `<input type="checkbox" class="tab-chk" value="${tab}" checked> <span>${tab}</span>`;
                 container.appendChild(label);
             });
         }
 
         function buildCharacterColorPicker() {
-            const panel = document.getElementById('characterColorPanel'); panel.innerHTML = "";
-            const p = themeProfiles[currentColorTheme]; const sortedChars = Array.from(detectedCharacters).sort();
+            const panel = document.getElementById('characterColorPanel');
+            panel.innerHTML = "";
+            const sortedChars = Object.keys(characterColorMap).sort();
             if(sortedChars.length === 0) {
-                panel.innerHTML = `<span style="color: var(--text-muted); font-size: 0.83rem;">추출된 캐릭터가 없습니다.</span>`; return;
+                panel.innerHTML = `<span style="color: var(--text-muted); font-size: 0.83rem;">파일을 업로드하면 고유 색상이 자동으로 추출됩니다.</span>`;
+                return;
             }
             sortedChars.forEach(char => {
-                const item = document.createElement('div'); item.className = "color-picker-item";
-                item.innerHTML = `<span title="${char}">${char}</span><input type="color" class="char-color-input" data-char="${char}" value="${p.fallbackName}">`;
+                const item = document.createElement('div');
+                item.className = "color-picker-item";
+                const autoColor = characterColorMap[char] || '#aaaaaa';
+                item.innerHTML = `<span title="${char}">${char}</span><input type="color" class="char-color-input" data-char="${char}" value="${autoColor}">`;
                 panel.appendChild(item);
             });
         }
 
         function getCharacterColorMap() {
-            const map = {}; document.querySelectorAll('.char-color-input').forEach(input => { map[input.dataset.char] = input.value; }); return map;
+            const map = {};
+            document.querySelectorAll('.char-color-input').forEach(input => {
+                map[input.dataset.char] = input.value;
+            });
+            return map;
         }
 
         function saveHistoryState() {
             if (isHistoryAction) return;
-            undoStack.push({ tabsHTML: document.getElementById('dynamicTabsOutput').innerHTML }); redoStack = []; updateHistoryButtons();
+            undoStack.push({ tabsHTML: document.getElementById('dynamicTabsOutput').innerHTML });
+            redoStack = [];
+            updateHistoryButtons();
         }
 
         function updateHistoryButtons() {
-            document.getElementById('btnUndo').disabled = undoStack.length === 0;
-            document.getElementById('btnRedo').disabled = redoStack.length === 0;
+            document.getElementById('btnUndo').disabled = (undoStack.length === 0);
+            document.getElementById('btnRedo').disabled = (redoStack.length === 0);
         }
 
         document.getElementById('btnUndo').addEventListener('click', () => {
             if (undoStack.length === 0) return;
+            isHistoryAction = true;
             redoStack.push({ tabsHTML: document.getElementById('dynamicTabsOutput').innerHTML });
-            const prev = undoStack.pop(); restoreState(prev); updateHistoryButtons();
+            const prev = undoStack.pop();
+            document.getElementById('dynamicTabsOutput').innerHTML = prev.tabsHTML;
+            attachAccordionEvents();
+            attachRowClickEvents();
+            updateHistoryButtons();
+            isHistoryAction = false;
         });
 
         document.getElementById('btnRedo').addEventListener('click', () => {
             if (redoStack.length === 0) return;
+            isHistoryAction = true;
             undoStack.push({ tabsHTML: document.getElementById('dynamicTabsOutput').innerHTML });
-            const next = redoStack.pop(); restoreState(next); updateHistoryButtons();
+            const next = redoStack.pop();
+            document.getElementById('dynamicTabsOutput').innerHTML = next.tabsHTML;
+            attachAccordionEvents();
+            attachRowClickEvents();
+            updateHistoryButtons();
+            isHistoryAction = false;
         });
-
-        function restoreState(state) {
-            isHistoryAction = true; document.getElementById('dynamicTabsOutput').innerHTML = state.tabsHTML;
-            attachAccordionEvents(); isHistoryAction = false;
-        }
 
         function attachAccordionEvents() {
             document.querySelectorAll('.output-room-title').forEach(title => {
+                title.onclick = null;
                 title.onclick = function() {
                     const container = this.nextElementSibling;
                     if (container && container.classList.contains('script-container')) {
                         container.classList.toggle('collapsed');
-                        this.classList.toggle('is-collapsed', container.classList.contains('collapsed'));
+                        this.classList.toggle('is-collapsed');
                     }
                 };
             });
         }
 
-        // 실행 및 이미지 추출 연동 메인 비동기 핸들러
+        function addBgColorBtn(row) {
+            if (row.querySelector('.bg-color-btn')) return;
+            const btn = document.createElement('div');
+            btn.className = 'bg-color-btn';
+            btn.title = '배경색 변경';
+            const picker = document.createElement('input');
+            picker.type = 'color';
+            picker.value = row.dataset.custombgColor || '#aaaaaa';
+            btn.style.backgroundColor = picker.value;
+            picker.addEventListener('input', (e) => {
+                e.stopPropagation();
+                row.dataset.custombgColor = e.target.value;
+                applyRowCustomBg(row);
+            });
+            picker.addEventListener('click', e => e.stopPropagation());
+            picker.addEventListener('dblclick', e => e.stopPropagation());
+            btn.appendChild(picker);
+            row.appendChild(btn);
+        }
+
+        function attachRowClickEvents() {
+            document.querySelectorAll('.notion-row').forEach(row => {
+                if (row.dataset.custombg) addBgColorBtn(row);
+                row.ondblclick = null;
+                row.ondblclick = function(e) {
+                    if (e.target.closest('.row-control') || e.target.closest('.notion-block[contenteditable="true"]') || e.target.closest('.bg-color-btn')) return;
+                    if (this.querySelector('.state-system')) return;
+                    saveHistoryState();
+                    const mode = currentColorTheme === 'roll20' ? 'dark' : 'light';
+                    if (!this.dataset.custombg) {
+                        this.dataset.custombg = mode;
+                        this.dataset.custombgColor = '#aaaaaa';
+                        this.classList.add(mode === 'light' ? 'bg-custom-light' : 'bg-custom-dark');
+                        applyRowCustomBg(this);
+                        addBgColorBtn(this);
+                    } else {
+                        delete this.dataset.custombg;
+                        delete this.dataset.custombgColor;
+                        this.classList.remove('bg-custom-light', 'bg-custom-dark');
+                        this.style.backgroundColor = '';
+                        this.style.border = '';
+                        const btn = this.querySelector('.bg-color-btn');
+                        if (btn) btn.remove();
+                    }
+                };
+            });
+        }
+
         document.getElementById('btnProcess').addEventListener('click', async () => {
             if(rawLogData.length === 0) return alert('파일을 업로드하세요.');
-            
             const btnSubmit = document.getElementById('btnProcess');
             const originalBtnText = btnSubmit.textContent;
-            btnSubmit.textContent = "처리 및 이미지 추출 중...";
+            btnSubmit.textContent = "처리 중...";
             btnSubmit.disabled = true;
-
             try {
-                // 1. 기존 로그 HTML 본문 파싱 및 변환 로직 실행
-                undoStack = []; redoStack = []; updateHistoryButtons();
-                
+                undoStack = []; redoStack = [];
+                updateHistoryButtons();
                 const narrator = document.getElementById('narratorName').value.trim();
-                const charColorMap = getCharacterColorMap();
+                const charColorMap = { ...characterColorMap, ...getCharacterColorMap() };
                 const selectedTabs = Array.from(document.querySelectorAll('.tab-chk:checked')).map(c => c.value);
-                
                 selectedTabs.sort((a, b) => {
                     if (a.toLowerCase() === 'main') return -1;
                     if (b.toLowerCase() === 'main') return 1;
@@ -737,101 +889,104 @@
                 });
 
                 const dynamicTabsOutput = document.getElementById('dynamicTabsOutput');
-                dynamicTabsOutput.innerHTML = ""; const tabContainers = {}; const tabLastSpeakerType = {}; 
+                dynamicTabsOutput.innerHTML = "";
+                const tabContainers = {};
+                const tabLastSpeakerType = {};
+                const tabLastSpeakerName = {}; // 대사 연속성 체킹용 명단 분리
 
                 selectedTabs.forEach(t => {
-                    const card = document.createElement('div'); card.className = "notion-card";
-                    card.id = `card_${t.replace(/[^a-zA-Z0-9]/g, '_')}`;
-                    card.innerHTML = `
-                        <div class="notion-label">세션 로그 채널 — [${t}]</div>
-                        <h2 class="output-room-title">${globalRoomTitle} - ${t}</h2>
-                        <div class="script-container"></div>
-                    `;
+                    const card = document.createElement('div');
+                    card.className = "notion-card";
+                    card.id = `card_${t.replace(/[^a-zA-Z0-9]/g, "_")}`;
+                    
+                    const title = document.createElement('div');
+                    title.className = "output-room-title";
+                    title.textContent = `${globalRoomTitle} [${t}]`;
+                    card.appendChild(title);
+
+                    const container = document.createElement('div');
+                    container.className = "script-container";
+                    card.appendChild(container);
+
                     dynamicTabsOutput.appendChild(card);
-                    tabContainers[t] = card.querySelector('.script-container'); tabLastSpeakerType[t] = "";
+                    tabContainers[t] = container;
+                    tabLastSpeakerType[t] = null;
+                    tabLastSpeakerName[t] = null;
                 });
 
                 const p = themeProfiles[currentColorTheme];
-                
-                rawLogData.forEach(log => {
+
+                rawLogData.forEach((log) => {
                     let currentTargetTab = log.tab;
-                    if(log.tab === "시스템") { currentTargetTab = selectedTabs[0] || null; }
-                    if(!currentTargetTab || !selectedTabs.includes(currentTargetTab)) return;
-                    
-                    const targetContainer = tabContainers[currentTargetTab];
-                    const isNarr = narrator && log.name === narrator; const isSys = log.name === "";
-                    const currentType = isSys ? "__SYS__" : (isNarr ? "__NARR__" : log.name);
-                    const lastType = tabLastSpeakerType[currentTargetTab];
-
-                    if (lastType && lastType !== currentType) {
-                        const divider = document.createElement('div'); divider.className = "character-divider"; targetContainer.appendChild(divider);
+                    if (!tabContainers[currentTargetTab]) {
+                        if (detectedTabs.has(currentTargetTab)) return;
+                        currentTargetTab = selectedTabs[0];
+                        if (!currentTargetTab) return;
                     }
-                    const same = (lastType === currentType && !isNarr && !isSys); tabLastSpeakerType[currentTargetTab] = currentType;
 
-                    const row = document.createElement('div'); row.className = "notion-row"; row.dataset.tab = currentTargetTab; row.dataset.speaker = log.name;
+                    const targetContainer = tabContainers[currentTargetTab];
+                    const isNarr = (narrator && log.name === narrator);
+                    const isSys = (!log.name && currentTargetTab === "시스템") || log.tab === "시스템";
+
+                    let currentType = "char";
+                    if (isNarr) currentType = "narr";
+                    if (isSys) currentType = "sys";
+
+                    const lastType = tabLastSpeakerType[currentTargetTab];
+                    const lastSpeakerName = tabLastSpeakerName[currentTargetTab];
+
+                    if (lastType && lastType !== currentType && !isSys && !isNarr) {
+                        const divider = document.createElement('div');
+                        divider.className = "character-divider";
+                        targetContainer.appendChild(divider);
+                    }
+
+                    // 이름까지 완전히 일치할 때만 연속 생략 조건(same = true) 성립하도록 교정
+                    const isSameSpeaker = (lastSpeakerName === log.name);
+                    const same = (lastType === currentType && !isNarr && !isSys && isSameSpeaker);
+                    
+                    if (!isSys) {
+                        tabLastSpeakerType[currentTargetTab] = currentType;
+                        tabLastSpeakerName[currentTargetTab] = log.name;
+                    }
+
+                    const row = document.createElement('div');
+                    row.className = "notion-row";
+                    row.dataset.tab = currentTargetTab;
+                    row.dataset.speaker = log.name;
+
                     let cleanMessage = log.message.replace(/<button[^>]*class="[^"]*del[^"]*"[^>]*>.*?<\/button>/gi, '').replace(/<button[^>]*>del<\/button>/gi, '').replace(/class="[^"]*del[^"]*"/gi, '');
-
                     let inner = `<div class="content-cell">`;
+
                     if(!isNarr && !isSys) {
                         const assignedColor = charColorMap[log.name] || p.fallbackName;
-                        inner += same ? `<div class="avatar-placeholder"></div>` : (log.avatar ? `<img src="${log.avatar}" class="avatar-box">` : `<div class="avatar-box"></div>`);
-                        inner += `<div style="flex:1;">${!same ? `<span class="char-name" style="color:${assignedColor}">${log.name}</span>`:''}<div class="notion-block" contenteditable="true" spellcheck="false">${cleanMessage}</div></div>`;
+                        if (same) {
+                            const prevRow = targetContainer.lastElementChild;
+                            const prevNameWrap = prevRow?.querySelector('.char-name-wrapper');
+                            const nameW = prevNameWrap ? prevNameWrap.offsetWidth : 0;
+                            inner += `<div class="avatar-placeholder"></div><div class="char-name-wrapper" style="width:${nameW}px;min-width:${nameW}px"></div>`;
+                        } else {
+                            inner += (log.avatar ? `<img src="${log.avatar}" class="avatar-box">` : `<div class="avatar-box"></div>`);
+                            inner += `<div class="char-name-wrapper"><span class="char-name" style="color:${assignedColor}">${log.name} :</span></div>`;
+                        }
+                        inner += `<div class="notion-block" contenteditable="true" spellcheck="false">${cleanMessage}</div>`;
                     } else {
                         inner += `<div class="notion-block ${isNarr?'state-narrator':'state-system'}" contenteditable="true" spellcheck="false">${isNarr ? `<b><i>${cleanMessage}</i></b>` : cleanMessage}</div>`;
                     }
                     inner += `</div><div class="control-cell"><button class="row-control" onclick="saveHistoryState(); this.closest('.notion-row').remove();">del</button></div>`;
-                    
-                    row.innerHTML = inner; targetContainer.appendChild(row);
+                    row.innerHTML = inner;
+                    targetContainer.appendChild(row);
                 });
-                
+
                 const fontValue = currentFontType === "serif" ? "var(--font-serif)" : "var(--font-sans)";
                 document.querySelectorAll('.output-room-title').forEach(el => el.style.fontFamily = fontValue);
-                attachAccordionEvents(); runAutoSpellChecker();
-
-                // 2. 동시 연동 기능: 이미지 추출 자동 매칭 및 ZIP 다운로드 백업 분기
-                const zip = new JSZip();
-                const uniqueImages = new Map();
-
-                rawLogData.forEach(log => {
-                    if (log.name && log.avatar && log.avatar.startsWith('http')) {
-                        if (!uniqueImages.has(log.name)) {
-                            uniqueImages.set(log.name, log.avatar);
-                        }
-                    }
-                });
-
-                if (uniqueImages.size > 0) {
-                    let successCount = 0;
-                    for (const [charName, url] of uniqueImages.entries()) {
-                        try {
-                            const response = await fetch(url);
-                            if (!response.ok) throw new Error('Network error');
-                            const blob = await response.blob();
-                            
-                            let ext = 'png';
-                            if (blob.type === 'image/jpeg' || url.includes('.jpg') || url.includes('.jpeg')) ext = 'jpg';
-                            if (blob.type === 'image/gif' || url.includes('.gif')) ext = 'gif';
-                            if (blob.type === 'image/webp' || url.includes('.webp')) ext = 'webp';
-
-                            const safeName = charName.replace(/[\/\\:\*\?"<>\|]/g, "_");
-                            zip.file(`${safeName}.${ext}`, blob);
-                            successCount++;
-                        } catch (err) {
-                            console.warn(`이미지 다운로드 제한 발생 (${charName}):`, err);
-                        }
-                    }
-
-                    if (successCount > 0) {
-                        const content = await zip.generateAsync({ type: "blob" });
-                        const link = document.createElement("a");
-                        link.href = URL.createObjectURL(content);
-                        link.download = `${globalRoomTitle}_Images.zip`;
-                        link.click();
-                    }
-                }
+                
+                attachAccordionEvents();
+                attachRowClickEvents();
+                runAutoSpellChecker();
             } catch (error) {
                 console.error(error);
-                alert('처리 과정 중 알 수 없는 오류가 발생했습니다.');
+                alert('처리 과정 중 오류가 발생했습니다.');
             } finally {
                 btnSubmit.textContent = originalBtnText;
                 btnSubmit.disabled = false;
@@ -843,57 +998,42 @@
             const reportCard = document.getElementById('spellReportCard');
             const reportList = document.getElementById('spellReportList');
             const summaryBar = document.getElementById('spellSummaryBar');
-            reportList.innerHTML = ""; summaryBar.innerHTML = ""; reportCard.style.display = "none";
+            reportList.innerHTML = "";
+            summaryBar.innerHTML = "";
+            reportCard.style.display = "none";
             if (!isEnabled) return;
-            
+
             const blocks = document.querySelectorAll('.notion-block');
             let detected = [];
             blocks.forEach((block, idx) => {
-                const tab = block.closest('.notion-row')?.dataset.tab || "";
-                if (tab.includes("잡담") || tab.toLowerCase().includes("talk")) return;
-                const text = block.innerText;
+                const tab = block.closest('.notion-row')?.dataset.tab || "로그";
+                const speaker = block.closest('.notion-row')?.dataset.speaker || "시스템";
+                if (block.closest('.notion-row')?.querySelector('.state-system')) return;
+                const txt = block.innerText;
                 spellRules.forEach(rule => {
-                    if (rule.wrong.test(text)) {
-                        rule.wrong.lastIndex = 0; 
-                        detected.push({
-                            el: block,
-                            row: block.closest('.notion-row'),
-                            line: idx + 1,
-                            speaker: block.closest('.notion-row')?.dataset.speaker || "서술/시스템",
-                            rule: rule
-                        });
-                    }
                     rule.wrong.lastIndex = 0;
+                    if (rule.wrong.test(txt)) {
+                        detected.push({ el: block, row: block.closest('.notion-row'), line: idx + 1, tab, speaker, rule });
+                    }
                 });
             });
-            
-            const seen = new Set();
-            detected = detected.filter(d => {
-                const key = d.el.textContent.slice(0,30) + d.rule.right;
-                if (seen.has(key)) return false;
-                seen.add(key); return true;
-            });
-            
+
             if (detected.length > 0) {
                 reportCard.style.display = "block";
-                
-                const cats = {};
-                detected.forEach(d => { cats[d.rule.cat] = (cats[d.rule.cat] || 0) + 1; });
-                Object.entries(cats).forEach(([cat, cnt]) => {
-                    const chip = document.createElement('div'); chip.className = "spell-summary-chip";
-                    chip.innerHTML = `<span>${cat}</span><span class="chip-count">${cnt}건</span>`;
+                const counts = {};
+                detected.forEach(i => counts[i.rule.cat] = (counts[i.rule.cat] || 0) + 1);
+                Object.keys(counts).forEach(cat => {
+                    const chip = document.createElement('span');
+                    chip.className = "spell-summary-chip";
+                    chip.innerHTML = `${cat}: <span class="chip-count">${counts[cat]}건</span>`;
                     summaryBar.appendChild(chip);
                 });
-                const totalChip = document.createElement('div'); totalChip.className = "spell-summary-chip";
-                totalChip.innerHTML = `<span>전체</span><span class="chip-count">${detected.length}건</span>`;
-                summaryBar.prepend(totalChip);
-                
-                detected.forEach((issue) => {
-                    const item = document.createElement('div'); item.className = "spell-report-item";
+
+                detected.forEach(issue => {
+                    const item = document.createElement('div');
+                    item.className = "spell-report-item";
                     issue.rule.wrong.lastIndex = 0;
-                    const previewText = issue.el.innerText.replace(issue.rule.wrong, (m) =>
-                        `<s style="color:#888888; text-decoration:line-through;">${m}</s> <span style="color:#ffffff; font-weight:600">→ ${issue.rule.right}</span>`
-                    );
+                    const previewText = issue.el.innerText.replace(issue.rule.wrong, (m) => `<s style="color:#888888; text-decoration:line-through;">${m}</s> <span style="color:#ffffff; font-weight:600">→ ${issue.rule.right}</span>` );
                     issue.rule.wrong.lastIndex = 0;
                     item.innerHTML = `
                         <div class="spell-context-box">
@@ -901,12 +1041,14 @@
                             <div class="spell-context-text">${previewText}</div>
                         </div>
                         <button class="spell-fix-trigger">교정</button>`;
+
                     item.addEventListener('click', (e) => {
                         if (e.target.classList.contains('spell-fix-trigger')) return;
                         issue.row?.scrollIntoView({ behavior: 'smooth', block: 'center' });
                         issue.row?.classList.add('row-flash');
                         setTimeout(() => issue.row?.classList.remove('row-flash'), 1000);
                     });
+
                     item.querySelector('.spell-fix-trigger').addEventListener('click', (e) => {
                         e.stopPropagation();
                         saveHistoryState();
@@ -932,61 +1074,143 @@
             document.getElementById('spellReportCard').style.display = "none";
         });
 
-        function buildFinal() {
+        function buildFinal(mode = 'full') {
             const chosenFont = currentFontType === "serif" ? `'Hina Mincho', 'Noto Serif KR', serif` : `'Noto Sans KR', sans-serif`;
-            const p = themeProfiles[currentColorTheme]; const charColorMap = getCharacterColorMap();
-            
+            const p = themeProfiles[currentColorTheme];
+            const charColorMap = { ...characterColorMap, ...getCharacterColorMap() };
             const bodyBg = currentColorTheme === "roll20" ? "#e9eced" : "#111111";
             const bodyText = currentColorTheme === "roll20" ? "#232323" : "#e3e3e3";
-
             const isRoll20 = (currentColorTheme === "roll20");
             const narrBg = isRoll20 ? "transparent" : p.bg;
             const narrBorder = isRoll20 ? "none" : `1px solid ${p.border}`;
-            const narrPadding = isRoll20 ? "5px 6px" : "14px 20px";
+            const narrPadding = isRoll20 ? "2px 0" : "12px 16px";
 
-            let out = `<!DOCTYPE html><html><head><meta charset="UTF-8"><title>세션 로그 백업</title><style>
-                @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;700&family=Noto+Serif+KR:wght@400;700&family=Hina+Mincho&display=swap');
-                * { box-sizing: border-box; margin: 0; padding: 0; }
-                html, body { background-color: ${bodyBg} !important; }
-                body { color: ${bodyText} !important; font-family:'Noto Sans KR', sans-serif; padding: 50px 24px; display: flex; flex-direction: column; align-items: center; }
-                .page-wrap { width: 100%; max-width: 850px; }
-                
-                h1 { font-family:${chosenFont}; font-size:1.4rem; text-align:center; color:${p.title} !important; background-color:${p.titleBg} !important; border:1px solid ${p.titleBorder} !important; border-radius:0; padding:14px; margin-bottom:14px; font-weight:700; cursor:pointer; user-select:none; }
-                h1::after { content:" ▾"; font-size:0.8rem; opacity:0.5; }
-                
-                .script-box { display:flex; flex-direction:column; gap:1px; background:${p.bg} !important; padding:20px; border-radius:0; border:1px solid ${p.border}; margin-bottom:28px; width:100%; }
-                .script-box.collapsed { display:none !important; }
-                .row { display:flex; align-items:flex-start; gap:12px; padding:5px 6px; width:100%; }
-                .avatar { width:28px; height:28px; border-radius:0; object-fit:cover; flex-shrink:0; background:#444; }
-                .msg { font-family:${chosenFont}; font-size:0.95rem; line-height:1.55; white-space:pre-wrap; flex:1; color:${p.text} !important; word-break:break-word; background:transparent !important; }
-                .name { font-size:0.85rem; font-weight:700; display:block; margin-bottom:2px; background:transparent !important; }
-                
-                /* 서술자 글자 크기 1px 축소 (0.95rem -> 0.89rem) */
-                .narrator { text-align:center; font-weight:700; font-style:italic; padding:${narrPadding}; color:${p.narrator} !important; width:100%; background:${narrBg} !important; border:${narrBorder}; font-size: 0.89rem; }
-                .system { color:${p.sys} !important; font-size:0.85rem; background:transparent !important; }
-                .divider { border-top:1px solid rgba(128,128,128,0.15); margin:6px 0; }
-                
-                mark.hl-yellow { background-color:#e0e0e0 !important; color:#232323 !important; padding:1px 3px; }
-                mark.hl-green { background-color:#c0c0c0 !important; color:#232323 !important; padding:1px 3px; }
-                mark.hl-blue { background-color:#a0a0a0 !important; color:#232323 !important; padding:1px 3px; }
-                mark.hl-pink { background-color:#808080 !important; color:#e3e3e3 !important; padding:1px 3px; }
-                b { font-weight:bold; } i { font-style:italic; } s { text-decoration:line-through; }
-            </style></head><body><div class="page-wrap">`;
+            let css = "";
+            if (mode === 'embed') {
+                css = `
+                .page-wrap {
+                    box-sizing: border-box;
+                    font-family: ${chosenFont};
+                    background-color: ${bodyBg};
+                    color: ${bodyText};
+                    padding: 16px;
+                    width: 100%;
+                    -webkit-font-smoothing: antialiased;
+                    letter-spacing: -0.01em;
+                }
+                .page-wrap *, .page-wrap *::before, .page-wrap *::after { box-sizing: border-box; }
+                .page-wrap h1.title {
+                    font-family: ${chosenFont}; font-size: 1.25rem; font-weight: 700;
+                    color: ${p.text} !important; background-color: ${p.bg} !important;
+                    border: 1px solid ${p.border} !important;
+                    margin: 10px 0 14px 0; outline: none; border-radius: 0px;
+                    padding: 13px 16px; text-align: center; cursor: pointer; user-select: none;
+                }
+                .page-wrap .box { display: flex; flex-direction: column; gap: 1px; background-color: ${bodyBg}; padding: 0; width: 100%; }
+                `;
+            } else {
+                css = `
+                *, *::before, *::after { box-sizing: border-box; }
+                html, body { margin: 0; padding: 0; width: 100%; background-color: ${bodyBg}; }
+                body {
+                    font-family: ${chosenFont}; display: flex; flex-direction: column; align-items: center;
+                    padding: 40px 16px 80px; -webkit-font-smoothing: antialiased; letter-spacing: -0.01em;
+                    color: ${bodyText}; min-height: 100vh;
+                }
+                h1.title {
+                    font-family: ${chosenFont}; font-size: 1.25rem; font-weight: 700;
+                    color: ${p.text} !important; background-color: ${p.bg} !important;
+                    border: 1px solid ${p.border} !important;
+                    margin: 10px 0 14px 0; outline: none; border-radius: 0px;
+                    padding: 13px 16px; text-align: center; cursor: pointer; user-select: none;
+                    width: 100%; max-width: 900px;
+                }
+                .box { display: flex; flex-direction: column; gap: 1px; background-color: ${bodyBg}; padding: 16px; border-radius: 0px; border: 1px solid ${p.border}; width: 100%; max-width: 900px; overflow-x: hidden; margin-bottom: 30px; }
+                `;
+            }
 
-            const process = (nodes) => {
-                let res = ""; let last = "";
-                nodes.forEach(el => {
-                    if(el.classList.contains('character-divider')) { res+='<div class="divider"></div>'; return; }
-                    const block = el.querySelector('.notion-block'); if(!block) return;
-                    let cleanHTML = block.innerHTML.replace(/<button[^>]*>.*?<\/button>/gi, '').replace(/del/gi, ''); 
+            const scope = mode === 'embed' ? '.page-wrap ' : '';
+            css += `
+            ${scope}.row { display: flex; align-items: flex-start; justify-content: space-between; gap: 12px; padding: 6px 8px; position: relative; width: 100%; background: transparent !important; border: none !important; }
+            ${scope}.row.c-custom-light { background-color: #ffffff !important; border: 1px solid #dddddd !important; }
+            ${scope}.row.c-custom-light .msg { color: #1a1a1a !important; }
+            ${scope}.row.c-custom-light .name-wrap { filter: brightness(0.15) contrast(1.2); }
+            ${scope}.row.c-custom-light .narrator { color: #1a1a1a !important; background: transparent !important; border: none !important; }
+            ${scope}.row.c-custom-dark { background-color: #1a1a1a !important; border: 1px solid #333333 !important; }
+            ${scope}.row.c-custom-dark .msg { color: #e3e3e3 !important; }
+            ${scope}.row.c-custom-dark .name-wrap { filter: brightness(1.2); }
+            ${scope}.row.c-custom-dark .narrator { color: #e3e3e3 !important; background: transparent !important; border: none !important; }
+            ${scope}.avatar { width:28px; height:28px; border-radius:0; object-fit:cover; flex-shrink:0; background:#444; }
+            ${scope}.msg { font-family:${chosenFont}; font-size:0.95rem; line-height:1.6; white-space:pre-wrap; flex:1; color:${p.text} !important; word-break:break-word; background:transparent !important; min-width: 0; }
+            ${scope}.name-wrap { width: auto; min-width: 0; max-width: 150px; flex-shrink: 0; text-align: left; padding-right: 4px; display: block; background: transparent !important; overflow: hidden; }
+            ${scope}.name { font-size:0.85rem; font-weight:700; display:block; background:transparent !important; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+            ${scope}.narrator { text-align:center; font-weight:700; font-style:italic; padding:${narrPadding}; color:${p.narrator} !important; width:100%; background:${narrBg} !important; border:${narrBorder}; font-size: 0.89rem; transition: color 0.3s; }
+            ${scope}.system { color:${p.sys} !important; font-size:0.82rem; background:transparent !important; text-align:center !important; width:100% !important; font-style:normal !important; display: block; padding: 6px 0; margin: 0 auto; }
+            ${scope}.divider { border-top:1px solid rgba(128,128,128,0.15); margin:6px 0; }
+            ${scope}mark.hl-yellow { background-color:#e0e0e0 !important; color:#232323 !important; padding:1px 3px; }
+            ${scope}mark.hl-green { background-color:#c0c0c0 !important; color:#232323 !important; padding:1px 3px; }
+            ${scope}mark.hl-blue { background-color:#a0a0a0 !important; color:#232323 !important; padding:1px 3px; }
+            ${scope}mark.hl-pink { background-color:#808080 !important; color:#e3e3e3 !important; padding:1px 3px; }
+            ${scope}.msg b { font-weight: bold; }
+            ${scope}.msg i { font-style: italic; }
+            ${scope}.msg s { text-decoration: line-through; }
+            `;
 
-                    const isN = block.classList.contains('state-narrator'), isS = block.classList.contains('state-system');
-                    const spk = el.dataset.speaker || ""; const same = (last === spk && !isN && !isS); last = (isN?"_N":isS?"_S":spk);
-                    res += '<div class="row">';
-                    if(!isN && !isS) {
-                        const img = el.querySelector('.avatar-box')?.src; const finalColor = charColorMap[spk] || p.fallbackName;
-                        res += !same ? (img ? `<img src="${img}" class="avatar">` : `<div class="avatar"></div>`) : `<div style="width:28px;flex-shrink:0"></div>`;
-                        res += `<div>${!same?`<span class="name" style="color:${finalColor}">${spk}</span>`:''}<div class="msg">${cleanHTML}</div></div>`;
+            let out = `<style>${css}</style>\n`;
+            if (mode === 'embed') {
+                out += `<div class="page-wrap">\n`;
+            }
+
+            const buildBoxContent = (container) => {
+                let res = "";
+                const rows = container.querySelectorAll('.notion-row');
+                
+                // 파일 내보내기 시 대사 교차 체크를 위한 변수
+                let lastSpeakerNameInFile = null;
+
+                rows.forEach((el) => {
+                    if (el.classList.contains('filtered-out')) return;
+                    const isN = el.querySelector('.state-narrator') !== null;
+                    const isS = el.querySelector('.state-system') !== null;
+                    
+                    let customBgClass = "";
+                    let rowInlineStyle = "";
+                    if (el.dataset.custombg) {
+                        customBgClass = el.dataset.custombg === 'light' ? ' c-custom-light' : ' c-custom-dark';
+                        rowInlineStyle = ` style="border:1px solid ${el.dataset.custombgColor || '#aaaaaa'} !important;"`;
+                    }
+
+                    res += `<div class="row${customBgClass}"${rowInlineStyle}>`;
+                    const block = el.querySelector('.notion-block');
+                    let cleanHTML = block ? block.innerHTML : "";
+                    
+                    if (!isN && !isS) {
+                        const speakerName = el.dataset.speaker || "";
+                        // 파일 변환 저장 시에도 이름이 같은지 엄밀하게 대조 검사 실행
+                        const isSpacer = el.querySelector('.avatar-placeholder') !== null || (lastSpeakerNameInFile === speakerName);
+                        
+                        if (!isSpacer) {
+                            const av = el.querySelector('.avatar-box');
+                            const avSrc = av ? av.getAttribute('src') : "";
+                            const nameEl = el.querySelector('.char-name');
+                            const nameStyle = nameEl ? nameEl.getAttribute('style') : "";
+                            
+                            if (avSrc) res += `<img src="${avSrc}" class="avatar">`;
+                            else res += `<div class="avatar" style="background:transparent"></div>`;
+                            
+                            res += `<div class="name-wrap"><span class="name" style="${nameStyle}">${speakerName}</span></div>`;
+                        } else {
+                            const prevRows = Array.from(el.parentElement?.children || []);
+                            const myIdx = prevRows.indexOf(el);
+                            let nameW = 0;
+                            for (let i = myIdx - 1; i >= 0; i--) {
+                                const nw = prevRows[i].querySelector('.name-wrap');
+                                if (nw) { nameW = nw.offsetWidth; break; }
+                            }
+                            res += `<div style="width:28px;flex-shrink:0"></div><div class="name-wrap" style="width:${nameW}px;min-width:${nameW}px"></div>`;
+                        }
+                        res += `<div class="msg">${cleanHTML}</div>`;
+                        lastSpeakerNameInFile = speakerName; // 발화자 갱신
                     } else {
                         let styledContent = cleanHTML;
                         if(isN) {
@@ -995,43 +1219,61 @@
                             }
                         }
                         res += `<div class="msg ${isN?'narrator':'system'}">${styledContent}</div>`;
+                        lastSpeakerNameInFile = null; // 서술/시스템 돌입 시 갱신 초기화
                     }
                     res += '</div>';
-                }); return res;
+                });
+                return res;
             };
 
             const cards = document.querySelectorAll('#dynamicTabsOutput > .notion-card');
             cards.forEach((card, idx) => {
                 const titleText = card.querySelector('.output-room-title').innerText;
-                out += `<h1 onclick="const box=document.getElementById('box_${idx}'); box.style.display=(box.style.display==='none'?'flex':'none');">${titleText}</h1>`;
-                out += `<div id="box_${idx}" class="script-box">${process(card.querySelectorAll('.script-container > div'))}</div>`;
+                out += `<h1 class="title" onclick="const box=document.getElementById('box_${idx}'); box.style.display=(box.style.display==='none'?'flex':'none');">${titleText}</h1>\n`;
+                out += `<div id="box_${idx}" class="box">\n`;
+                const container = card.querySelector('.script-container');
+                if (container) out += buildBoxContent(container);
+                out += `</div>\n`;
             });
-            return out + '</div></body></html>';
+
+            if (mode === 'embed') {
+                out += `</div>\n`;
+            }
+            return out;
         }
 
-        document.getElementById('btnCopy').addEventListener('click', () => {
-            navigator.clipboard.writeText(buildFinal()).then(() => {
-                const btn = document.getElementById('btnCopy');
-                const orig = btn.textContent; btn.textContent = "복사 완료";
-                btn.style.color = "var(--success)"; btn.style.borderColor = "var(--border-active)";
-                setTimeout(() => { btn.textContent = orig; btn.style.color = ""; btn.style.borderColor = ""; }, 2000);
-            });
-        });
-        
-        document.getElementById('btnDownload').addEventListener('click', () => {
-            const blob = new Blob([buildFinal()], { type: 'text/html;charset=utf-8;' });
-            const link = document.createElement("a"); link.href = URL.createObjectURL(blob);
-            link.download = `Log_Backup.html`; link.click();
-        });
+        async function triggerDownload() {
+            if(document.querySelectorAll('#dynamicTabsOutput > .notion-card').length === 0) return alert('먼저 실행 버튼을 눌러 로그를 변환하세요.');
+            const fullCode = buildFinal('full');
+            const embedCode = buildFinal('embed');
+            
+            const zip = new JSZip();
+            zip.file(`${globalRoomTitle}_독립형(full).html`, fullCode);
+            zip.file(`${globalRoomTitle}_티스토리용(embed).html`, embedCode);
+            
+            const content = await zip.generateAsync({ type: "blob" });
+            const url = URL.createObjectURL(content);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `${globalRoomTitle}_변환로그.zip`;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+        }
 
-        document.getElementById('logSearchInput').addEventListener('input', function(e) {
-            const k = e.target.value.toLowerCase().trim();
-            document.querySelectorAll('.notion-row').forEach(r => {
-                const block = r.querySelector('.notion-block'); if(!block) return;
-                if(block.innerText.toLowerCase().includes(k) || k === '') r.classList.remove('filtered-out');
-                else r.classList.add('filtered-out');
+        function triggerCopy() {
+            if(document.querySelectorAll('#dynamicTabsOutput > .notion-card').length === 0) return alert('먼저 실행 버튼을 눌러 로그를 변환하세요.');
+            const embedCode = buildFinal('embed');
+            navigator.clipboard.writeText(embedCode).then(() => {
+                alert('코드가 클립보드에 복사되었습니다.');
+            }).catch(err => {
+                alert('복사 실패: ' + err);
             });
-        });
+        }
+
+        document.getElementById('btnDownload').addEventListener('click', triggerDownload);
+        document.getElementById('btnCopy').addEventListener('click', triggerCopy);
 
         const styler = document.getElementById('textStyler');
         document.addEventListener('selectionchange', () => {
@@ -1059,6 +1301,17 @@
                     mark.className = colorClass; range.surroundContents(mark);
                 }
             } else { document.execCommand(cmd, false, null); }
+        });
+
+        document.getElementById('logSearchInput').addEventListener('input', (e) => {
+            const k = e.target.value.trim().toLowerCase();
+            document.querySelectorAll('.notion-row').forEach(row => {
+                if (row.querySelector('.state-system')) return;
+                const b = row.querySelector('.notion-block'); if(!b) return;
+                const match = !k || b.innerText.toLowerCase().includes(k);
+                if (match) row.classList.remove('filtered-out');
+                else row.classList.add('filtered-out');
+            });
         });
     </script>
 </body>
